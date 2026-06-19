@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ETF Partner Finder</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080c;--surface:#0d0f17;--card:#111420;--border:#1a1d2e;--border2:#22253a;
+  --accent:#4f8ef7;--accent2:#7ba8ff;
+  --gold:#f5c542;--silver:#a8b4cc;--bronze:#cd9b6b;
+  --green:#2dce89;--red:#f75f4f;--purple:#9b5cf6;--teal:#00c9a7;--orange:#ff9f43;
+  --text:#e8ecf5;--sub:#6b7290;--dim:#2a2d42;
+  --r1:#f5c542;--r2:#00c9a7;--r3:#9b5cf6;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+/* HEADER */
+.hdr{padding:32px 44px 24px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,#0b0e19 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hdr::after{content:'';position:absolute;top:-80px;right:-80px;width:360px;height:360px;background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 65%);pointer-events:none}
+.hdr-row{display:flex;align-items:center;gap:12px;margin-bottom:5px}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hdr h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.hdr-sub{font-size:12px;color:var(--sub);margin-left:46px;line-height:1.55}
+.data-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(45,206,137,.1);border:1px solid rgba(45,206,137,.2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--green);margin-top:8px;margin-left:46px}
+.data-badge b{color:#fff}
+
+/* MAIN */
+.main{padding:28px 44px;max-width:1100px}
+
+/* DATA NOTE */
+.data-note{background:rgba(79,142,247,.06);border:1px solid rgba(79,142,247,.15);border-radius:10px;padding:12px 16px;margin-bottom:24px;font-size:12px;color:var(--sub);line-height:1.6}
+.data-note strong{color:var(--accent2)}
+
+/* SEARCH */
+.search-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
+.search-wrap{position:relative;max-width:500px;margin-bottom:32px}
+.search-input{width:100%;background:var(--card);border:1.5px solid var(--border2);border-radius:11px;padding:13px 52px 13px 16px;font-size:15px;font-weight:600;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;letter-spacing:.2px;font-family:inherit}
+.search-input::placeholder{color:var(--dim);font-weight:400}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.12)}
+.search-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:8px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;transition:background .2s}
+.search-btn:hover{background:var(--accent2)}
+
+/* AUTOCOMPLETE */
+.ac-drop{position:absolute;top:calc(100% + 5px);left:0;width:100%;background:var(--card);border:1.5px solid var(--border2);border-radius:11px;overflow:hidden;z-index:200;box-shadow:0 20px 50px rgba(0,0,0,.6);display:none}
+.ac-item{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.hi{background:rgba(79,142,247,.1)}
+.ac-tick{font-size:13px;font-weight:800;color:var(--accent);min-width:52px;font-family:'Courier New',monospace;letter-spacing:.5px}
+.ac-name{font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.ac-cat{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);background:var(--border);padding:2px 7px;border-radius:4px;white-space:nowrap}
+
+/* SOLO VS PORTFOLIO COMPARISON */
+.compare-strip{display:grid;grid-template-columns:1fr auto 1fr;gap:0;background:var(--card);border:1.5px solid var(--border2);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.cmp-solo{padding:20px 24px;border-right:1px solid var(--border)}
+.cmp-arrow{display:flex;align-items:center;justify-content:center;padding:0 16px;background:var(--surface)}
+.cmp-arrow-inner{font-size:20px;color:var(--sub)}
+.cmp-best{padding:20px 24px}
+.cmp-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+.cmp-row{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.cmp-ticker{font-size:14px;font-weight:800;font-family:'Courier New',monospace;color:var(--sub)}
+.cmp-sr{font-size:32px;font-weight:900;line-height:1}
+.cmp-sr.solo-val{color:var(--sub)}
+.cmp-sr.best-val{color:var(--green)}
+.cmp-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.cmp-uplift{display:inline-flex;align-items:center;gap:4px;background:rgba(45,206,137,.12);border:1px solid rgba(45,206,137,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--green);margin-top:8px}
+
+/* RANK CARDS — 3 only */
+.rank-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.rank-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:20px 16px 18px;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;position:relative;overflow:hidden}
+.rank-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--rc)}
+.rank-card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.rank-card.sel{border-color:var(--rc);box-shadow:0 0 0 1px var(--rc),0 8px 24px rgba(0,0,0,.3)}
+.rc-badge{font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--rc);margin-bottom:8px}
+.rc-tick{font-size:22px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:.5px;margin-bottom:3px}
+.rc-cat{font-size:10px;color:var(--sub);margin-bottom:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-sr-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
+.rc-sr{font-size:26px;font-weight:900;color:var(--rc);line-height:1;margin-bottom:12px}
+.rc-wt{display:flex;gap:6px;align-items:center}
+.wt-pill{flex:1;background:var(--border);border-radius:5px;padding:5px 0;text-align:center}
+.wt-lbl{font-size:9px;color:var(--sub)}
+.wt-val{font-size:12px;font-weight:800;color:var(--text)}
+.wt-div{font-size:10px;color:var(--dim)}
+
+/* DETAIL PANEL */
+.detail{background:var(--card);border:1.5px solid var(--border2);border-radius:14px;padding:22px 26px;margin-bottom:24px}
+.detail-head{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:16px}
+.ds{display:flex;flex-direction:column;gap:3px}
+.ds-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--sub)}
+.ds-val{font-size:24px;font-weight:900;line-height:1}
+.ds-sub{font-size:11px;color:var(--sub)}
+.wbar-wrap{margin-top:4px}
+.wbar-lbls{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.wbar-track{height:9px;background:var(--border);border-radius:99px;overflow:hidden}
+.wbar-fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* SCATTER */
+.scatter-section{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:24px}
+.scatter-head{margin-bottom:6px}
+.scatter-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.scatter-desc{font-size:11px;color:var(--sub)}
+.scatter-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;margin-bottom:16px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* EMPTY / LOADING */
+.empty{padding:70px 40px;text-align:center;color:var(--sub)}
+.empty-icon{font-size:38px;margin-bottom:14px}
+.empty-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+.empty-desc{font-size:13px;line-height:1.6}
+.quick-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.qpill{background:var(--border);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;font-family:'Courier New',monospace;transition:background .15s,color .15s}
+.qpill:hover{background:rgba(79,142,247,.15);color:var(--accent)}
+.spin{width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* SVG tooltip */
+.sv-tooltip{position:absolute;background:var(--surface);border:1.5px solid var(--border2);border-radius:9px;padding:10px 13px;font-size:11px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:140px;display:none;z-index:300}
+.sv-tt-tick{font-weight:800;font-family:monospace;font-size:13px;margin-bottom:5px}
+.sv-tt-row{display:flex;justify-content:space-between;gap:14px;color:var(--sub);margin-bottom:2px}
+.sv-tt-val{color:var(--text);font-weight:600}
+.scatter-container{position:relative}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-row">
+    <div class="logo">📊</div>
+    <h1>ETF Partner Finder</h1>
+  </div>
+  <div class="hdr-sub">Find the optimal 2-ETF portfolio that maximizes Sharpe ratio — ranked across 50 diversified ETFs.</div>
+  <div class="data-badge" id="dataBadge">⚠ <b>Estimated data</b>: 2015–2024 historical statistics (approximated). For exact results, run the Colab pipeline to replace with real yfinance data.</div>
+</div>
+
+<div class="main">
+
+  <div class="data-note" id="dataNote">
+    <strong>데이터 출처 및 방법론</strong> — 이 도구는 2015년 1월~2024년 12월(약 10년) 과거 수익률 통계를 기반으로 합니다.
+    연환산 기대수익률(μ), 변동성(σ), ETF 간 상관계수(ρ)를 사용해 2자산 포트폴리오의 Sharpe Ratio를 계산합니다.
+    무위험이자율(r<sub>f</sub>) = 4.5% (미국 3개월 T-bill 기준). 
+    현재 표시된 값은 추정치이며, 실제 yfinance 데이터로 교체 가능합니다.
+    <strong>ETF 50개 선정 기준</strong>: 유사 ETF 중복을 제거하고, 미국주식·배당·채권·원자재·리츠·해외주식·섹터(8개)·테마·레버리지 등 12개 자산군에서 각 특성이 뚜렷이 다른 대표 ETF를 1개씩 선정했습니다.
+  </div>
+
+  <div class="search-label">Anchor ETF</div>
+  <div class="search-wrap" id="sw">
+    <input class="search-input" id="si" type="text" placeholder="Type ticker: QQQ, SCHD, SPY…" autocomplete="off" spellcheck="false"/>
+    <button class="search-btn" id="sb">→</button>
+    <div class="ac-drop" id="ac"></div>
+  </div>
+
+  <div id="ra"></div>
+</div>
+
+<div class="sv-tooltip" id="svTip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  ETF UNIVERSE 메타데이터 (표시용 — 실제 통계는 JSON에서 로드)
+// ═══════════════════════════════════════════════════════════════
+const UNI_META = {
+  SPY:{n:"SPDR S&P 500 ETF Trust",c:"미국 대형주"},
+  QQQ:{n:"Invesco Nasdaq-100 ETF",c:"미국 성장주(나스닥)"},
+  IWM:{n:"iShares Russell 2000 ETF",c:"미국 소형주"},
+  SCHD:{n:"Schwab US Dividend Equity ETF",c:"미국 배당"},
+  VIG:{n:"Vanguard Dividend Appreciation ETF",c:"배당 성장"},
+  DVY:{n:"iShares Select Dividend ETF",c:"고배당"},
+  JEPI:{n:"JPMorgan Equity Premium Income ETF",c:"커버드콜 배당"},
+  VUG:{n:"Vanguard Growth ETF",c:"미국 성장주"},
+  ARKK:{n:"ARK Innovation ETF",c:"혁신 기술 테마"},
+  JEPQ:{n:"JPMorgan Nasdaq Equity Premium ETF",c:"나스닥 커버드콜"},
+  TLT:{n:"iShares 20+ Year Treasury Bond ETF",c:"미국 장기국채"},
+  IEF:{n:"iShares 7-10 Year Treasury ETF",c:"미국 중기국채"},
+  SHY:{n:"iShares 1-3 Year Treasury ETF",c:"미국 단기국채"},
+  HYG:{n:"iShares High Yield Corporate Bond",c:"하이일드 회사채"},
+  TIP:{n:"iShares TIPS Bond ETF",c:"물가연동채권"},
+  GLD:{n:"SPDR Gold Shares",c:"금 (Gold)"},
+  SLV:{n:"iShares Silver Trust",c:"은 (Silver)"},
+  USO:{n:"United States Oil Fund",c:"원유 (WTI)"},
+  DBA:{n:"Invesco DB Agriculture Fund",c:"농산물"},
+  VNQ:{n:"Vanguard Real Estate ETF",c:"미국 리츠"},
+  REM:{n:"iShares Mortgage Real Estate ETF",c:"모기지 리츠"},
+  XLK:{n:"Technology Select Sector SPDR",c:"기술 섹터"},
+  XLV:{n:"Health Care Select Sector SPDR",c:"헬스케어 섹터"},
+  XLF:{n:"Financial Select Sector SPDR",c:"금융 섹터"},
+  XLE:{n:"Energy Select Sector SPDR",c:"에너지 섹터"},
+  XLU:{n:"Utilities Select Sector SPDR",c:"유틸리티 섹터"},
+  XLI:{n:"Industrial Select Sector SPDR",c:"산업재 섹터"},
+  XLP:{n:"Consumer Staples Select Sector SPDR",c:"필수소비재 섹터"},
+  XLY:{n:"Consumer Discret Select Sector SPDR",c:"임의소비재 섹터"},
+  EFA:{n:"iShares MSCI EAFE ETF",c:"선진국 주식(유럽·일본)"},
+  EWJ:{n:"iShares MSCI Japan ETF",c:"일본 주식"},
+  EWG:{n:"iShares MSCI Germany ETF",c:"독일 주식"},
+  EWU:{n:"iShares MSCI United Kingdom ETF",c:"영국 주식"},
+  EEM:{n:"iShares MSCI Emerging Markets ETF",c:"신흥국 주식"},
+  MCHI:{n:"iShares MSCI China ETF",c:"중국 주식"},
+  EWZ:{n:"iShares MSCI Brazil ETF",c:"브라질 주식"},
+  AOR:{n:"iShares Core Growth Allocation ETF",c:"균형형(주식60+채권40)"},
+  AOA:{n:"iShares Core Aggressive Alloc ETF",c:"공격형(주식80+채권20)"},
+  AOMB:{n:"iShares Core Conservative ETF",c:"보수형(주식30+채권70)"},
+  VIXY:{n:"ProShares VIX Short-Term Futures",c:"VIX 변동성"},
+  SH:{n:"ProShares Short S&P500 (-1x)",c:"S&P500 인버스"},
+  PSQ:{n:"ProShares Short QQQ (-1x)",c:"나스닥 인버스"},
+  SSO:{n:"ProShares Ultra S&P500 (2x)",c:"S&P500 2배"},
+  TQQQ:{n:"ProShares UltraPro QQQ (3x)",c:"나스닥 3배 레버리지"},
+  UPRO:{n:"ProShares UltraPro S&P500 (3x)",c:"S&P500 3배 레버리지"},
+  XBI:{n:"SPDR S&P Biotech ETF",c:"바이오테크"},
+  LIT:{n:"Global X Lithium & Battery Tech ETF",c:"리튬·배터리 테마"},
+  ICLN:{n:"iShares Global Clean Energy ETF",c:"클린에너지 테마"},
+  SOXX:{n:"iShares Semiconductor ETF",c:"반도체 테마"},
+  VXUS:{n:"Vanguard Total Intl Stock ETF",c:"해외전체주식"},
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  런타임 데이터 — JSON 로드 후 채워짐
+// ═══════════════════════════════════════════════════════════════
+let DB = null;  // 전체 JSON 데이터
+let UNI = [];   // [{t, n, c}, ...]
+
+// ═══════════════════════════════════════════════════════════════
+//  JSON 로드
+// ═══════════════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    const res = await fetch("etf_data.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    DB = await res.json();
+
+    // UNI 빌드
+    UNI = DB.universe.map(t => ({
+      t,
+      n: DB.etf_meta?.[t]?.name || UNI_META[t]?.n || t,
+      c: DB.etf_meta?.[t]?.cat  || UNI_META[t]?.c || "",
+    }));
+
+    // data-note 업데이트
+    const note = document.getElementById('dataBadge');
+    if (note) {
+      note.innerHTML = `✅ <b>실제 yfinance 데이터</b> | 기간: <b>${DB.meta.start_date} ~ ${DB.meta.end_date}</b> | ETF: <b>${DB.meta.etf_count}개</b> | 생성: ${DB.meta.generated_at}`;
+      note.style.background = 'rgba(45,206,137,.1)';
+      note.style.borderColor = 'rgba(45,206,137,.25)';
+    }
+    const dn = document.getElementById('dataNote');
+    if (dn) dn.innerHTML = `<strong>데이터 출처</strong>: yfinance (Yahoo Finance) | 기간: ${DB.meta.start_date} ~ ${DB.meta.end_date} (실제 조정 종가 기준) | 무위험이자율: ${(DB.meta.rf*100).toFixed(1)}% | 비중 탐색: ${(DB.meta.weight_step*100).toFixed(0)}% 단위 그리드 서치`;
+
+    showWelcome();
+  } catch(e) {
+    showJsonError(e.message);
+  }
+}
+
+function showJsonError(msg) {
+  // etf_data.json 없을 때 안내
+  document.getElementById('ra').innerHTML = `
+    <div style="background:rgba(247,95,79,.08);border:1px solid rgba(247,95,79,.25);border-radius:12px;padding:24px 28px;max-width:640px">
+      <div style="font-size:15px;font-weight:800;color:#f75f4f;margin-bottom:10px">⚠️ etf_data.json 파일이 없습니다</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.8">
+        <b style="color:var(--text)">Step 1.</b> <code style="background:var(--border);padding:2px 7px;border-radius:4px">step1_compute_etf.py</code> 를 Google Colab에서 실행<br>
+        <b style="color:var(--text)">Step 2.</b> 생성된 <code style="background:var(--border);padding:2px 7px;border-radius:4px">etf_data.json</code> 을 <code style="background:var(--border);padding:2px 7px;border-radius:4px">index.html</code> 과 <b>같은 폴더</b>에 놓기<br>
+        <b style="color:var(--text)">Step 3.</b> GitHub에 두 파일 모두 업로드<br><br>
+        <span style="color:#f75f4f;font-size:11px">오류: ${msg}</span>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  검색 로직 — DB에서 직접 조회 (계산 없음 → 즉시 응답)
+// ═══════════════════════════════════════════════════════════════
+function findTop(anchor, N=3) {
+  if (!DB) return null;
+  const soloData = DB.solo?.[anchor];
+  if (!soloData) return null;
+
+  const pairs = DB.pairs?.[anchor];
+  if (!pairs || pairs.length === 0) return null;
+
+  return {
+    soloSR:  soloData.sharpe,
+    soloMu:  soloData.annual_return,
+    soloVol: soloData.volatility,
+    top:     pairs.slice(0, N).map(p => ({
+      t:   p.partner,
+      n:   p.name || UNI_META[p.partner]?.n || p.partner,
+      c:   p.cat  || UNI_META[p.partner]?.c || "",
+      sharpe: p.sharpe,
+      wA:  p.weight_anchor,
+      wB:  p.weight_partner,
+      ret: p.annual_return,
+      vol: p.volatility,
+      rho: p.correlation,
+      imp: p.improvement,
+    })),
+    all: pairs,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════════════
+const si = document.getElementById('si');
+const ac = document.getElementById('ac');
+const sb = document.getElementById('sb');
+let acIdx = -1, acItems = [];
+
+function filterUni(q) {
+  if (!q || !UNI.length) return [];
+  const u = q.toUpperCase();
+  return UNI.filter(e => e.t.includes(u) || e.n.toUpperCase().includes(u) || e.c.includes(q)).slice(0, 8);
+}
+
+function renderAC(items) {
+  acItems = items; acIdx = -1;
+  if (!items.length) { ac.style.display='none'; return; }
+  ac.innerHTML = items.map((e,i) => `
+    <div class="ac-item" data-i="${i}" data-t="${e.t}">
+      <span class="ac-tick">${e.t}</span>
+      <span class="ac-name">${e.n}</span>
+      <span class="ac-cat">${e.c}</span>
+    </div>`).join('');
+  ac.style.display = 'block';
+  ac.querySelectorAll('.ac-item').forEach(el => {
+    el.addEventListener('mousedown', ev => { ev.preventDefault(); pick(el.dataset.t); });
+  });
+}
+
+function hiAC(i) { ac.querySelectorAll('.ac-item').forEach((el,j) => el.classList.toggle('hi', j===i)); }
+function pick(t) { si.value=t; ac.style.display='none'; acIdx=-1; doSearch(t.toUpperCase()); }
+
+si.addEventListener('input', () => renderAC(filterUni(si.value.trim())));
+si.addEventListener('keydown', e => {
+  if (ac.style.display==='none') { if(e.key==='Enter') doSearch(si.value.trim().toUpperCase()); return; }
+  if (e.key==='ArrowDown')  { e.preventDefault(); acIdx=Math.min(acIdx+1, acItems.length-1); hiAC(acIdx); }
+  else if (e.key==='ArrowUp')   { e.preventDefault(); acIdx=Math.max(acIdx-1, -1); hiAC(acIdx); }
+  else if (e.key==='Enter') { e.preventDefault(); if(acIdx>=0&&acItems[acIdx]) pick(acItems[acIdx].t); else { ac.style.display='none'; doSearch(si.value.trim().toUpperCase()); } }
+  else if (e.key==='Escape') { ac.style.display='none'; }
+});
+document.addEventListener('click', e => { if(!e.target.closest('#sw')) ac.style.display='none'; });
+sb.addEventListener('click', () => doSearch(si.value.trim().toUpperCase()));
+
+// ═══════════════════════════════════════════════════════════════
+//  SEARCH & RENDER (이전 버전과 동일)
+// ═══════════════════════════════════════════════════════════════
+const RC = ['#f5c542','#00c9a7','#9b5cf6'];
+let currentResult = null;
+let selectedIdx = 0;
+
+function doSearch(t) {
+  if (!t) return;
+  if (!DB) { document.getElementById('ra').innerHTML='<div class="empty"><div class="spin"></div><div>데이터 로딩 중…</div></div>'; return; }
+  ac.style.display = 'none';
+  const res = findTop(t, 3);
+  if (!res) {
+    document.getElementById('ra').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-title">"${t}" not found</div><div class="empty-desc">현재 데이터에 없는 티커입니다. 자동완성 목록에서 선택해주세요.</div></div>`;
+    return;
+  }
+  currentResult = {anchor:t, ...res};
+  selectedIdx = 0;
+  renderAll();
+}
+
+function renderAll() {
+  const ra = document.getElementById('ra');
+  const {anchor, soloSR, soloMu, soloVol, top} = currentResult;
+  ra.innerHTML = `
+    <div class="compare-strip" id="cmpStrip">
+      <div class="cmp-solo">
+        <div class="cmp-label">Solo — ${anchor} 100%</div>
+        <div class="cmp-row"><div class="cmp-ticker">${anchor}</div><div class="cmp-sr solo-val">${soloSR}</div></div>
+        <div class="cmp-sub">Return ${soloMu}% / Vol ${soloVol}%</div>
+      </div>
+      <div class="cmp-arrow"><div class="cmp-arrow-inner">→</div></div>
+      <div class="cmp-best" id="cmpBest"></div>
+    </div>
+    <div class="rank-cards" id="rCards"></div>
+    <div class="detail" id="detPanel"></div>
+    <div class="scatter-section">
+      <div class="scatter-head">
+        <div class="scatter-title">Risk–Return Map</div>
+        <div class="scatter-desc">점을 클릭하면 해당 포트폴리오 상세 정보가 위에 표시됩니다</div>
+      </div>
+      <div class="scatter-legend" id="scLeg"></div>
+      <div class="scatter-container" id="scWrap"></div>
+    </div>`;
+  renderCards();
+  selectCard(0);
+  renderScatter();
+}
+
+function renderCards() {
+  const {anchor, top} = currentResult;
+  const rc = document.getElementById('rCards');
+  rc.innerHTML = '';
+  top.forEach((p, i) => {
+    const col = RC[i];
+    const d = document.createElement('div');
+    d.className = 'rank-card'; d.style.setProperty('--rc', col); d.dataset.i = i;
+    d.innerHTML = `
+      <div class="rc-badge">${['1ST','2ND','3RD'][i]} BEST</div>
+      <div class="rc-tick" style="color:${col}">${p.t}</div>
+      <div class="rc-cat">${p.c}</div>
+      <div class="rc-sr-lbl">Portfolio Sharpe</div>
+      <div class="rc-sr">${p.sharpe.toFixed(4)}</div>
+      <div class="rc-wt">
+        <div class="wt-pill"><div class="wt-lbl">${anchor}</div><div class="wt-val">${p.wA}%</div></div>
+        <div class="wt-div">:</div>
+        <div class="wt-pill"><div class="wt-lbl">${p.t}</div><div class="wt-val">${p.wB}%</div></div>
+      </div>`;
+    d.addEventListener('click', () => selectCard(i));
+    rc.appendChild(d);
+  });
+}
+
+function selectCard(i) {
+  selectedIdx = i;
+  document.querySelectorAll('.rank-card').forEach((c,j) => c.classList.toggle('sel', j===i));
+  renderDetail(i);
+  renderCmpBest(i);
+  renderScatter();
+}
+
+function renderCmpBest(i) {
+  const {anchor, top} = currentResult;
+  const p = top[i]; const col = RC[i];
+  const cmpB = document.getElementById('cmpBest'); if(!cmpB) return;
+  cmpB.innerHTML = `
+    <div class="cmp-label">With Partner — ${anchor} ${p.wA}% + ${p.t} ${p.wB}%</div>
+    <div class="cmp-row"><div class="cmp-ticker">${anchor}+${p.t}</div><div class="cmp-sr best-val">${p.sharpe.toFixed(4)}</div></div>
+    <div class="cmp-sub">Return ${p.ret}% / Vol ${p.vol}%</div>
+    <div class="cmp-uplift">▲ ${p.imp>0?'+':''}${p.imp}% Sharpe improvement</div>`;
+}
+
+function renderDetail(i) {
+  const {anchor, top, soloSR} = currentResult;
+  const p = top[i]; const col = RC[i];
+  const det = document.getElementById('detPanel'); if(!det) return;
+  det.innerHTML = `
+    <div class="detail-head">
+      Optimal Portfolio: <span style="color:${col};font-weight:900">${anchor} ${p.wA}% + ${p.t} ${p.wB}%</span>
+      &nbsp;&nbsp;<span style="color:var(--sub);font-size:10px;font-weight:400">${p.n}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="ds"><div class="ds-lbl">Sharpe Ratio</div><div class="ds-val" style="color:${col}">${p.sharpe.toFixed(4)}</div><div class="ds-sub">vs solo: ${soloSR}</div></div>
+      <div class="ds"><div class="ds-lbl">Annual Return</div><div class="ds-val" style="color:var(--green)">${p.ret}%</div><div class="ds-sub">Annualized</div></div>
+      <div class="ds"><div class="ds-lbl">Volatility</div><div class="ds-val" style="color:var(--accent)">${p.vol}%</div><div class="ds-sub">Ann. Std Dev</div></div>
+      <div class="ds"><div class="ds-lbl">Correlation (ρ)</div><div class="ds-val" style="color:var(--sub);font-size:22px">${p.rho.toFixed(3)}</div><div class="ds-sub">${p.rho<.3?'✓ Low — good diversification':p.rho<.6?'Moderate':'High correlation'}</div></div>
+    </div>
+    <div class="wbar-wrap">
+      <div class="wbar-lbls"><span style="color:var(--accent);font-weight:700">${anchor} ${p.wA}%</span><span style="color:${col};font-weight:700">${p.t} ${p.wB}%</span></div>
+      <div class="wbar-track"><div class="wbar-fill" style="width:${p.wA}%;background:linear-gradient(90deg,var(--accent),${col})"></div></div>
+    </div>`;
+}
+
+function renderScatter() {
+  const {anchor, soloSR, soloMu, soloVol, top} = currentResult;
+  const wrap = document.getElementById('scWrap');
+  const leg  = document.getElementById('scLeg');
+  if (!wrap) return;
+  const pts = [
+    {label:anchor, x:soloVol, y:soloMu, sr:soloSR, isAnchor:true, idx:-1},
+    ...top.map((p,i) => ({label:`${anchor}+${p.t}`, x:p.vol, y:p.ret, sr:p.sharpe, isAnchor:false, idx:i, partner:p.t}))
+  ];
+  leg.innerHTML = `
+    <div class="leg-item"><div class="leg-dot" style="background:#fff;border:2px solid #fff"></div><span>${anchor} (Solo)</span></div>
+    ${top.map((p,i) => `<div class="leg-item"><div class="leg-dot" style="background:${RC[i]}"></div><span>${anchor}+${p.t}</span></div>`).join('')}`;
+  const W=wrap.clientWidth||680, H=300;
+  const PAD={top:24,right:40,bottom:50,left:58};
+  const cW=W-PAD.left-PAD.right, cH=H-PAD.top-PAD.bottom;
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const xrange=Math.max(...xs)-Math.min(...xs)||1;
+  const yrange=Math.max(...ys)-Math.min(...ys)||1;
+  const xmin=Math.min(...xs)-xrange*.3, xmax=Math.max(...xs)+xrange*.3;
+  const ymin=Math.min(...ys)-yrange*.3, ymax=Math.max(...ys)+yrange*.3;
+  const px=v=>PAD.left+(v-xmin)/(xmax-xmin)*cW;
+  const py=v=>PAD.top+(1-(v-ymin)/(ymax-ymin))*cH;
+  let grid='',xlbls='',ylbls='';
+  for(let i=0;i<=5;i++){
+    const vx=xmin+(xmax-xmin)*i/5, vy=ymin+(ymax-ymin)*i/5;
+    const x=px(vx).toFixed(1), y=py(vy).toFixed(1);
+    grid+=`<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${PAD.top+cH}" stroke="#1a1d2e" stroke-width="1"/>`;
+    grid+=`<line x1="${PAD.left}" y1="${y}" x2="${PAD.left+cW}" y2="${y}" stroke="#1a1d2e" stroke-width="1"/>`;
+    xlbls+=`<text x="${x}" y="${PAD.top+cH+18}" text-anchor="middle" font-size="10" fill="#6b7290">${vx.toFixed(1)}%</text>`;
+    ylbls+=`<text x="${PAD.left-8}" y="${parseFloat(y)+4}" text-anchor="end" font-size="10" fill="#6b7290">${vy.toFixed(1)}%</text>`;
+  }
+  const dots=pts.map((p,pi)=>{
+    const cx=px(p.x).toFixed(1), cy=py(p.y).toFixed(1);
+    const isSel=!p.isAnchor&&p.idx===selectedIdx;
+    const col=p.isAnchor?'#e8ecf5':RC[p.idx];
+    const r=p.isAnchor?8:isSel?9:7;
+    const sw=isSel?2.5:p.isAnchor?2:1.5;
+    const stroke=isSel?'#fff':p.isAnchor?'#4f8ef7':'#fff';
+    return `<circle class="sc-dot" data-pi="${pi}" cx="${cx}" cy="${cy}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="${sw}" style="cursor:pointer" opacity="${p.isAnchor?1:isSel?1:.75}"/>
+    <text x="${(parseFloat(cx)+11).toFixed(1)}" y="${(parseFloat(cy)+4).toFixed(1)}" font-size="10" fill="${col}" font-weight="700" font-family="monospace">${p.label}</text>`;
+  }).join('');
+  wrap.innerHTML=`<svg id="scSvg" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible;display:block">
+    ${grid}
+    <line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+cH}" stroke="#22253a" stroke-width="1.5"/>
+    <line x1="${PAD.left}" y1="${PAD.top+cH}" x2="${PAD.left+cW}" y2="${PAD.top+cH}" stroke="#22253a" stroke-width="1.5"/>
+    ${xlbls}${ylbls}
+    <text x="${(PAD.left+cW/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="11" fill="#6b7290">Volatility σ (%)</text>
+    <text x="13" y="${(PAD.top+cH/2).toFixed(1)}" text-anchor="middle" font-size="11" fill="#6b7290" transform="rotate(-90,13,${(PAD.top+cH/2).toFixed(1)})">Annual Return (%)</text>
+    ${dots}
+  </svg>`;
+  const tip=document.getElementById('svTip');
+  wrap.querySelectorAll('.sc-dot').forEach(dot=>{
+    dot.addEventListener('click',()=>{ const pi=parseInt(dot.dataset.pi); const p=pts[pi]; if(!p.isAnchor&&p.idx>=0) selectCard(p.idx); });
+    dot.addEventListener('mouseenter',e=>{
+      const pi=parseInt(dot.dataset.pi); const p=pts[pi];
+      const rect=wrap.getBoundingClientRect();
+      const svgEl=wrap.querySelector('svg'); const scale=svgEl.clientWidth/W;
+      const cx=parseFloat(dot.getAttribute('cx')); const cy=parseFloat(dot.getAttribute('cy'));
+      tip.style.left=(cx*scale+rect.left+window.scrollX+12)+'px';
+      tip.style.top=(cy*scale+rect.top+window.scrollY-8)+'px';
+      tip.innerHTML=`<div class="sv-tt-tick">${p.label}</div>
+        <div class="sv-tt-row"><span>Sharpe</span><span class="sv-tt-val">${p.sr.toFixed(4)}</span></div>
+        <div class="sv-tt-row"><span>Return</span><span class="sv-tt-val">${p.y.toFixed(2)}%</span></div>
+        <div class="sv-tt-row"><span>Vol</span><span class="sv-tt-val">${p.x.toFixed(2)}%</span></div>
+        ${!p.isAnchor?`<div style="margin-top:5px;font-size:10px;color:#4f8ef7">클릭하면 상세 표시</div>`:''}`;
+      tip.style.display='block';
+    });
+    dot.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+  });
+}
+
+function showWelcome() {
+  document.getElementById('ra').innerHTML=`
+    <div class="empty">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Find Your ETF\'s Best Partner</div>
+      <div class="empty-desc">ETF 티커를 입력하면 Sharpe Ratio를 가장 높여주는<br>파트너 ETF Top 3와 최적 비중을 알려드립니다.</div>
+      <div class="quick-pills">
+        ${Object.keys(UNI_META).slice(0,10).map(t=>`<div class="qpill" onclick="si.value='${t}';doSearch('${t}')">${t}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// 페이지 로드 시 JSON 로드
+loadData();
+</script>
+</body>
+</html>
