@@ -35,7 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',syste
 
 /* SEARCH */
 .search-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
-.search-wrap{position:relative;max-width:500px;margin-bottom:32px}
+.search-wrap{position:relative;max-width:500px;margin-bottom:20px}
 .search-input{width:100%;background:var(--card);border:1.5px solid var(--border2);border-radius:11px;padding:13px 52px 13px 16px;font-size:15px;font-weight:600;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;letter-spacing:.2px;font-family:inherit}
 .search-input::placeholder{color:var(--dim);font-weight:400}
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.12)}
@@ -105,6 +105,33 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',syste
 .leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub)}
 .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
+/* SLIDER CONSTRAINT */
+.slider-section{margin-bottom:28px}
+.slider-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.slider-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sub);white-space:nowrap}
+.slider-track-wrap{flex:1;max-width:340px;position:relative}
+.slider-desc{font-size:11px;color:var(--sub);margin-top:6px;line-height:1.5}
+.slider-val-badge{background:var(--accent);color:#fff;font-size:12px;font-weight:800;border-radius:7px;padding:4px 12px;white-space:nowrap;min-width:80px;text-align:center}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:6px;
+  background:var(--border);border-radius:99px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--accent);border:2px solid #fff;
+  box-shadow:0 2px 8px rgba(79,142,247,.4);
+  transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--accent);border:2px solid #fff;cursor:pointer;
+}
+.slider-ticks{display:flex;justify-content:space-between;margin-top:4px;padding:0 2px}
+.slider-tick{font-size:9px;color:var(--dim)}
+
 /* EMPTY / LOADING */
 .empty{padding:70px 40px;text-align:center;color:var(--sub)}
 .empty-icon{font-size:38px;margin-bottom:14px}
@@ -150,6 +177,28 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',syste
     <input class="search-input" id="si" type="text" placeholder="Type ticker: QQQ, SCHD, SPY…" autocomplete="off" spellcheck="false"/>
     <button class="search-btn" id="sb">→</button>
     <div class="ac-drop" id="ac"></div>
+  </div>
+
+  <!-- Anchor minimum weight slider -->
+  <div class="slider-section">
+    <div class="search-label">Anchor Minimum Weight Constraint</div>
+    <div class="slider-row">
+      <div class="slider-track-wrap">
+        <input type="range" id="minWSlider" min="0" max="90" step="5" value="10"/>
+        <div class="slider-ticks">
+          <span class="slider-tick">0%</span>
+          <span class="slider-tick">25%</span>
+          <span class="slider-tick">50%</span>
+          <span class="slider-tick">75%</span>
+          <span class="slider-tick">90%</span>
+        </div>
+      </div>
+      <div class="slider-val-badge" id="sliderBadge">Anchor ≥ 10%</div>
+    </div>
+    <div class="slider-desc" id="sliderDesc">
+      앵커 ETF는 최소 <b id="sliderPct">10%</b> 이상 포함됩니다.
+      0%로 설정하면 제약 없이 순수 Sharpe 최적화를 수행합니다.
+    </div>
   </div>
 
   <div id="ra"></div>
@@ -267,21 +316,52 @@ function showJsonError(msg) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  검색 로직 — DB에서 직접 조회 (계산 없음 → 즉시 응답)
+//  슬라이더 상태
+// ═══════════════════════════════════════════════════════════════
+let minAnchorPct = 10; // 기본값: 앵커 최소 10%
+
+const sliderEl   = document.getElementById('minWSlider');
+const sliderBadge= document.getElementById('sliderBadge');
+const sliderPct  = document.getElementById('sliderPct');
+const sliderDesc = document.getElementById('sliderDesc');
+
+function updateSliderUI(val) {
+  minAnchorPct = parseInt(val);
+  sliderBadge.textContent = `Anchor ≥ ${minAnchorPct}%`;
+  sliderPct.textContent   = `${minAnchorPct}%`;
+  if (minAnchorPct === 0) {
+    sliderDesc.innerHTML = `제약 없음 — 순수 Sharpe 최적화 (앵커 비중이 0%가 될 수 있습니다).`;
+  } else {
+    sliderDesc.innerHTML = `앵커 ETF는 최소 <b>${minAnchorPct}%</b> 이상 포함됩니다. 이 제약 안에서 Sharpe를 최대화합니다.`;
+  }
+  // 결과가 있으면 즉시 재계산
+  if (currentResult) {
+    const t = currentResult.anchor;
+    const res = findTop(t, 3);
+    if (res) { currentResult = {anchor:t, ...res}; selectedIdx=0; renderAll(); }
+  }
+}
+
+sliderEl.addEventListener('input', e => updateSliderUI(e.target.value));
+
+// ═══════════════════════════════════════════════════════════════
+//  검색 로직 — DB에서 직접 조회 + 슬라이더 제약 적용
 // ═══════════════════════════════════════════════════════════════
 function findTop(anchor, N=3) {
   if (!DB) return null;
   const soloData = DB.solo?.[anchor];
   if (!soloData) return null;
 
-  const pairs = DB.pairs?.[anchor];
-  if (!pairs || pairs.length === 0) return null;
+  const allPairs = DB.pairs?.[anchor];
+  if (!allPairs || allPairs.length === 0) return null;
 
-  return {
-    soloSR:  soloData.sharpe,
-    soloMu:  soloData.annual_return,
-    soloVol: soloData.volatility,
-    top:     pairs.slice(0, N).map(p => ({
+  const minW = minAnchorPct / 100; // 0.0 ~ 0.9
+
+  // 슬라이더 제약이 0%면 pre-computed 결과 그대로 사용
+  // 제약이 있으면 브라우저에서 그리드서치 재계산
+  let pairs;
+  if (minW === 0) {
+    pairs = allPairs.map(p => ({
       t:   p.partner,
       n:   p.name || UNI_META[p.partner]?.n || p.partner,
       c:   p.cat  || UNI_META[p.partner]?.c || "",
@@ -292,8 +372,59 @@ function findTop(anchor, N=3) {
       vol: p.volatility,
       rho: p.correlation,
       imp: p.improvement,
-    })),
-    all: pairs,
+    }));
+  } else {
+    // 제약 범위 w ∈ [minW, 1.0] 에서 재계산
+    const soloMu  = soloData.annual_return / 100;
+    const soloSig = soloData.volatility    / 100;
+    const RF      = DB.meta?.rf ?? 0.045;
+    const STEP    = 0.01;
+    const soloSR  = soloSig > 0 ? (soloMu - RF) / soloSig : 0;
+
+    pairs = allPairs.map(p => {
+      const partnerTick = p.partner;
+      const partnerSolo = DB.solo?.[partnerTick];
+      if (!partnerSolo) return null;
+
+      const muB  = partnerSolo.annual_return / 100;
+      const sigB = partnerSolo.volatility    / 100;
+      const rho  = p.correlation;  // pre-computed 상관계수 재활용
+
+      let best = -Infinity, bw = minW, bmu, bsig;
+      for (let w = minW; w <= 1.0 + STEP/2; w += STEP) {
+        const mu   = w * soloMu + (1-w) * muB;
+        const var_ = w*w*soloSig*soloSig + (1-w)*(1-w)*sigB*sigB
+                     + 2*w*(1-w)*rho*soloSig*sigB;
+        const sig  = Math.sqrt(Math.max(var_, 0));
+        if (sig < 1e-9) continue;
+        const sr = (mu - RF) / sig;
+        if (sr > best) { best=sr; bw=w; bmu=mu; bsig=sig; }
+      }
+
+      const imp = soloSR !== 0 ? ((best - soloSR) / Math.abs(soloSR) * 100) : 0;
+      return {
+        t:   partnerTick,
+        n:   p.name || UNI_META[partnerTick]?.n || partnerTick,
+        c:   p.cat  || UNI_META[partnerTick]?.c || "",
+        sharpe: +best.toFixed(4),
+        wA:  +(bw*100).toFixed(1),
+        wB:  +((1-bw)*100).toFixed(1),
+        ret: +(bmu*100).toFixed(2),
+        vol: +(bsig*100).toFixed(2),
+        rho: p.correlation,
+        imp: +imp.toFixed(1),
+      };
+    }).filter(Boolean);
+
+    pairs.sort((a, b) => b.sharpe - a.sharpe);
+  }
+
+  return {
+    soloSR:  soloData.sharpe,
+    soloMu:  soloData.annual_return,
+    soloVol: soloData.volatility,
+    top:     pairs.slice(0, N),
+    all:     pairs,
   };
 }
 
@@ -425,11 +556,15 @@ function renderCmpBest(i) {
   const {anchor, top} = currentResult;
   const p = top[i]; const col = RC[i];
   const cmpB = document.getElementById('cmpBest'); if(!cmpB) return;
+  const constraintNote = minAnchorPct > 0
+    ? `<div style="font-size:10px;color:var(--sub);margin-top:6px">앵커 최소 ${minAnchorPct}% 제약 적용됨</div>`
+    : `<div style="font-size:10px;color:var(--orange);margin-top:6px">⚠ 제약 없음 — 앵커 비중이 낮을 수 있습니다</div>`;
   cmpB.innerHTML = `
     <div class="cmp-label">With Partner — ${anchor} ${p.wA}% + ${p.t} ${p.wB}%</div>
     <div class="cmp-row"><div class="cmp-ticker">${anchor}+${p.t}</div><div class="cmp-sr best-val">${p.sharpe.toFixed(4)}</div></div>
     <div class="cmp-sub">Return ${p.ret}% / Vol ${p.vol}%</div>
-    <div class="cmp-uplift">▲ ${p.imp>0?'+':''}${p.imp}% Sharpe improvement</div>`;
+    <div class="cmp-uplift">▲ ${p.imp>0?'+':''}${p.imp}% Sharpe improvement</div>
+    ${constraintNote}`;
 }
 
 function renderDetail(i) {
