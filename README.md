@@ -88,9 +88,22 @@ GitHub Actions에서** 정상 동작합니다.
 > 지금은 작업 브랜치에 있으므로, `main` 에 병합하면 자동 실행이 시작됩니다.
 > 병합 전에는 Actions 탭의 **Run workflow(workflow_dispatch)** 로 수동 실행할 수 있습니다.
 
+## 3단계: 웹 대시보드 ✅
+
+`dashboard.html` — `state/signals_latest.json` 을 읽어 현재 추천 종목을 카드로 표시합니다.
+휴대폰/PC 어디서든 보기 좋게 반응형으로 만들었고, **3분마다 자동 새로고침**됩니다.
+
+### GitHub Pages 로 공개하기 (무료)
+
+1. 저장소 **Settings → Pages** → Source: `Deploy from a branch` → Branch: `main` / `/ (root)` 저장
+2. 잠시 후 `https://<사용자명>.github.io/etf-partner-finder/dashboard.html` 로 접속
+3. 스캔(2단계)이 `state/` 를 갱신할 때마다 대시보드에 자동 반영됩니다
+
+> 로컬에서 미리 보려면: `python -m http.server 8000` 실행 후
+> `http://localhost:8000/dashboard.html` 접속 (파일 직접 열기는 fetch 제약으로 동작 안 함).
+
 ## 다음 단계 (예정)
 
-- **웹 대시보드** — `state/signals_latest.json` 을 읽어 현재 추천 종목을 표시 (GitHub Pages)
 - **실시간 강화** — 한국투자증권 KIS API 연동(장중 실시간 시세)
 
 ---
