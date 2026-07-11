@@ -24,7 +24,7 @@ from pathlib import Path
 
 from swing import data as datamod
 from swing.notify import TelegramError, format_candidates, send_message
-from swing.strategy import PullbackParams, latest_candidates
+from swing.strategy import PullbackParams, current_picks
 
 STATE_DIR = Path("state")
 ALERTED = STATE_DIR / "alerted.json"
@@ -85,20 +85,26 @@ def main() -> int:
         print("데이터가 비었습니다.", file=sys.stderr)
         return 1
 
-    candidates = latest_candidates(universe, p)
+    picks = current_picks(universe, p)
+    candidates = picks["buy"]
+    watch = picks["watch"]
 
-    # 중복 방지: (종목|신호일) 키
+    def named(items):
+        return [{**c, "name": names.get(c["code"], c["code"])} for c in items]
+
+    # 중복 방지: (종목|신호일) 키 — 매수 신호에만 적용
     already = load_alerted()
     new = [c for c in candidates if f"{c['code']}|{c['date']}" not in already]
 
-    # 웹 대시보드용 최신 스냅샷은 항상 갱신
+    # 웹 대시보드용 최신 스냅샷은 항상 갱신 (매수 신호 + 관심 관찰)
     STATE_DIR.mkdir(exist_ok=True)
     SIGNALS.write_text(
         json.dumps(
             {
                 "generated_at": datetime.now().isoformat(timespec="seconds"),
                 "source": args.source,
-                "candidates": [{**c, "name": names.get(c["code"], c["code"])} for c in candidates],
+                "candidates": named(candidates),
+                "watch": named(watch),
             },
             ensure_ascii=False,
             indent=2,
@@ -106,7 +112,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(f"전체 후보 {len(candidates)}개 · 신규 {len(new)}개")
+    print(f"매수신호 {len(candidates)}개 (신규 {len(new)}) · 관심관찰 {len(watch)}개")
     if not new:
         print("신규 신호 없음 — 알림 생략")
         return 0

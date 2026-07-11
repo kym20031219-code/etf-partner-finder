@@ -141,3 +141,66 @@ def latest_candidates(universe: dict[str, pd.DataFrame], p: PullbackParams) -> l
                 }
             )
     return hits
+
+
+# 관심 관찰(watch) 판정 밴드: 종가가 20일선의 이 배수 범위에 있으면 '근접'
+WATCH_BAND = (0.96, 1.06)
+
+
+def current_picks(
+    universe: dict[str, pd.DataFrame],
+    p: PullbackParams,
+    watch_band: tuple[float, float] = WATCH_BAND,
+) -> dict[str, list[dict]]:
+    """대시보드용 2단계 추천.
+
+    - buy   : 가장 최근 봉에서 매수 신호가 확정된 종목 (강한 신호, 드묾)
+    - watch : 상승추세이면서 20일선에 근접한 '지켜볼 자리' (아직 반등 미확정)
+
+    매수 신호가 뜨면 watch 에서는 제외한다(중복 방지).
+    """
+    buy, watch = [], []
+    for code, df in universe.items():
+        if len(df) < p.ma_long + p.trend_rise_lookback:
+            continue
+        d = generate_signals(df, p)
+        last = d.iloc[-1]
+        close = float(last["Close"])
+        ma20 = float(last["ma_m"])
+        ma60 = float(last["ma_l"])
+        ma60_prev = float(last["ma_l_prev"])
+        rsi_v = float(last["rsi"])
+        date = str(d.index[-1].date())
+        levels = {
+            "stop": round(close * (1 - p.stop_pct), 2),
+            "target": round(close * (1 + p.target_pct), 2),
+        }
+
+        if bool(last["entry"]):
+            buy.append(
+                {
+                    "code": code, "date": date, "close": round(close, 2),
+                    "ma20": round(ma20, 2), "rsi": round(rsi_v, 1),
+                    "dist_pct": round((close / ma20 - 1) * 100, 1),
+                    "tier": "buy", **levels,
+                }
+            )
+            continue
+
+        # 관심: 상승추세(정배열·장기선 우상향) + 20일선 근접 + 과열 아님
+        uptrend = (close > ma60) and (ma20 > ma60) and (ma60 > ma60_prev)
+        near_ma20 = watch_band[0] * ma20 <= close <= watch_band[1] * ma20
+        not_hot = rsi_v < p.rsi_high
+        if uptrend and near_ma20 and not_hot:
+            watch.append(
+                {
+                    "code": code, "date": date, "close": round(close, 2),
+                    "ma20": round(ma20, 2), "rsi": round(rsi_v, 1),
+                    "dist_pct": round((close / ma20 - 1) * 100, 1),
+                    "tier": "watch", **levels,
+                }
+            )
+
+    # 20일선에 가까운 순으로 정렬 (근접도 = |dist_pct|)
+    watch.sort(key=lambda x: abs(x["dist_pct"]))
+    return {"buy": buy, "watch": watch}
