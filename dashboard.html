@@ -54,6 +54,17 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 .lvl.target .lvl-val{color:var(--green)}.lvl.target .lvl-pct{color:var(--green)}
 .lvl.stop .lvl-val{color:var(--red)}.lvl.stop .lvl-pct{color:var(--red)}
 
+/* SECTION HEADERS + WATCH VARIANT */
+.section{margin-bottom:26px}
+.sec-head{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
+.sec-head h2{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.sec-head .n{font-size:12px;font-weight:700;color:var(--sub);background:var(--border);border-radius:999px;padding:2px 9px}
+.sec-head .hint{margin-left:auto;font-size:11px;color:var(--sub)}
+.card.buy::before{background:linear-gradient(var(--green),var(--accent))}
+.card.watch::before{background:linear-gradient(var(--gold),var(--orange))}
+.c-dist{font-size:11px;color:var(--sub);background:var(--border);border-radius:5px;padding:3px 8px;font-weight:700}
+.sec-empty{font-size:12.5px;color:var(--sub);background:var(--card);border:1px dashed var(--border2);border-radius:12px;padding:16px 18px}
+
 /* EMPTY / LOADING / ERROR */
 .state-box{text-align:center;padding:60px 24px;color:var(--sub)}
 .state-box .emoji{font-size:44px;margin-bottom:14px;opacity:.85}
@@ -117,12 +128,14 @@ function timeAgo(iso){
   return d.toLocaleString('ko-KR');
 }
 
-function cardHTML(c){
+function cardHTML(c, tier){
   const name = c.name || c.code;
   const upPct = pct(c.close, c.target);
   const dnPct = pct(c.close, c.stop);
+  const dist = (c.dist_pct != null)
+    ? `<span class="c-dist">20일선 ${c.dist_pct >= 0 ? '+' : ''}${c.dist_pct}%</span>` : '';
   return `
-  <div class="card">
+  <div class="card ${tier}">
     <div class="c-top">
       <span class="c-name">${escapeHTML(name)}</span>
       <span class="c-code">${escapeHTML(c.code)}</span>
@@ -130,6 +143,7 @@ function cardHTML(c){
     <div class="c-price">
       <span class="c-close">${fmtNum(c.close)}</span>
       ${c.rsi != null ? `<span class="c-rsi">RSI ${c.rsi}</span>` : ''}
+      ${dist}
     </div>
     <div class="c-levels">
       <div class="lvl target">
@@ -146,6 +160,21 @@ function cardHTML(c){
   </div>`;
 }
 
+function sectionHTML(title, emoji, hint, items, tier, emptyMsg){
+  const body = items.length
+    ? `<div class="cards">${items.map(c => cardHTML(c, tier)).join('')}</div>`
+    : `<div class="sec-empty">${emptyMsg}</div>`;
+  return `
+  <section class="section">
+    <div class="sec-head">
+      <h2>${emoji} ${title}</h2>
+      <span class="n">${items.length}</span>
+      ${hint ? `<span class="hint">${hint}</span>` : ''}
+    </div>
+    ${body}
+  </section>`;
+}
+
 function escapeHTML(s){
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
@@ -154,9 +183,9 @@ function renderEmpty(){
   $('content').innerHTML = `
     <div class="state-box">
       <div class="emoji">📭</div>
-      <h2>현재 신규 신호 종목이 없습니다</h2>
-      <p>조건을 만족하는 눌림목 자리가 나오면 이곳과 텔레그램으로 바로 알려드립니다.
-      장중 30분마다 자동으로 스캔합니다.</p>
+      <h2>지금은 매수 신호도 관심 종목도 없습니다</h2>
+      <p>상승추세 눌림목 자리가 나오면 이곳에 표시됩니다.
+      평일 장중 30분마다 자동으로 스캔합니다.</p>
     </div>`;
 }
 
@@ -178,6 +207,7 @@ async function load(){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const cands = data.candidates || [];
+    const watch = data.watch || [];
 
     $('updatedBadge').style.display = '';
     $('updatedBadge').textContent = '갱신 ' + timeAgo(data.generated_at);
@@ -185,10 +215,14 @@ async function load(){
       $('sourceBadge').style.display = '';
       $('sourceBadge').textContent = data.source === 'real' ? '실데이터' : data.source;
     }
-    $('statusText').textContent = `추천 ${cands.length}종목`;
+    $('statusText').textContent = `매수 ${cands.length} · 관심 ${watch.length}`;
 
-    if(cands.length === 0){ renderEmpty(); return; }
-    $('content').innerHTML = `<div class="cards">${cands.map(cardHTML).join('')}</div>`;
+    if(cands.length === 0 && watch.length === 0){ renderEmpty(); return; }
+    $('content').innerHTML =
+      sectionHTML('매수 신호', '🎯', '20일선 눌림 후 반등 확정', cands, 'buy',
+        '오늘은 매수 신호에 딱 맞는 종목이 없습니다. 아래 관심 종목을 지켜보세요.')
+      + sectionHTML('관심 · 눌림목 접근', '👀', '상승추세 · 20일선 근접 (반등 대기)', watch, 'watch',
+        '20일선에 근접한 상승추세 종목이 없습니다.');
   }catch(e){
     renderError(e.message || String(e));
   }

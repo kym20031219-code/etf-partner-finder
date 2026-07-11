@@ -93,6 +93,12 @@ GitHub Actions에서** 정상 동작합니다.
 `dashboard.html` — `state/signals_latest.json` 을 읽어 현재 추천 종목을 카드로 표시합니다.
 휴대폰/PC 어디서든 보기 좋게 반응형으로 만들었고, **3분마다 자동 새로고침**됩니다.
 
+두 단계로 나눠서 보여줍니다:
+- **🎯 매수 신호** — 20일선 눌림 후 반등이 확정된 종목 (강한 신호, 드묾)
+- **👀 관심 · 눌림목 접근** — 상승추세이면서 20일선에 근접한 '지켜볼 자리' (반등 대기)
+
+매수 신호가 0인 날에도 관심 종목으로 볼거리가 유지됩니다.
+
 ### GitHub Pages 로 공개하기 (무료)
 
 1. 저장소 **Settings → Pages** → Source: `Deploy from a branch` → Branch: `main` / `/ (root)` 저장
