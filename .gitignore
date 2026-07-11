@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# 백테스트/튜닝 생성물 (루트에 실행 시마다 새로 생성) — 루트만 무시, state/ 는 추적
+/trades.csv
+/signals_latest.json
+/tune_results.csv
