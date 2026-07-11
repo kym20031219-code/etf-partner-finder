@@ -56,11 +56,42 @@ python tests/test_engine.py
 합성 데이터로 엔진을 검증했습니다. `--source real`은 **네트워크가 열린 회원님 PC나
 GitHub Actions에서** 정상 동작합니다.
 
+## 2단계: 텔레그램 알림 + 자동화 ✅
+
+| 구성 | 파일 |
+|------|------|
+| 텔레그램 전송 (표준 라이브러리) | `swing/notify.py` |
+| 장중 스캔 + 신규 알림 (중복 방지) | `run_scan.py` |
+| 무료 스케줄러 | `.github/workflows/swing-scan.yml` |
+| 상태(중복방지·최신 신호) | `state/alerted.json`, `state/signals_latest.json` |
+
+### 텔레그램 봇 설정 (5분)
+
+1. 텔레그램에서 **@BotFather** → `/newbot` → **봇 토큰**(`123456:ABC...`) 발급
+2. 만든 봇과 대화 시작 후 **@userinfobot** 으로 본인 **chat_id**(숫자) 확인
+3. 로컬 테스트:
+   ```bash
+   export TELEGRAM_TOKEN="봇토큰"
+   export TELEGRAM_CHAT_ID="내chat_id"
+   python run_scan.py --market KOSPI --top 100          # 실데이터 + 전송
+   python run_scan.py --source synthetic --dry-run       # 미전송 테스트
+   ```
+
+### GitHub Actions 자동 실행 (무료)
+
+1. 저장소 **Settings → Secrets and variables → Actions** 에 두 개 등록:
+   `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`
+2. 워크플로우가 **평일 장중(KST 09:00~15:30) 30분마다** 자동 스캔 → 신규 신호를 텔레그램 전송
+3. 스캔 결과는 `state/` 에 커밋되어 중복 알림을 방지하고, 이후 웹 대시보드가 이를 읽습니다.
+
+> ⚠️ **예약(schedule) 실행은 기본 브랜치(`main`)에 워크플로우가 있어야만 동작**합니다.
+> 지금은 작업 브랜치에 있으므로, `main` 에 병합하면 자동 실행이 시작됩니다.
+> 병합 전에는 Actions 탭의 **Run workflow(workflow_dispatch)** 로 수동 실행할 수 있습니다.
+
 ## 다음 단계 (예정)
 
-1. **텔레그램 봇 알림** — 장중 N분마다 스캔 → `signals_latest.json`의 신규 후보를 봇으로 전송
-2. **웹 대시보드** — `signals_latest.json`을 읽어 현재 추천 종목을 표시 (GitHub Pages)
-3. **GitHub Actions 스케줄러** — 장중 자동 실행 (무료)
+- **웹 대시보드** — `state/signals_latest.json` 을 읽어 현재 추천 종목을 표시 (GitHub Pages)
+- **실시간 강화** — 한국투자증권 KIS API 연동(장중 실시간 시세)
 
 ---
 ※ 저장소에 남아 있는 `etf_data.json` / `index.html`은 이전 ETF 포트폴리오

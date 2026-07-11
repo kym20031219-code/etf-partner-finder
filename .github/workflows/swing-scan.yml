@@ -1,0 +1,49 @@
+name: 눌림목 스윙 스캔 (텔레그램 알림)
+
+# 장중(KST 09:00~15:30 = UTC 00:00~06:30) 30분마다 스캔.
+# ⚠️ 예약(schedule) 실행은 '기본 브랜치(main)'에 이 파일이 있어야만 동작합니다.
+#    브랜치에서 테스트할 때는 아래 workflow_dispatch(수동 실행)를 사용하세요.
+on:
+  schedule:
+    - cron: "*/30 0-6 * * 1-5"   # UTC 기준, 평일
+  workflow_dispatch:              # 수동 실행 버튼
+
+# 동시 실행 방지
+concurrency:
+  group: swing-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # state/ 갱신분을 커밋해 되돌리기 위해
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 스캔 실행 + 신규 신호 알림
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python run_scan.py --market KOSPI --top 100
+
+      - name: 상태(state) 변경분 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -n "$(git status --porcelain state/)" ]; then
+            git add state/
+            git commit -m "chore: update scan state [skip ci]"
+            git push
+          else
+            echo "변경 없음 — 커밋 생략"
+          fi

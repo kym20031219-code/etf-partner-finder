@@ -44,6 +44,17 @@ def fetch_universe(market: str = "KOSPI", top_n: int = 100) -> list[str]:
     return listing[code_col].astype(str).str.zfill(6).head(top_n).tolist()
 
 
+def fetch_names(market: str = "KOSPI") -> dict[str, str]:
+    """종목코드 → 종목명 매핑 (네트워크 필요)."""
+    import FinanceDataReader as fdr
+
+    listing = fdr.StockListing(market)
+    code_col = next((c for c in ("Code", "Symbol") if c in listing.columns), "Code")
+    name_col = next((c for c in ("Name", "Korean Name") if c in listing.columns), "Name")
+    codes = listing[code_col].astype(str).str.zfill(6)
+    return dict(zip(codes, listing[name_col].astype(str)))
+
+
 # ---------------------------------------------------------------------------
 # 합성 데이터 (오프라인 검증용)
 # ---------------------------------------------------------------------------
