@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# 백테스트 생성물 (실행 시마다 새로 생성)
+trades.csv
+signals_latest.json
