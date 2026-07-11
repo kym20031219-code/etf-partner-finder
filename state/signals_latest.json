@@ -1,5 +1,43 @@
 {
-  "generated_at": "2026-07-11T15:41:33",
+  "generated_at": "2026-07-11T15:55:08",
   "source": "real",
-  "candidates": []
+  "candidates": [],
+  "watch": [
+    {
+      "code": "021240",
+      "date": "2026-07-10",
+      "close": 89900.0,
+      "ma20": 90510.0,
+      "rsi": 48.7,
+      "dist_pct": -0.7,
+      "tier": "watch",
+      "stop": 85405.0,
+      "target": 98890.0,
+      "name": "코웨이"
+    },
+    {
+      "code": "000810",
+      "date": "2026-07-10",
+      "close": 648000.0,
+      "ma20": 654750.0,
+      "rsi": 52.2,
+      "dist_pct": -1.0,
+      "tier": "watch",
+      "stop": 615600.0,
+      "target": 712800.0,
+      "name": "삼성화재"
+    },
+    {
+      "code": "086790",
+      "date": "2026-07-10",
+      "close": 128500.0,
+      "ma20": 121405.0,
+      "rsi": 59.3,
+      "dist_pct": 5.8,
+      "tier": "watch",
+      "stop": 122075.0,
+      "target": 141350.0,
+      "name": "하나금융지주"
+    }
+  ]
 }
