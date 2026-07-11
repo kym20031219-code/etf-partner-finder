@@ -39,6 +39,7 @@ def extract_trades(code: str, df: pd.DataFrame, p: PullbackParams) -> list[Trade
     low = d["Low"].to_numpy(float)
     c = d["Close"].to_numpy(float)
     ma_m = d["ma_m"].to_numpy(float)
+    atr_arr = d["atr"].to_numpy(float)
     entry_sig = d["entry"].to_numpy(bool)
     dates = d.index
 
@@ -56,12 +57,19 @@ def extract_trades(code: str, df: pd.DataFrame, p: PullbackParams) -> list[Trade
         if not np.isfinite(entry_price) or entry_price <= 0:
             i += 1
             continue
-        stop_px = entry_price * (1 - p.stop_pct)
-        target_px = entry_price * (1 + p.target_pct)
+        # 손절/익절 가격: 고정 % 또는 진입시점 ATR 배수
+        entry_atr = atr_arr[ei] if np.isfinite(atr_arr[ei]) else entry_price * p.stop_pct
+        if p.use_atr_exits:
+            stop_px = entry_price - p.atr_stop_mult * entry_atr
+            target_px = entry_price + p.atr_target_mult * entry_atr
+        else:
+            stop_px = entry_price * (1 - p.stop_pct)
+            target_px = entry_price * (1 + p.target_pct)
 
         exit_i = None
         exit_px = None
         reason = None
+        peak_close = entry_price  # 트레일링 기준: 보유중 최고 종가
         for j in range(ei, min(ei + p.max_hold + 1, n)):
             # 손절 (갭하락이면 시가로 체결)
             if low[j] <= stop_px:
@@ -73,6 +81,13 @@ def extract_trades(code: str, df: pd.DataFrame, p: PullbackParams) -> list[Trade
                 exit_px = max(o[j], target_px) if o[j] >= target_px else target_px
                 exit_i, reason = j, "target"
                 break
+            # 트레일링 스톱 (선택): 최고종가 대비 trail_atr_mult*ATR 만큼 밀리면 청산
+            if p.trail_atr_mult > 0:
+                peak_close = max(peak_close, c[j])
+                trail_px = peak_close - p.trail_atr_mult * entry_atr
+                if c[j] <= trail_px and c[j] > entry_price:  # 이익 구간에서만 추적청산
+                    exit_px, exit_i, reason = c[j], j, "trail"
+                    break
             # 추세이탈: 종가가 20일선 -버퍼 아래로 마감
             if c[j] < ma_m[j] * (1 - p.ma_mid_break):
                 exit_px, exit_i, reason = c[j], j, "trend_break"

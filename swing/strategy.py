@@ -21,6 +21,16 @@ def sma(s: pd.Series, n: int) -> pd.Series:
     return s.rolling(n).mean()
 
 
+def atr(df: pd.DataFrame, n: int = 14) -> pd.Series:
+    """Average True Range (Wilder)."""
+    high, low, close = df["High"], df["Low"], df["Close"]
+    prev_close = close.shift(1)
+    tr = pd.concat(
+        [(high - low), (high - prev_close).abs(), (low - prev_close).abs()], axis=1
+    ).max(axis=1)
+    return tr.ewm(alpha=1 / n, min_periods=n, adjust=False).mean()
+
+
 def rsi(close: pd.Series, n: int = 14) -> pd.Series:
     """Wilder RSI."""
     delta = close.diff()
@@ -53,11 +63,17 @@ class PullbackParams:
     rsi_high: float = 68.0
     vol_ma: int = 20
     vol_mult: float = 0.8           # 반등일 거래량 >= 20일 평균 * 이 값
-    # 청산
+    # 청산 (기본: 고정 %)
     stop_pct: float = 0.05          # 손절 -5%
     target_pct: float = 0.10        # 익절 +10%
     max_hold: int = 15              # 최대 보유 거래일
     ma_mid_break: float = 0.03      # 종가가 20일선 -3% 아래로 마감하면 추세이탈 청산
+    # 청산 (선택: ATR 기반 — 튜닝 레버, 기본 비활성)
+    atr_period: int = 14
+    use_atr_exits: bool = False     # True 면 손절/익절을 진입시점 ATR 배수로 산정
+    atr_stop_mult: float = 2.0      # 손절 = 진입가 - atr_stop_mult * ATR
+    atr_target_mult: float = 3.0    # 익절 = 진입가 + atr_target_mult * ATR
+    trail_atr_mult: float = 0.0     # >0 이면 (보유중 최고종가 - trail_atr_mult*ATR) 이탈 시 청산
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +85,7 @@ def add_indicators(df: pd.DataFrame, p: PullbackParams) -> pd.DataFrame:
     out["ma_m"] = sma(out["Close"], p.ma_mid)
     out["ma_l"] = sma(out["Close"], p.ma_long)
     out["rsi"] = rsi(out["Close"], p.rsi_period)
+    out["atr"] = atr(out, p.atr_period)
     out["vol_ma"] = sma(out["Volume"], p.vol_ma)
     out["prior_high"] = out["High"].rolling(p.runup_lookback).max().shift(1)
     out["ma_l_prev"] = out["ma_l"].shift(p.trend_rise_lookback)

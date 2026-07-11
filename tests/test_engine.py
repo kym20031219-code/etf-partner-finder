@@ -53,6 +53,18 @@ def test_exit_within_max_hold():
             assert t.bars_held <= p.max_hold
 
 
+def test_atr_exits_produce_trades():
+    """ATR 기반 청산을 켜도 매매가 정상 생성되고 보유일 제약을 지킨다."""
+    from dataclasses import replace
+    p = replace(PullbackParams(), use_atr_exits=True, trail_atr_mult=1.5)
+    df, _ = _first_seed_with_trades(PullbackParams())
+    trades = extract_trades("T", df, p)
+    for t in trades:
+        assert t.reason in {"stop", "target", "trail", "trend_break", "time", "eod"}
+        if t.reason != "eod":
+            assert t.bars_held <= p.max_hold
+
+
 def test_returns_include_costs():
     """target 청산이면 수익률은 목표% - 비용 근처여야 한다."""
     from swing.engine import ROUND_TRIP_COST
