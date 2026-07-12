@@ -1,0 +1,49 @@
+name: S&P500 국면 필터 연구
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "시작일"
+        default: "1999-06-01"
+      end:
+        description: "종료일"
+        default: "2025-12-31"
+      cost:
+        description: "거래비용 (0.001 = 0.1%)"
+        default: "0.001"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: spy-study
+  cancel-in-progress: false
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 국면 필터 백테스트
+        run: >
+          python spy_regime_study.py
+          --start ${{ inputs.start }} --end ${{ inputs.end }} --cost ${{ inputs.cost }}
+          --report-json results/spy_study.json
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: S&P500 국면 필터 연구 결과 [skip ci]"
+            git push
+          fi
