@@ -11,6 +11,9 @@ on:
       start:
         description: "백테스트 시작일"
         default: "2020-01-01"
+      tune:
+        description: "파라미터 튜닝도 실행 (false 면 백테스트만)"
+        default: "true"
 
 permissions:
   contents: write
@@ -39,6 +42,7 @@ jobs:
           --report-json results/backtest.json
 
       - name: 파라미터 튜닝 (과최적화 방지)
+        if: ${{ inputs.tune == 'true' }}
         run: >
           python tune.py --source real --market KOSPI
           --top ${{ inputs.top }} --start ${{ inputs.start }}
