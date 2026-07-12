@@ -54,7 +54,7 @@ class PullbackParams:
     # 추세 필터
     trend_rise_lookback: int = 20   # ma_long 이 이 기간 전보다 높아야(상승 추세)
     # 눌림 조건
-    pullback_touch: float = 0.02    # 당일 저가가 20일선 +2% 이내로 근접해야
+    pullback_touch: float = 0.015   # 당일 저가가 20일선 +1.5% 이내로 근접해야 (실데이터 튜닝값)
     runup_lookback: int = 20        # 직전 고점 확인 구간
     runup_min: float = 0.08         # 직전 고점이 현재가보다 8%+ 높았어야(먼저 올랐던 자리)
     # 반등 트리거
@@ -63,10 +63,10 @@ class PullbackParams:
     rsi_high: float = 68.0
     vol_ma: int = 20
     vol_mult: float = 0.8           # 반등일 거래량 >= 20일 평균 * 이 값
-    # 청산 (기본: 고정 %)
-    stop_pct: float = 0.05          # 손절 -5%
-    target_pct: float = 0.10        # 익절 +10%
-    max_hold: int = 15              # 최대 보유 거래일
+    # 청산 (기본: 고정 %) — 실데이터 튜닝(2020~2026, KOSPI100)에서 검증구간 최선 조합
+    stop_pct: float = 0.07          # 손절 -7%
+    target_pct: float = 0.15        # 익절 +15%
+    max_hold: int = 20              # 최대 보유 거래일
     ma_mid_break: float = 0.03      # 종가가 20일선 -3% 아래로 마감하면 추세이탈 청산
     # 청산 (선택: ATR 기반 — 튜닝 레버, 기본 비활성)
     atr_period: int = 14
