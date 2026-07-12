@@ -1,0 +1,49 @@
+{
+  "strategy": "breakout+regime",
+  "split_date": "2023-11-21",
+  "params": {
+    "entry_lookback": 120,
+    "ma_trend": 120,
+    "vol_ma": 20,
+    "vol_mult": 1.3,
+    "atr_period": 14,
+    "init_stop_atr": 2.5,
+    "trail_atr": 3.5,
+    "exit_lookback": 20,
+    "max_hold": 80
+  },
+  "train": {
+    "trades": 345,
+    "win_rate": 0.336231884057971,
+    "expectancy": -0.0024539822868808667,
+    "payoff": 1.8698814916114521
+  },
+  "test": {
+    "trades": 507,
+    "win_rate": 0.40828402366863903,
+    "expectancy": 0.01823974394594008,
+    "payoff": 1.9710644581591599
+  },
+  "strategy_test_portfolio": {
+    "start_equity": 10000000.0,
+    "end_equity": 11167164.797218906,
+    "total_return": 0.11671647972189048,
+    "cagr": 0.044801680392517085,
+    "mdd": -0.1897455790631441,
+    "years": 2.518822724161533
+  },
+  "benchmark_kospi_full": {
+    "total_return": 2.4369451583094652,
+    "cagr": 0.20850906688660964,
+    "years": 6.52
+  },
+  "benchmark_kospi_test": {
+    "total_return": 1.9779638466870084,
+    "cagr": 0.513340523858578,
+    "years": 2.63
+  },
+  "verdict": {
+    "edge_holds_oos": true,
+    "beats_benchmark_oos": false
+  }
+}
