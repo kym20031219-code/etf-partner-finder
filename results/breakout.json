@@ -1,0 +1,50 @@
+{
+  "strategy": "breakout",
+  "meta": {
+    "source": "real",
+    "market": "KOSPI",
+    "top": 100,
+    "start": "2020-01-01",
+    "end": "2026-07-12",
+    "universe_size": 99,
+    "regime_filter": false
+  },
+  "params": {
+    "entry_lookback": 120,
+    "ma_trend": 120,
+    "vol_ma": 20,
+    "vol_mult": 1.3,
+    "atr_period": 14,
+    "init_stop_atr": 2.5,
+    "trail_atr": 3.5,
+    "exit_lookback": 20,
+    "max_hold": 80
+  },
+  "trade_stats": {
+    "trades": 1157,
+    "win_rate": 0.3690579083837511,
+    "avg_ret": 0.004162034664847043,
+    "avg_win": 0.14203074654648168,
+    "avg_loss": -0.07648171872345157,
+    "payoff": 1.8570548481009859,
+    "expectancy": 0.004162034664847047,
+    "avg_hold": 14.232497839239413,
+    "best": 1.0405251572327046,
+    "worst": -0.3030169082125604,
+    "exit_reasons": {
+      "trail": 802,
+      "stop": 307,
+      "channel": 43,
+      "time": 4,
+      "eod": 1
+    }
+  },
+  "equity_stats": {
+    "start_equity": 10000000.0,
+    "end_equity": 10521518.013247129,
+    "total_return": 0.052151801324712865,
+    "cagr": 0.008483627670704097,
+    "mdd": -0.39085014939070556,
+    "years": 6.017796030116359
+  }
+}
