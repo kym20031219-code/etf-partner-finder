@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "source": "real",
+    "market": "KOSPI",
+    "top": 100,
+    "start": "2020-01-01",
+    "end": "2026-07-12",
+    "universe_size": 100,
+    "max_positions": 5
+  },
+  "params": {
+    "ma_short": 5,
+    "ma_mid": 20,
+    "ma_long": 60,
+    "trend_rise_lookback": 20,
+    "pullback_touch": 0.02,
+    "runup_lookback": 20,
+    "runup_min": 0.08,
+    "rsi_period": 14,
+    "rsi_low": 40.0,
+    "rsi_high": 68.0,
+    "vol_ma": 20,
+    "vol_mult": 0.8,
+    "stop_pct": 0.05,
+    "target_pct": 0.1,
+    "max_hold": 15,
+    "ma_mid_break": 0.03,
+    "atr_period": 14,
+    "use_atr_exits": false,
+    "atr_stop_mult": 2.0,
+    "atr_target_mult": 3.0,
+    "trail_atr_mult": 0.0
+  },
+  "trade_stats": {
+    "trades": 637,
+    "win_rate": 0.31711145996860285,
+    "avg_ret": -0.004622707098954968,
+    "avg_win": 0.09305059049586376,
+    "avg_loss": -0.04997904299356045,
+    "payoff": 1.861792161723722,
+    "expectancy": -0.004622707098954966,
+    "avg_hold": 4.048665620094192,
+    "best": 0.24030165289256195,
+    "worst": -0.0708575129533679,
+    "exit_reasons": {
+      "stop": 357,
+      "time": 24,
+      "trend_break": 75,
+      "target": 181
+    }
+  },
+  "equity_stats": {
+    "start_equity": 10000000.0,
+    "end_equity": 11410758.368963636,
+    "total_return": 0.1410758368963636,
+    "cagr": 0.021801412297935974,
+    "mdd": -0.03209554897984128,
+    "years": 6.119096509240246
+  }
+}
