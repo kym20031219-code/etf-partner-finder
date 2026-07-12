@@ -1,0 +1,46 @@
+name: 돌파+국면 전략 강건성 검증
+
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "시총 상위 종목 수"
+        default: "100"
+      start:
+        description: "시작일"
+        default: "2020-01-01"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: validate
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 학습/검증 분리 + KOSPI 벤치마크
+        run: >
+          python validate_breakout.py --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --report-json results/breakout_validation.json
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: 돌파+국면 검증 결과 [skip ci]"
+            git push
+          fi
