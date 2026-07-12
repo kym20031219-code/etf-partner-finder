@@ -78,6 +78,7 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=60)
     ap.add_argument("--days", type=int, default=1000)
     ap.add_argument("--top-show", type=int, default=12)
+    ap.add_argument("--out-dir", default=".", help="결과 저장 폴더 (results 등)")
     args = ap.parse_args()
 
     if args.source == "real":
@@ -122,12 +123,27 @@ def main() -> int:
             }
         )
 
+    import os
+    os.makedirs(args.out_dir, exist_ok=True)
     res = pd.DataFrame(rows)
-    res.to_csv("tune_results.csv", index=False, encoding="utf-8-sig")
+    res.to_csv(os.path.join(args.out_dir, "tune_results.csv"), index=False, encoding="utf-8-sig")
 
     # 학습에서 상위였던 조합을 '검증 성적' 순으로 정렬 → 강건한 조합이 위로
     robust = res[res["train_score"] > float("-inf")].copy()
     robust = robust.sort_values(["test_score", "train_score"], ascending=False)
+
+    # 상위 조합을 JSON 으로도 저장 (워크플로우에서 안정적으로 읽기 위함)
+    import json as _json
+    top_cols = keys + ["train_trades", "train_winrate", "train_expect",
+                       "test_trades", "test_winrate", "test_expect", "test_payoff"]
+    top_records = robust[top_cols].head(15).to_dict(orient="records") if not robust.empty else []
+    with open(os.path.join(args.out_dir, "tune_top.json"), "w", encoding="utf-8") as f:
+        _json.dump(
+            {"grid": GRID, "min_trades": MIN_TRADES,
+             "universe_size": len(universe), "train": len(train), "test": len(test),
+             "top": top_records},
+            f, ensure_ascii=False, indent=2,
+        )
 
     show_cols = keys + ["train_trades", "train_expect", "test_trades", "test_winrate", "test_expect", "test_payoff"]
     print("=" * 90)

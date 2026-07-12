@@ -1,0 +1,57 @@
+name: 실데이터 백테스트 & 튜닝
+
+# 실제 KOSPI 데이터로 (1) 현재 파라미터 백테스트, (2) 파라미터 튜닝(학습/검증 분리)을
+# 돌려 결과를 results/ 에 커밋한다. 수동 실행 전용.
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "분석할 시총 상위 종목 수"
+        default: "100"
+      start:
+        description: "백테스트 시작일"
+        default: "2020-01-01"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: analyze
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 현재 파라미터로 백테스트
+        run: >
+          python run_backtest.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --report-json results/backtest.json
+
+      - name: 파라미터 튜닝 (과최적화 방지)
+        run: >
+          python tune.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --out-dir results
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: 실데이터 백테스트/튜닝 결과 [skip ci]"
+            git push
+          else
+            echo "결과 변경 없음"
+          fi
