@@ -1,0 +1,46 @@
+name: ETF 구간별 상관 분석
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "시작일"
+        default: "2005-01-01"
+      end:
+        description: "종료일"
+        default: "2025-12-31"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: etf-corr
+  cancel-in-progress: false
+
+jobs:
+  corr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: ETF TR 수집 + 구간별 상관
+        run: >
+          python -m research.etf_corr
+          --start ${{ inputs.start }} --end ${{ inputs.end }}
+          --report-json results/etf_corr.json
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: ETF 구간별 상관 분석 결과 [skip ci]"
+            git push
+          fi
