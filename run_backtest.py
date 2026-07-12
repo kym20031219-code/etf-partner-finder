@@ -19,6 +19,7 @@ import argparse
 import json
 import sys
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
 
@@ -58,6 +59,7 @@ def main() -> int:
     ap.add_argument("--days", type=int, default=750, help="합성 봉 수")
     ap.add_argument("--max-positions", type=int, default=5)
     ap.add_argument("--cash", type=float, default=10_000_000)
+    ap.add_argument("--report-json", default=None, help="성과 지표를 JSON 으로 저장할 경로")
     args = ap.parse_args()
 
     p = PullbackParams()
@@ -75,6 +77,28 @@ def main() -> int:
     estats = equity_stats(eq)
     note = f"종목 {len(universe)}개 · 소스={args.source} · 동시보유≤{args.max_positions}"
     print("\n" + format_report(tstats, estats, note))
+
+    # 성과 지표 JSON 저장 (워크플로우에서 결과를 안정적으로 읽기 위함)
+    if args.report_json:
+        from dataclasses import asdict
+        Path(args.report_json).parent.mkdir(parents=True, exist_ok=True)
+        # exit_reasons 의 dict 는 그대로 직렬화 가능
+        with open(args.report_json, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "meta": {
+                        "source": args.source, "market": args.market, "top": args.top,
+                        "start": args.start, "end": args.end,
+                        "universe_size": len(universe),
+                        "max_positions": args.max_positions,
+                    },
+                    "params": asdict(p),
+                    "trade_stats": tstats,
+                    "equity_stats": estats,
+                },
+                f, ensure_ascii=False, indent=2,
+            )
+        print(f"[저장] {args.report_json}")
 
     # 개별 매매 저장
     if all_trades:
