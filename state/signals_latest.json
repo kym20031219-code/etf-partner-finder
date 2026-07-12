@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-11T15:55:08",
+  "generated_at": "2026-07-12T00:55:19",
   "source": "real",
   "candidates": [],
   "watch": [
@@ -11,8 +11,8 @@
       "rsi": 48.7,
       "dist_pct": -0.7,
       "tier": "watch",
-      "stop": 85405.0,
-      "target": 98890.0,
+      "stop": 83607.0,
+      "target": 103385.0,
       "name": "코웨이"
     },
     {
@@ -23,8 +23,8 @@
       "rsi": 52.2,
       "dist_pct": -1.0,
       "tier": "watch",
-      "stop": 615600.0,
-      "target": 712800.0,
+      "stop": 602640.0,
+      "target": 745200.0,
       "name": "삼성화재"
     },
     {
@@ -35,8 +35,8 @@
       "rsi": 59.3,
       "dist_pct": 5.8,
       "tier": "watch",
-      "stop": 122075.0,
-      "target": 141350.0,
+      "stop": 119505.0,
+      "target": 147775.0,
       "name": "하나금융지주"
     }
   ]
