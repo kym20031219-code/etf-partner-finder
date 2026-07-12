@@ -100,14 +100,16 @@ def main() -> int:
     }
     print(json.dumps(out, ensure_ascii=False, indent=2))
 
-    # 판정
-    te = test_stats.get("expectancy", 0) or 0
-    edge_holds = te > 0
-    beats_bench = (test_port.get("cagr", -1) or -1) > (bench_test.get("cagr", 0) or 0)
+    # 판정 (파이썬 bool 로 캐스팅 — numpy.bool_ 은 JSON 직렬화 불가)
+    te = float(test_stats.get("expectancy", 0) or 0)
+    strat_cagr = float(test_port.get("cagr", -1) or -1)
+    bench_cagr = float(bench_test.get("cagr", 0) or 0)
+    edge_holds = bool(te > 0)
+    beats_bench = bool(strat_cagr > bench_cagr)
     print("\n=== 판정 ===")
     print(f"검증구간 기대값 (+)?      {'예' if edge_holds else '아니오'} ({te*100:+.2f}%/건)")
     print(f"검증구간 지수 초과수익?   {'예' if beats_bench else '아니오'} "
-          f"(전략 {(test_port.get('cagr',0) or 0)*100:+.1f}% vs KOSPI {(bench_test.get('cagr',0) or 0)*100:+.1f}%)")
+          f"(전략 CAGR {strat_cagr*100:+.1f}% vs KOSPI CAGR {bench_cagr*100:+.1f}%)")
 
     if args.report_json:
         Path(args.report_json).parent.mkdir(parents=True, exist_ok=True)
