@@ -1,0 +1,49 @@
+name: ETF 리밸런싱 연구 (A/B/C)
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "시작일"
+        default: "1999-06-01"
+      end:
+        description: "종료일"
+        default: "2025-12-31"
+      primary:
+        description: "주 리밸런싱 규칙 (ME/QE/YE)"
+        default: "QE"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebal-study
+  cancel-in-progress: false
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 리밸런싱 vs 드리프트 백테스트
+        run: >
+          python -m research.rebal_study
+          --start ${{ inputs.start }} --end ${{ inputs.end }} --primary ${{ inputs.primary }}
+          --report-json results/rebal_study.json
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: ETF 리밸런싱 연구 결과 [skip ci]"
+            git push
+          fi
