@@ -92,8 +92,23 @@ def add_indicators(df: pd.DataFrame, p: PullbackParams) -> pd.DataFrame:
     return out
 
 
-def generate_signals(df: pd.DataFrame, p: PullbackParams) -> pd.DataFrame:
-    """각 봉에 대해 진입 신호(entry) 컬럼을 붙여 반환."""
+def market_regime(index_close: pd.Series, ma: int = 120) -> pd.Series:
+    """시장 국면(risk-on) 판정: 지수 종가 > 지수 MA 이고 MA 가 우상향이면 True.
+
+    반환값은 날짜 인덱스의 bool Series. 하락장(False)에서는 매수 신호를 무시한다.
+    """
+    m = index_close.rolling(ma).mean()
+    on = (index_close > m) & (m > m.shift(10))
+    return on.fillna(False)
+
+
+def generate_signals(
+    df: pd.DataFrame, p: PullbackParams, regime: pd.Series | None = None
+) -> pd.DataFrame:
+    """각 봉에 대해 진입 신호(entry) 컬럼을 붙여 반환.
+
+    regime 이 주어지면(시장 국면 bool Series) 국면이 risk-on 인 날의 신호만 남긴다.
+    """
     d = add_indicators(df, p)
 
     uptrend = (
@@ -113,7 +128,11 @@ def generate_signals(df: pd.DataFrame, p: PullbackParams) -> pd.DataFrame:
         & (d["Volume"] >= d["vol_ma"] * p.vol_mult)
     )
 
-    d["entry"] = (uptrend & pullback & bounce).fillna(False)
+    entry = (uptrend & pullback & bounce).fillna(False)
+    if regime is not None:
+        on = regime.reindex(d.index).ffill().fillna(False).astype(bool)
+        entry = entry & on
+    d["entry"] = entry
     return d
 
 
@@ -151,6 +170,7 @@ def current_picks(
     universe: dict[str, pd.DataFrame],
     p: PullbackParams,
     watch_band: tuple[float, float] = WATCH_BAND,
+    regime: pd.Series | None = None,
 ) -> dict[str, list[dict]]:
     """대시보드용 2단계 추천.
 
@@ -163,7 +183,7 @@ def current_picks(
     for code, df in universe.items():
         if len(df) < p.ma_long + p.trend_rise_lookback:
             continue
-        d = generate_signals(df, p)
+        d = generate_signals(df, p, regime=regime)
         last = d.iloc[-1]
         close = float(last["Close"])
         ma20 = float(last["ma_m"])

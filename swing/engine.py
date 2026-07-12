@@ -32,8 +32,10 @@ class Trade:
 ROUND_TRIP_COST = 0.0035
 
 
-def extract_trades(code: str, df: pd.DataFrame, p: PullbackParams) -> list[Trade]:
-    d = generate_signals(df, p)
+def extract_trades(
+    code: str, df: pd.DataFrame, p: PullbackParams, regime: pd.Series | None = None
+) -> list[Trade]:
+    d = generate_signals(df, p, regime=regime)
     o = d["Open"].to_numpy(float)
     h = d["High"].to_numpy(float)
     low = d["Low"].to_numpy(float)

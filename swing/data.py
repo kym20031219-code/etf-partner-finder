@@ -44,6 +44,15 @@ def fetch_universe(market: str = "KOSPI", top_n: int = 100) -> list[str]:
     return listing[code_col].astype(str).str.zfill(6).head(top_n).tolist()
 
 
+def fetch_index(code: str = "KS11", start: str = "2015-01-01", end: str | None = None) -> pd.DataFrame:
+    """지수 일봉 (기본 KS11 = KOSPI 종합지수). 네트워크 필요."""
+    import FinanceDataReader as fdr
+
+    df = fdr.DataReader(code, start, end)
+    df = df.rename(columns=str.capitalize)
+    return df[["Close"]].dropna()
+
+
 def fetch_names(market: str = "KOSPI") -> dict[str, str]:
     """종목코드 → 종목명 매핑 (네트워크 필요)."""
     import FinanceDataReader as fdr

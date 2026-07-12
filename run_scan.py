@@ -77,6 +77,8 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=30)
     ap.add_argument("--days", type=int, default=400)
     ap.add_argument("--dry-run", action="store_true", help="전송하지 않고 출력만")
+    ap.add_argument("--no-regime", action="store_true", help="시장 국면 필터 끄기")
+    ap.add_argument("--regime-ma", type=int, default=120)
     args = ap.parse_args()
 
     p = PullbackParams()
@@ -85,7 +87,20 @@ def main() -> int:
         print("데이터가 비었습니다.", file=sys.stderr)
         return 1
 
-    picks = current_picks(universe, p)
+    # 시장 국면 필터: KOSPI 지수 상승국면에서만 매수 신호 허용
+    regime = None
+    regime_on = None
+    if args.source == "real" and not args.no_regime:
+        from swing.strategy import market_regime
+        try:
+            idx = datamod.fetch_index("KS11", args.start, args.end)
+            regime = market_regime(idx["Close"], args.regime_ma)
+            regime_on = bool(regime.iloc[-1])
+            print(f"[국면] KOSPI risk-on={regime_on} (최근)", flush=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"[국면] 지수 조회 실패, 필터 생략: {e}", file=sys.stderr)
+
+    picks = current_picks(universe, p, regime=regime)
     candidates = picks["buy"]
     watch = picks["watch"]
 
@@ -103,6 +118,7 @@ def main() -> int:
             {
                 "generated_at": datetime.now().isoformat(timespec="seconds"),
                 "source": args.source,
+                "market_regime": regime_on,   # True=상승국면, False=하락국면, None=미적용
                 "candidates": named(candidates),
                 "watch": named(watch),
             },

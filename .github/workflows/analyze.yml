@@ -35,17 +35,17 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 현재 파라미터로 백테스트
+      - name: 현재 파라미터로 백테스트 (시장 국면 필터)
         run: >
           python run_backtest.py --source real --market KOSPI
-          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
           --report-json results/backtest.json
 
-      - name: 파라미터 튜닝 (과최적화 방지)
+      - name: 파라미터 튜닝 (과최적화 방지, 시장 국면 필터)
         if: ${{ inputs.tune == 'true' }}
         run: >
           python tune.py --source real --market KOSPI
-          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
           --out-dir results
 
       - name: 결과 커밋
