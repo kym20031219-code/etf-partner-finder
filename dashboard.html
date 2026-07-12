@@ -89,6 +89,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 
 <div class="meta">
   <span class="badge live"><span class="dot"></span><span id="statusText">불러오는 중…</span></span>
+  <span class="badge" id="regimeBadge" style="display:none"></span>
   <span class="badge info" id="updatedBadge" style="display:none"></span>
   <span class="badge info" id="sourceBadge" style="display:none"></span>
   <button class="refresh" id="refreshBtn">↻ 새로고침</button>
@@ -215,6 +216,13 @@ async function load(){
       $('sourceBadge').style.display = '';
       $('sourceBadge').textContent = data.source === 'real' ? '실데이터' : data.source;
     }
+    const rb = $('regimeBadge');
+    if(data.market_regime === true || data.market_regime === false){
+      rb.style.display = '';
+      rb.textContent = data.market_regime ? '🟢 시장 상승국면' : '🔴 시장 하락국면 · 매수 자제';
+      rb.style.color = data.market_regime ? 'var(--green)' : 'var(--red)';
+      rb.style.borderColor = data.market_regime ? 'rgba(45,206,137,.3)' : 'rgba(247,95,79,.3)';
+    } else { rb.style.display = 'none'; }
     $('statusText').textContent = `매수 ${cands.length} · 관심 ${watch.length}`;
 
     if(cands.length === 0 && watch.length === 0){ renderEmpty(); return; }

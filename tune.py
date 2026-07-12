@@ -50,10 +50,10 @@ def score(stats: dict) -> float:
     return stats["expectancy"] * math.sqrt(stats["trades"])
 
 
-def run_universe(universe: dict, p: PullbackParams) -> dict:
+def run_universe(universe: dict, p: PullbackParams, regime=None) -> dict:
     trades = []
     for code, df in universe.items():
-        trades.extend(extract_trades(code, df, p))
+        trades.extend(extract_trades(code, df, p, regime=regime))
     return trade_stats(trades)
 
 
@@ -79,6 +79,8 @@ def main() -> int:
     ap.add_argument("--days", type=int, default=1000)
     ap.add_argument("--top-show", type=int, default=12)
     ap.add_argument("--out-dir", default=".", help="결과 저장 폴더 (results 등)")
+    ap.add_argument("--regime", action="store_true", help="KOSPI 지수 상승국면에서만 매수")
+    ap.add_argument("--regime-ma", type=int, default=120)
     args = ap.parse_args()
 
     if args.source == "real":
@@ -94,6 +96,13 @@ def main() -> int:
     else:
         universe = datamod.synthetic_universe(n=args.n, days=args.days)
 
+    regime = None
+    if args.regime and args.source == "real":
+        from swing.strategy import market_regime
+        idx = datamod.fetch_index("KS11", args.start, args.end)
+        regime = market_regime(idx["Close"], args.regime_ma)
+        print(f"[국면] KOSPI {args.regime_ma}일선 risk-on 비중 {regime.mean()*100:.0f}%")
+
     train, test = split_universe(universe)
     print(f"종목 {len(universe)}개 · 학습 {len(train)} / 검증 {len(test)}")
 
@@ -106,8 +115,8 @@ def main() -> int:
     for combo in combos:
         overrides = dict(zip(keys, combo))
         p = replace(base, **overrides)
-        tr = run_universe(train, p)
-        te = run_universe(test, p)
+        tr = run_universe(train, p, regime=regime)
+        te = run_universe(test, p, regime=regime)
         rows.append(
             {
                 **overrides,

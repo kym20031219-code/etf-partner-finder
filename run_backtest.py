@@ -60,6 +60,8 @@ def main() -> int:
     ap.add_argument("--max-positions", type=int, default=5)
     ap.add_argument("--cash", type=float, default=10_000_000)
     ap.add_argument("--report-json", default=None, help="성과 지표를 JSON 으로 저장할 경로")
+    ap.add_argument("--regime", action="store_true", help="KOSPI 지수 상승국면에서만 매수")
+    ap.add_argument("--regime-ma", type=int, default=120)
     args = ap.parse_args()
 
     p = PullbackParams()
@@ -68,9 +70,20 @@ def main() -> int:
         print("데이터가 비었습니다.", file=sys.stderr)
         return 1
 
+    # 시장 국면 필터 (실데이터만 지원)
+    regime = None
+    if args.regime and args.source == "real":
+        from swing.strategy import market_regime
+        idx = datamod.fetch_index("KS11", args.start, args.end)
+        regime = market_regime(idx["Close"], args.regime_ma)
+        on_ratio = float(regime.reindex(idx.index).mean())
+        print(f"[국면] KOSPI {args.regime_ma}일선 기준 risk-on 비중 {on_ratio*100:.0f}%", flush=True)
+    elif args.regime:
+        print("[국면] 합성 데이터는 지수가 없어 국면 필터를 건너뜁니다.", flush=True)
+
     all_trades = []
     for code, df in universe.items():
-        all_trades.extend(extract_trades(code, df, p))
+        all_trades.extend(extract_trades(code, df, p, regime=regime))
 
     tstats = trade_stats(all_trades)
     eq = simulate_portfolio(all_trades, args.cash, args.max_positions)
@@ -91,6 +104,8 @@ def main() -> int:
                         "start": args.start, "end": args.end,
                         "universe_size": len(universe),
                         "max_positions": args.max_positions,
+                        "regime_filter": bool(regime is not None),
+                        "regime_ma": args.regime_ma if regime is not None else None,
                     },
                     "params": asdict(p),
                     "trade_stats": tstats,
