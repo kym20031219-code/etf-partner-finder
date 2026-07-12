@@ -1,0 +1,52 @@
+name: 신고가 돌파 전략 백테스트
+
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "시총 상위 종목 수"
+        default: "100"
+      start:
+        description: "시작일"
+        default: "2020-01-01"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: breakout
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 돌파 백테스트 (국면필터 없음)
+        run: >
+          python run_breakout.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --report-json results/breakout.json
+
+      - name: 돌파 백테스트 (국면필터 적용)
+        run: >
+          python run_breakout.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
+          --report-json results/breakout_regime.json
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: 신고가 돌파 백테스트 결과 [skip ci]"
+            git push
+          fi
