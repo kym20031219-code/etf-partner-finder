@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "source": "synthetic",
+    "market": "KOSPI",
+    "top": 200,
+    "start": "2020-01-01",
+    "end": "2026-07-13",
+    "universe_size": 40,
+    "generated_at": "2026-07-13T05:41:19"
+  },
+  "params": {
+    "ma_short": 5,
+    "ma_mid": 20,
+    "up_min": 0.02,
+    "close_pos_min": 0.6,
+    "vol_ma": 20,
+    "vol_mult": 1.5,
+    "breakout_lookback": 20,
+    "rsi_period": 14,
+    "rsi_high": 80.0,
+    "gap_threshold": 0.01,
+    "cost": 0.0025
+  },
+  "study": {
+    "n_days": 35960,
+    "n_gap_up": 5983,
+    "base_gap_up_rate": 16.64,
+    "avg_gap_all": 0.024,
+    "feature_table": [
+      {
+        "feature": "당일 상승률",
+        "gap_up_mean": 0.29,
+        "no_gap_mean": 0.12,
+        "is_pct": true
+      },
+      {
+        "feature": "고가권 마감(0~1)",
+        "gap_up_mean": 0.533,
+        "no_gap_mean": 0.513,
+        "is_pct": false
+      },
+      {
+        "feature": "거래량 배수(20일평균 대비)",
+        "gap_up_mean": 1.017,
+        "no_gap_mean": 0.997,
+        "is_pct": false
+      },
+      {
+        "feature": "RSI(14)",
+        "gap_up_mean": 54.486,
+        "no_gap_mean": 54.007,
+        "is_pct": false
+      },
+      {
+        "feature": "20일 고가 돌파 비율",
+        "gap_up_mean": 0.113,
+        "no_gap_mean": 0.099,
+        "is_pct": false
+      }
+    ],
+    "signal": {
+      "n_signals": 84,
+      "gap_up_rate": 32.14,
+      "avg_gap": 0.669,
+      "lift": 1.93
+    }
+  },
+  "trade_stats": {
+    "trades": 84,
+    "win_rate": 0.7142857142857143,
+    "avg_ret": 0.004191061675038405,
+    "avg_win": 0.008323528426959475,
+    "avg_loss": -0.0061401052047642705,
+    "payoff": 1.3556002950081423,
+    "expectancy": 0.004191061675038405,
+    "avg_hold": 1.0,
+    "best": 0.02451724766600866,
+    "worst": -0.018387068428006133,
+    "exit_reasons": {
+      "overnight": 84
+    }
+  },
+  "equity_stats": {
+    "start_equity": 10000000.0,
+    "end_equity": 10727691.123972755,
+    "total_return": 0.07276911239727557,
+    "cagr": 0.02139425083023383,
+    "mdd": -0.00861285863244031,
+    "years": 3.3182751540041067
+  }
+}

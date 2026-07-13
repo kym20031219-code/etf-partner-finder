@@ -5,3 +5,4 @@ __pycache__/
 /trades.csv
 /signals_latest.json
 /tune_results.csv
+/overnight_trades.csv

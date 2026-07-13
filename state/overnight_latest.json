@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-07-13T05:41:19",
+  "source": "synthetic",
+  "stats": {
+    "win_rate": 0.7142857142857143,
+    "expectancy": 0.004191061675038405,
+    "avg_ret": 0.004191061675038405,
+    "trades": 84,
+    "base_gap_up_rate": 16.64,
+    "signal_gap_up_rate": 32.14,
+    "lift": 1.93
+  },
+  "candidates": []
+}
