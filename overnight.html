@@ -94,6 +94,7 @@ td.dn{color:var(--sub)}
 .m .l{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);margin-bottom:3px}
 .m .val{font-size:14px;font-weight:800;line-height:1}
 .m.ret .val{color:var(--green)}
+.c-intraday{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:11px;padding-top:11px;border-top:1px solid var(--border);font-size:11px;font-weight:700;color:var(--sub)}
 
 .state-box{text-align:center;padding:50px 24px;color:var(--sub)}
 .state-box .emoji{font-size:44px;margin-bottom:14px;opacity:.85}
@@ -243,6 +244,14 @@ function featureTable(study){
 
 function cardHTML(c){
   const name = c.name || c.code;
+  // 실시간(KIS) 스캔이면 오전/오후/막판 특징을 추가로 표시
+  const intraday = (c.morning_ret != null) ? `
+    <div class="c-intraday">
+      <span>🌅 오전 ${signed(c.morning_ret,1)}%</span>
+      <span>🌇 오후 ${signed(c.afternoon_ret,1)}%</span>
+      <span>⏱️ 막판30분 ${signed(c.last30_ret,1)}%</span>
+      <span>📉 VWAP ${signed(c.vwap_pos,1)}%</span>
+    </div>` : '';
   return `
   <div class="card">
     <div class="c-top"><span class="c-name">${escapeHTML(name)}</span><span class="c-code">${escapeHTML(c.code)}</span></div>
@@ -253,6 +262,7 @@ function cardHTML(c){
       <div class="m"><div class="l">🎯 고가권 마감</div><div class="val">${c.close_pos}%</div></div>
       <div class="m"><div class="l">📊 RSI</div><div class="val">${c.rsi}</div></div>
     </div>
+    ${intraday}
   </div>`;
 }
 
