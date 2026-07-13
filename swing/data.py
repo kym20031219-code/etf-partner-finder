@@ -31,11 +31,26 @@ def fetch_ohlcv(code: str, start: str, end: str) -> pd.DataFrame:
     return df
 
 
-def fetch_universe(market: str = "KOSPI", top_n: int = 100) -> list[str]:
-    """시가총액 상위 종목코드 목록 (네트워크 필요)."""
+def _stock_listing(market: str, retries: int = 4):
+    """fdr.StockListing 은 KRX 소스가 간헐적으로 실패한다. 지수 백오프로 재시도."""
+    import time
     import FinanceDataReader as fdr
 
-    listing = fdr.StockListing(market)
+    last = None
+    for i in range(retries):
+        try:
+            return fdr.StockListing(market)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            wait = 2 ** i
+            print(f"  StockListing({market}) 실패({i+1}/{retries}): {e} → {wait}s 후 재시도", flush=True)
+            time.sleep(wait)
+    raise last
+
+
+def fetch_universe(market: str = "KOSPI", top_n: int = 100) -> list[str]:
+    """시가총액 상위 종목코드 목록 (네트워크 필요)."""
+    listing = _stock_listing(market)
     # 컬럼명이 버전마다 다를 수 있어 방어적으로 처리
     cap_col = next((c for c in ("Marcap", "MarketCap", "Market_Cap") if c in listing.columns), None)
     code_col = next((c for c in ("Code", "Symbol") if c in listing.columns), "Code")
@@ -55,9 +70,7 @@ def fetch_index(code: str = "KS11", start: str = "2015-01-01", end: str | None =
 
 def fetch_names(market: str = "KOSPI") -> dict[str, str]:
     """종목코드 → 종목명 매핑 (네트워크 필요)."""
-    import FinanceDataReader as fdr
-
-    listing = fdr.StockListing(market)
+    listing = _stock_listing(market)
     code_col = next((c for c in ("Code", "Symbol") if c in listing.columns), "Code")
     name_col = next((c for c in ("Name", "Korean Name") if c in listing.columns), "Name")
     codes = listing[code_col].astype(str).str.zfill(6)
