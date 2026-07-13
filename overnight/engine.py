@@ -17,8 +17,10 @@ from swing.engine import Trade
 from .strategy import ClosingParams, generate_signals
 
 
-def extract_trades(code: str, df: pd.DataFrame, p: ClosingParams) -> list[Trade]:
-    d = generate_signals(df, p)
+def extract_trades(
+    code: str, df: pd.DataFrame, p: ClosingParams, regime: pd.Series | None = None
+) -> list[Trade]:
+    d = generate_signals(df, p, regime=regime)
     o = d["Open"].to_numpy(float)
     c = d["Close"].to_numpy(float)
     entry_sig = d["entry"].to_numpy(bool)

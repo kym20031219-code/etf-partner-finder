@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 """종가매매법 파라미터 최적화 (과최적화 방지: 학습/검증 분리).
 
+목표(objective) 선택:
+  --objective expectancy : 건당 기대수익률을 최대화 (기본, 통계적으로 올바른 목표)
+  --objective winrate    : 승률을 최대화 (단, 기대값이 (+)인 조합 중에서만)
+
+승률만 높이면 '작게 자주 이기고 크게 지는' 함정에 빠지기 쉬우므로, winrate 모드도
+**기대값(비용 반영) > 0** 인 조합 중에서만 승률 상위를 고른다.
+
 과정:
-  1. 데이터를 날짜 기준으로 앞(학습 train)/뒤(검증 test) 로 나눈다.
-  2. 파라미터 격자(GRID)를 학습 구간에서 백테스트해 기대값 순으로 정렬한다.
-     (표본이 MIN_TRADES 미만인 조합은 신뢰 불가로 제외)
-  3. 상위 조합을 **검증 구간(미래·미사용 데이터)** 에서 다시 평가한다.
-     → 검증에서도 기대값이 (+)이고 학습과 크게 어긋나지 않는 조합이 '강건'하다.
+  1. 데이터를 날짜 기준으로 앞(학습)/뒤(검증)로 나눈다.
+  2. 파라미터 격자를 학습 구간에서 백테스트해 목표 기준으로 정렬한다.
+  3. 상위 조합을 검증 구간(미래·미사용 데이터)에서 다시 평가한다.
   4. 최종 선택 조합의 승률·건당 기대수익률·연간 거래횟수를 보고한다.
+
+--regime 을 켜면 KOSPI 지수 상승국면(risk-on)에서만 매수 → 통상 승률이 오른다.
 
 사용법:
   python tune_overnight.py --source real --market KOSPI --top 150 --start 2019-01-01 \
-      --slippage 0.001 --out results/overnight_validation.json
-  python tune_overnight.py --source synthetic --n 40 --days 1200    # 오프라인 검증
+      --objective winrate --regime --slippage 0.001 --out results/overnight_validation.json
+  python tune_overnight.py --source synthetic --n 40 --days 1200 --objective winrate
 """
 from __future__ import annotations
 
@@ -26,19 +33,20 @@ from pathlib import Path
 import pandas as pd
 
 from swing import data as datamod
+from swing.strategy import market_regime
 from swing.metrics import trade_stats
 from overnight import data as odata
 from overnight.engine import extract_trades
 from overnight.strategy import ClosingParams
 from overnight.study import gap_feature_study
 
-# 탐색 격자 (곱으로 늘어나니 과하게 넓히지 말 것) — 108 조합
+# 탐색 격자 (승률 최적화에 여지를 주려 더 엄격한 값도 포함) — 72 조합
 GRID = {
-    "up_min": [0.015, 0.02, 0.03],
-    "close_pos_min": [0.5, 0.6, 0.7],
-    "vol_mult": [1.2, 1.5, 2.0],
+    "up_min": [0.02, 0.03, 0.05],
+    "close_pos_min": [0.5, 0.7],
+    "vol_mult": [1.5, 2.0, 3.0],
     "breakout_lookback": [20, 60],
-    "rsi_high": [75.0, 85.0],
+    "rsi_high": [80.0, 90.0],
 }
 MIN_TRADES = 30          # 이보다 적으면 통계 신뢰 불가
 TOP_K = 12               # 학습 상위 몇 개를 검증할지
@@ -62,8 +70,19 @@ def load_universe(args) -> dict[str, pd.DataFrame]:
     return odata.overnight_universe(n=args.n, days=args.days)
 
 
+def build_regime(args) -> pd.Series | None:
+    if not args.regime or args.source != "real":
+        if args.regime:
+            print("[국면] 합성 데이터는 지수가 없어 국면 필터를 건너뜁니다.", flush=True)
+        return None
+    idx = datamod.fetch_index("KS11", args.start, args.end)
+    reg = market_regime(idx["Close"], args.regime_ma)
+    print(f"[국면] KOSPI {args.regime_ma}일선 기준 risk-on 비중 "
+          f"{float(reg.mean())*100:.0f}%", flush=True)
+    return reg
+
+
 def split_by_date(universe: dict, ratio: float = 0.68) -> tuple[dict, dict, str]:
-    """모든 종목에 공통인 분할 날짜를 잡아 train/test 로 나눈다."""
     all_dates = sorted({d for df in universe.values() for d in df.index})
     cut = all_dates[int(len(all_dates) * ratio)]
     train, test = {}, {}
@@ -76,10 +95,10 @@ def split_by_date(universe: dict, ratio: float = 0.68) -> tuple[dict, dict, str]
     return train, test, str(pd.Timestamp(cut).date())
 
 
-def evaluate(universe: dict, p: ClosingParams) -> dict:
+def evaluate(universe: dict, p: ClosingParams, regime: pd.Series | None) -> dict:
     trades = []
     for code, df in universe.items():
-        trades.extend(extract_trades(code, df, p))
+        trades.extend(extract_trades(code, df, p, regime=regime))
     st = trade_stats(trades)
     st["trades_per_year"] = _trades_per_year(trades, universe)
     return st
@@ -97,37 +116,44 @@ def _trades_per_year(trades: list, universe: dict) -> float:
     return round(len(trades) / yrs, 1) if yrs else 0.0
 
 
-def grid_search(train: dict, test: dict, base: ClosingParams) -> dict:
+def _rank_key(objective: str):
+    """정렬 키. winrate 는 (기대값>0 우선, 그다음 승률) 로 정렬."""
+    if objective == "winrate":
+        return lambda st: (st["expectancy"] > 0, st["win_rate"], st["expectancy"])
+    return lambda st: (st["expectancy"],)
+
+
+def grid_search(train, test, base, regime, objective) -> dict:
     keys = list(GRID)
     results = []
     combos = list(itertools.product(*(GRID[k] for k in keys)))
-    print(f"[탐색] {len(combos)} 조합 × (학습·검증)", flush=True)
+    print(f"[탐색] {len(combos)} 조합 × (학습·검증) · 목표={objective}", flush=True)
     for i, values in enumerate(combos, 1):
         overrides = dict(zip(keys, values))
         p = replace(base, **overrides)
-        tr = evaluate(train, p)
+        tr = evaluate(train, p, regime)
         if tr.get("trades", 0) < MIN_TRADES:
             continue
         results.append({"params": overrides, "train": tr})
         if i % 20 == 0:
             print(f"  ...{i}/{len(combos)}", flush=True)
 
-    # 학습 기대값 순 정렬 → 상위 K개만 검증
-    results.sort(key=lambda r: r["train"]["expectancy"], reverse=True)
+    key = _rank_key(objective)
+    results.sort(key=lambda r: key(r["train"]), reverse=True)
     for r in results[:TOP_K]:
         p = replace(base, **r["params"])
-        r["test"] = evaluate(test, p)
-
+        r["test"] = evaluate(test, p, regime)
     return {"ranked": results[:TOP_K], "n_evaluated": len(results)}
 
 
-def pick_robust(ranked: list) -> dict | None:
-    """검증 기대값이 (+)인 것 중 검증 기대값이 가장 큰 조합."""
+def pick_robust(ranked: list, objective: str) -> dict | None:
+    """검증 기대값이 (+)인 것 중, 목표에 맞는 최고 조합."""
     cand = [r for r in ranked if r.get("test", {}).get("trades", 0) >= 15
             and r["test"].get("expectancy", -1) > 0]
     if not cand:
         return None
-    cand.sort(key=lambda r: r["test"]["expectancy"], reverse=True)
+    key = _rank_key(objective)
+    cand.sort(key=lambda r: key(r["test"]), reverse=True)
     return cand[0]
 
 
@@ -149,6 +175,9 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=40)
     ap.add_argument("--days", type=int, default=1200)
     ap.add_argument("--slippage", type=float, default=0.0, help="매수 슬리피지(보수적)")
+    ap.add_argument("--objective", choices=["expectancy", "winrate"], default="expectancy")
+    ap.add_argument("--regime", action="store_true", help="KOSPI 상승국면에서만 매수")
+    ap.add_argument("--regime-ma", type=int, default=120)
     ap.add_argument("--out", default="results/overnight_validation.json")
     args = ap.parse_args()
 
@@ -157,20 +186,20 @@ def main() -> int:
     if len(universe) < 5:
         print("데이터가 부족합니다.")
         return 1
+    regime = build_regime(args)
 
     train, test, cut = split_by_date(universe)
     print(f"[분할] 학습 {len(train)}종목 / 검증 {len(test)}종목 · 경계일 {cut}", flush=True)
 
-    search = grid_search(train, test, base)
-    robust = pick_robust(search["ranked"])
+    search = grid_search(train, test, base, regime, args.objective)
+    robust = pick_robust(search["ranked"], args.objective)
 
-    # 전체 구간(참고) + 선택 조합의 특징 분석
     chosen = replace(base, **robust["params"]) if robust else base
-    full = evaluate(universe, chosen)
+    full = evaluate(universe, chosen, regime)
     study = gap_feature_study(universe, chosen)
 
     print("\n" + "=" * 66)
-    print("  종가매매 파라미터 최적화 결과 (학습/검증 분리)")
+    print(f"  종가매매 파라미터 최적화 (목표={args.objective}, 국면필터={'ON' if regime is not None else 'OFF'})")
     print("=" * 66)
     print(f"  소스={args.source} · 종목 {len(universe)} · 슬리피지 {args.slippage*100:.2f}%")
     print("-" * 66)
@@ -196,6 +225,7 @@ def main() -> int:
         "meta": {
             "source": args.source, "market": args.market, "top": args.top,
             "start": args.start, "end": args.end, "slippage": args.slippage,
+            "objective": args.objective, "regime": regime is not None,
             "universe_size": len(universe), "split_date": cut,
             "generated_at": datetime.now().isoformat(timespec="seconds"),
         },

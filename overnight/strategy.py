@@ -86,10 +86,14 @@ def add_features(df: pd.DataFrame, p: ClosingParams) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # 매수 신호
 # ---------------------------------------------------------------------------
-def generate_signals(df: pd.DataFrame, p: ClosingParams) -> pd.DataFrame:
+def generate_signals(
+    df: pd.DataFrame, p: ClosingParams, regime: pd.Series | None = None
+) -> pd.DataFrame:
     """각 봉에 대해 종가 매수 신호(entry) 컬럼을 붙여 반환.
 
     entry[i] == True → i일 종가로 매수하고 (i+1)일 시가로 매도.
+    regime 이 주어지면(지수 상승국면 bool Series) 국면이 risk-on 인 날의 신호만 남긴다
+    (하락장에서 오버나이트를 들지 않으면 통상 승률이 오른다).
     """
     d = add_features(df, p)
 
@@ -103,6 +107,9 @@ def generate_signals(df: pd.DataFrame, p: ClosingParams) -> pd.DataFrame:
     not_hot = d["rsi"] < p.rsi_high
 
     entry = (strong_close & volume & d["breakout"] & trend & not_hot).fillna(False)
+    if regime is not None:
+        on = regime.reindex(d.index).ffill().fillna(False).astype(bool)
+        entry = entry & on
     d["entry"] = entry
     return d
 
@@ -124,7 +131,9 @@ def _pick_row(code: str, d: pd.DataFrame, p: ClosingParams) -> dict:
     }
 
 
-def latest_picks(universe: dict[str, pd.DataFrame], p: ClosingParams) -> list[dict]:
+def latest_picks(
+    universe: dict[str, pd.DataFrame], p: ClosingParams, regime: pd.Series | None = None
+) -> list[dict]:
     """각 종목의 '가장 최근 봉'에서 종가 매수 신호가 뜬 종목만 추려 반환.
 
     → 장 마감 직전 스캔 결과. 그대로 알림/웹 대시보드로 넘긴다.
@@ -133,7 +142,7 @@ def latest_picks(universe: dict[str, pd.DataFrame], p: ClosingParams) -> list[di
     for code, df in universe.items():
         if len(df) < p.ma_mid + p.breakout_lookback + 5:
             continue
-        d = generate_signals(df, p)
+        d = generate_signals(df, p, regime=regime)
         if bool(d.iloc[-1]["entry"]):
             hits.append(_pick_row(code, d, p))
     # 강한 신호부터: 거래량 배수 × 당일 상승률 로 대략 정렬

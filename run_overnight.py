@@ -68,6 +68,8 @@ def main() -> int:
     ap.add_argument("--days", type=int, default=900, help="합성 봉 수")
     ap.add_argument("--max-positions", type=int, default=5)
     ap.add_argument("--cash", type=float, default=10_000_000)
+    ap.add_argument("--regime", action="store_true", help="KOSPI 상승국면에서만 매수")
+    ap.add_argument("--regime-ma", type=int, default=120)
     args = ap.parse_args()
 
     p = ClosingParams()
@@ -76,6 +78,16 @@ def main() -> int:
         print("데이터가 비었습니다.", file=sys.stderr)
         return 1
 
+    # 시장 국면 필터 (실데이터만): KOSPI 지수 상승국면에서만 매수
+    regime = None
+    if args.regime and args.source == "real":
+        from swing.strategy import market_regime
+        idx = datamod.fetch_index("KS11", args.start, args.end)
+        regime = market_regime(idx["Close"], args.regime_ma)
+        print(f"[국면] KOSPI risk-on 비중 {float(regime.mean())*100:.0f}%", flush=True)
+    elif args.regime:
+        print("[국면] 합성 데이터는 지수가 없어 국면 필터를 건너뜁니다.", flush=True)
+
     # 1) 갭상승 특징 분석 -----------------------------------------------------
     study = gap_feature_study(universe, p)
     print("\n" + format_study(study))
@@ -83,7 +95,7 @@ def main() -> int:
     # 2) 백테스트(오버나이트 매매) -------------------------------------------
     all_trades = []
     for code, df in universe.items():
-        all_trades.extend(extract_trades(code, df, p))
+        all_trades.extend(extract_trades(code, df, p, regime=regime))
     tstats = trade_stats(all_trades)
     eq = simulate_portfolio(all_trades, args.cash, args.max_positions)
     estats = equity_stats(eq)
@@ -124,7 +136,7 @@ def main() -> int:
         print(f"[저장] overnight_trades.csv ({len(rows)}건)")
 
     # 4) 오늘의 종가매매 후보 (웹/알림용) ------------------------------------
-    picks = latest_picks(universe, p)
+    picks = latest_picks(universe, p, regime=regime)
     picks = [{**c, "name": names.get(c["code"], c["code"])} for c in picks]
     STATE.mkdir(exist_ok=True)
     with open(STATE / "overnight_latest.json", "w", encoding="utf-8") as f:
