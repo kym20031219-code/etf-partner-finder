@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "source": "real",
+    "market": "KOSPI",
+    "top": 150,
+    "start": "2018-01-01",
+    "end": "2026-07-13",
+    "objective": "blend",
+    "winrate_floor": 0.45,
+    "regime": true,
+    "min_trades": 30,
+    "generated_at": "2026-07-13",
+    "universe": 146,
+    "train": 145,
+    "test": 145
+  },
+  "best_params": {
+    "entry_lookback": 55,
+    "ma_trend": 120,
+    "trend_slope_lb": 20,
+    "mom_lookback": 20,
+    "mom_min": 0.0,
+    "vol_ma": 20,
+    "vol_mult": 1.3,
+    "rsi_period": 14,
+    "rsi_min": 50.0,
+    "rsi_max": 85.0,
+    "atr_period": 14,
+    "init_stop_atr": 2.0,
+    "trail_atr": 3.5,
+    "exit_lookback": 20,
+    "max_hold": 60
+  },
+  "best_stats": {},
+  "best_weights": {
+    "weights": {
+      "w_trend": 0.066,
+      "w_breakout": 0.244,
+      "w_momentum": 0.012,
+      "w_volume": 0.238,
+      "w_rsi": 0.44,
+      "trend_above_cap": 0.2,
+      "trend_slope_cap": 0.06,
+      "breakout_band": 0.1,
+      "mom_cap": 0.2,
+      "vol_cap": 2.0,
+      "rsi_ideal": 62.0,
+      "rsi_span": 25.0
+    },
+    "train_corr": 0.0049,
+    "test_corr": 0.0475,
+    "train_signals": 499
+  },
+  "note": "실데이터로 검증한 강건한 조합입니다. synthetic 결과는 코드 동작 확인용일 뿐 실제 성과와 무관합니다."
+}
