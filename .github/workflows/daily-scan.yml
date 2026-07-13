@@ -1,0 +1,50 @@
+name: 매일 종목 스코어링 (장마감 후)
+
+# 평일 한국시간 15:35 (KRX 장마감 15:30 직후) = UTC 06:35 에 하루 1회 실행.
+# scan_YYYYMMDD.csv 를 만들어 저장소에 커밋 → 대시보드/히스토리로 남긴다.
+# ⚠️ 예약(schedule) 실행은 '기본 브랜치(main)'에 이 파일이 있어야만 동작합니다.
+#    브랜치에서 테스트할 때는 아래 workflow_dispatch(수동 실행)를 사용하세요.
+on:
+  schedule:
+    - cron: "35 6 * * 1-5"   # UTC 06:35 = KST 15:35, 평일
+  workflow_dispatch:          # 수동 실행 버튼
+
+# 같은 워크플로우 중복 실행 방지
+concurrency:
+  group: daily-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # results/ 결과물을 커밋하기 위해
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 스코어링 실행 + CSV 저장 (+ 상위 5종목 텔레그램 요약)
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python run_daily_scan.py --market KOSPI --top 100 --show 30
+
+      - name: 결과(results/) 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git add results/
+            git commit -m "chore: 일일 스캔 결과 $(date -u +%Y-%m-%d) [skip ci]"
+            git push
+          else
+            echo "변경 없음 — 커밋 생략"
+          fi
