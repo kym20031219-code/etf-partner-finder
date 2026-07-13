@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-13T05:41:19",
-  "source": "synthetic",
+  "generated_at": "2026-07-13T07:46:32",
+  "source": "real",
   "stats": {
-    "win_rate": 0.7142857142857143,
-    "expectancy": 0.004191061675038405,
-    "avg_ret": 0.004191061675038405,
-    "trades": 84,
-    "base_gap_up_rate": 16.64,
-    "signal_gap_up_rate": 32.14,
-    "lift": 1.93
+    "win_rate": 0.464983164983165,
+    "expectancy": 0.0036022087109005467,
+    "avg_ret": 0.003602208710900545,
+    "trades": 2970,
+    "base_gap_up_rate": 15.82,
+    "signal_gap_up_rate": 29.49,
+    "lift": 1.86
   },
   "candidates": []
 }
