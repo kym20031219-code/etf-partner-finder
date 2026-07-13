@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>눌림목 스윙 추천</title>
+<title>눌림목 스윙 스코어 대시보드</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -17,64 +17,60 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 /* HEADER */
 .hdr{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,#0b0e19 0%,var(--bg) 100%);position:relative;overflow:hidden}
 .hdr::after{content:'';position:absolute;top:-80px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 65%);pointer-events:none}
-.hdr-row{display:flex;align-items:center;gap:11px;max-width:820px;margin:0 auto}
+.hdr-row{display:flex;align-items:center;gap:11px;max-width:1000px;margin:0 auto}
 .logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .hdr h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
 .hdr h1 small{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px;letter-spacing:0}
 
 /* META BAR */
-.meta{max-width:820px;margin:14px auto 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 20px}
+.meta{max-width:1000px;margin:14px auto 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 20px}
 .badge{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 11px;font-size:11.5px;font-weight:600}
 .badge.live{background:rgba(45,206,137,.1);border:1px solid rgba(45,206,137,.22);color:var(--green)}
 .badge.info{background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.18);color:var(--accent2)}
 .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
-.refresh{margin-left:auto;background:var(--card);border:1px solid var(--border2);color:var(--sub);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s,color .2s}
+.controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+.controls label{font-size:11.5px;color:var(--sub);font-weight:600}
+select{background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer}
+select:hover{border-color:var(--accent)}
+.refresh{background:var(--card);border:1px solid var(--border2);color:var(--sub);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s,color .2s}
 .refresh:hover{border-color:var(--accent);color:var(--accent2)}
 .refresh:active{transform:scale(.97)}
 
 /* MAIN */
-.main{max-width:820px;margin:0 auto;padding:20px}
+.main{max-width:1000px;margin:0 auto;padding:20px}
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+thead th{text-align:right;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);padding:13px 12px;border-bottom:1px solid var(--border2);white-space:nowrap;position:sticky;top:0;background:var(--card)}
+thead th.l{text-align:left}
+tbody td{padding:12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface)}
+.rank{color:var(--sub);font-weight:700;font-variant-numeric:tabular-nums}
+.tk{text-align:left}
+.tk .nm{font-weight:800;letter-spacing:-.2px}
+.tk .cd{font-size:11px;font-family:'Courier New',monospace;color:var(--sub);margin-top:1px}
+.close{font-weight:800;font-variant-numeric:tabular-nums}
+.total{font-weight:900;font-variant-numeric:tabular-nums;font-size:14px}
+/* 총점 셀: 숫자 + 막대 */
+.total-cell{display:flex;align-items:center;justify-content:flex-end;gap:9px}
+.bar{width:64px;height:7px;border-radius:4px;background:var(--dim);overflow:hidden;flex-shrink:0}
+.bar>span{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--green))}
+.sub{font-variant-numeric:tabular-nums;color:var(--accent2)}
+.sub.dim{color:var(--sub)}
+.sig{display:inline-block;border-radius:6px;padding:3px 9px;font-size:10.5px;font-weight:800}
+.sig.buy{background:rgba(45,206,137,.12);border:1px solid rgba(45,206,137,.3);color:var(--green)}
+.sig.watch{background:rgba(245,197,66,.1);border:1px solid rgba(245,197,66,.25);color:var(--gold)}
 
-/* CARDS */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 18px 16px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--accent))}
-.card:hover{transform:translateY(-2px);border-color:var(--border2)}
-.c-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px}
-.c-name{font-size:16px;font-weight:800;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.c-code{font-size:11px;font-weight:700;font-family:'Courier New',monospace;color:var(--sub);flex-shrink:0}
-.c-price{display:flex;align-items:baseline;gap:8px;margin:10px 0 14px}
-.c-close{font-size:24px;font-weight:900;line-height:1}
-.c-rsi{font-size:11px;color:var(--sub);background:var(--border);border-radius:5px;padding:3px 8px;font-weight:700}
-.c-levels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lvl{border-radius:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--border)}
-.lvl-lbl{font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);margin-bottom:3px}
-.lvl-val{font-size:14px;font-weight:800;line-height:1}
-.lvl-pct{font-size:10.5px;font-weight:700;margin-top:2px}
-.lvl.target .lvl-val{color:var(--green)}.lvl.target .lvl-pct{color:var(--green)}
-.lvl.stop .lvl-val{color:var(--red)}.lvl.stop .lvl-pct{color:var(--red)}
-
-/* SECTION HEADERS + WATCH VARIANT */
-.section{margin-bottom:26px}
-.sec-head{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
-.sec-head h2{font-size:15px;font-weight:800;letter-spacing:-.2px}
-.sec-head .n{font-size:12px;font-weight:700;color:var(--sub);background:var(--border);border-radius:999px;padding:2px 9px}
-.sec-head .hint{margin-left:auto;font-size:11px;color:var(--sub)}
-.card.buy::before{background:linear-gradient(var(--green),var(--accent))}
-.card.watch::before{background:linear-gradient(var(--gold),var(--orange))}
-.c-dist{font-size:11px;color:var(--sub);background:var(--border);border-radius:5px;padding:3px 8px;font-weight:700}
-.sec-empty{font-size:12.5px;color:var(--sub);background:var(--card);border:1px dashed var(--border2);border-radius:12px;padding:16px 18px}
-
-/* EMPTY / LOADING / ERROR */
+/* STATES */
 .state-box{text-align:center;padding:60px 24px;color:var(--sub)}
 .state-box .emoji{font-size:44px;margin-bottom:14px;opacity:.85}
 .state-box h2{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
-.state-box p{font-size:13px;line-height:1.6;max-width:360px;margin:0 auto}
+.state-box p{font-size:13px;line-height:1.6;max-width:400px;margin:0 auto}
 .spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* DISCLAIMER */
-.foot{max-width:820px;margin:8px auto 40px;padding:16px 20px}
+.foot{max-width:1000px;margin:8px auto 40px;padding:16px 20px}
 .disc{background:rgba(247,95,79,.05);border:1px solid rgba(247,95,79,.16);border-radius:10px;padding:12px 15px;font-size:12px;line-height:1.6;color:var(--sub)}
 .disc b{color:#f7a99f}
 </style>
@@ -82,111 +78,130 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 <body>
 <header class="hdr">
   <div class="hdr-row">
-    <div class="logo">📈</div>
-    <h1>눌림목 스윙 추천<small>상승추세 종목이 20일선까지 눌렸다 반등하는 자리</small></h1>
+    <div class="logo">📊</div>
+    <h1>눌림목 스윙 스코어 대시보드<small>상승추세 종목을 0~100점으로 줄세운 '오늘 눈여겨볼 순위' · 장마감 후 매일 갱신</small></h1>
   </div>
 </header>
 
 <div class="meta">
   <span class="badge live"><span class="dot"></span><span id="statusText">불러오는 중…</span></span>
-  <span class="badge" id="regimeBadge" style="display:none"></span>
-  <span class="badge info" id="updatedBadge" style="display:none"></span>
-  <span class="badge info" id="sourceBadge" style="display:none"></span>
-  <button class="refresh" id="refreshBtn">↻ 새로고침</button>
+  <span class="badge info" id="dateBadge" style="display:none"></span>
+  <div class="controls">
+    <label for="dateSel">스캔 날짜</label>
+    <select id="dateSel"></select>
+    <button class="refresh" id="refreshBtn">↻ 새로고침</button>
+  </div>
 </div>
 
 <main class="main">
   <div id="content">
-    <div class="state-box"><div class="spinner"></div><h2>신호를 불러오는 중…</h2></div>
+    <div class="state-box"><div class="spinner"></div><h2>결과를 불러오는 중…</h2></div>
   </div>
 </main>
 
 <footer class="foot">
   <div class="disc">
-    <b>⚠️ 투자 참고용 신호일 뿐 매매 권유가 아닙니다.</b> 표시된 목표가·손절가는 전략 규칙에
-    따른 예시이며, 실제 투자 판단과 손실 책임은 전적으로 본인에게 있습니다.
+    <b>⚠️ 이 시스템은 종목 '추천 점수'만 제공하며 매매 권유가 아닙니다.</b>
+    표시된 총점·하위 점수·목표가·손절가는 전략 규칙에 따른 참고용 예시일 뿐이며,
+    실제 매매는 본인의 판단과 책임으로 별도 계좌에서 진행해야 합니다.
+    이 시스템에는 어떤 자동 매수/매도 주문 기능도 없습니다.
   </div>
 </footer>
 
 <script>
-const SIGNALS_URL = 'state/signals_latest.json';
-const AUTO_REFRESH_MS = 3 * 60 * 1000; // 3분마다 자동 갱신
+const INDEX_URL = 'results/index.json';
+const scanURL = (d) => `results/scan_${d}.csv`;
 
 const $ = (id) => document.getElementById(id);
-
-function fmtNum(n){ return Number(n).toLocaleString('ko-KR'); }
-
-function pct(from, to){ return ((to/from - 1) * 100); }
-
-function timeAgo(iso){
-  if(!iso) return '데이터 없음';
-  const d = new Date(iso);
-  if(isNaN(d)) return iso;
-  const diff = (Date.now() - d.getTime())/1000;
-  if(diff < 60) return '방금 전';
-  if(diff < 3600) return Math.floor(diff/60) + '분 전';
-  if(diff < 86400) return Math.floor(diff/3600) + '시간 전';
-  return d.toLocaleString('ko-KR');
-}
-
-function cardHTML(c, tier){
-  const name = c.name || c.code;
-  const upPct = pct(c.close, c.target);
-  const dnPct = pct(c.close, c.stop);
-  const dist = (c.dist_pct != null)
-    ? `<span class="c-dist">20일선 ${c.dist_pct >= 0 ? '+' : ''}${c.dist_pct}%</span>` : '';
-  return `
-  <div class="card ${tier}">
-    <div class="c-top">
-      <span class="c-name">${escapeHTML(name)}</span>
-      <span class="c-code">${escapeHTML(c.code)}</span>
-    </div>
-    <div class="c-price">
-      <span class="c-close">${fmtNum(c.close)}</span>
-      ${c.rsi != null ? `<span class="c-rsi">RSI ${c.rsi}</span>` : ''}
-      ${dist}
-    </div>
-    <div class="c-levels">
-      <div class="lvl target">
-        <div class="lvl-lbl">🎯 목표</div>
-        <div class="lvl-val">${fmtNum(c.target)}</div>
-        <div class="lvl-pct">+${upPct.toFixed(1)}%</div>
-      </div>
-      <div class="lvl stop">
-        <div class="lvl-lbl">🛑 손절</div>
-        <div class="lvl-val">${fmtNum(c.stop)}</div>
-        <div class="lvl-pct">${dnPct.toFixed(1)}%</div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function sectionHTML(title, emoji, hint, items, tier, emptyMsg){
-  const body = items.length
-    ? `<div class="cards">${items.map(c => cardHTML(c, tier)).join('')}</div>`
-    : `<div class="sec-empty">${emptyMsg}</div>`;
-  return `
-  <section class="section">
-    <div class="sec-head">
-      <h2>${emoji} ${title}</h2>
-      <span class="n">${items.length}</span>
-      ${hint ? `<span class="hint">${hint}</span>` : ''}
-    </div>
-    ${body}
-  </section>`;
-}
+const fmtNum = (n) => Number(n).toLocaleString('ko-KR');
 
 function escapeHTML(s){
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-function renderEmpty(){
+function fmtDate(stamp){ // "20260713" → "2026-07-13"
+  if(!stamp || stamp.length !== 8) return stamp || '';
+  return `${stamp.slice(0,4)}-${stamp.slice(4,6)}-${stamp.slice(6,8)}`;
+}
+
+// 따옴표를 처리하는 최소 CSV 파서 (헤더 → 객체 배열)
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){ if(text[i+1] === '"'){ field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else {
+      if(c === '"') inQ = true;
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  const nonEmpty = rows.filter(r => r.length && !(r.length === 1 && r[0] === ''));
+  if(!nonEmpty.length) return [];
+  const head = nonEmpty[0];
+  return nonEmpty.slice(1).map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+}
+
+function subCell(v){
+  const n = Number(v);
+  const cls = n >= 60 ? 'sub' : 'sub dim';
+  return `<td class="${cls}">${isNaN(n) ? '–' : n.toFixed(0)}</td>`;
+}
+
+function rowHTML(r){
+  const total = Number(r.total);
+  const barW = Math.max(0, Math.min(100, total));
+  const sig = r.signal === 'buy'
+    ? '<span class="sig buy">🎯 매수신호</span>'
+    : '<span class="sig watch">👀 관심</span>';
+  return `
+  <tr>
+    <td class="rank">${escapeHTML(r.rank)}</td>
+    <td class="tk">
+      <div class="nm">${escapeHTML(r.name || r.code)}</div>
+      <div class="cd">${escapeHTML(r.code)}</div>
+    </td>
+    <td class="close">${fmtNum(r.close)}</td>
+    <td>
+      <div class="total-cell">
+        <span class="total">${isNaN(total) ? '–' : total.toFixed(1)}</span>
+        <span class="bar"><span style="width:${barW}%"></span></span>
+      </div>
+    </td>
+    ${subCell(r.trend)}
+    ${subCell(r.pullback)}
+    ${subCell(r.momentum)}
+    ${subCell(r.volume)}
+    <td class="sub dim">${r.rsi ?? '–'}</td>
+    <td>${sig}</td>
+  </tr>`;
+}
+
+function renderTable(rows){
+  if(!rows.length){
+    $('content').innerHTML = `
+      <div class="state-box">
+        <div class="emoji">📭</div>
+        <h2>이 날짜에는 상승추세 후보가 없습니다</h2>
+        <p>상승추세이면서 눌림목 자리에 있는 종목이 나오면 이곳에 순위로 표시됩니다.</p>
+      </div>`;
+    return;
+  }
   $('content').innerHTML = `
-    <div class="state-box">
-      <div class="emoji">📭</div>
-      <h2>지금은 매수 신호도 관심 종목도 없습니다</h2>
-      <p>상승추세 눌림목 자리가 나오면 이곳에 표시됩니다.
-      평일 장중 30분마다 자동으로 스캔합니다.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th class="l">종목</th><th>종가</th><th>총점</th>
+          <th>추세</th><th>눌림</th><th>모멘텀</th><th>거래량</th><th>RSI</th><th class="l">신호</th>
+        </tr></thead>
+        <tbody>${rows.map(rowHTML).join('')}</tbody>
+      </table>
     </div>`;
 }
 
@@ -201,44 +216,41 @@ function renderError(msg){
     </div>`;
 }
 
-async function load(){
+async function loadDate(stamp){
   $('statusText').textContent = '불러오는 중…';
   try{
-    const res = await fetch(SIGNALS_URL + '?t=' + Date.now(), {cache:'no-store'});
+    const res = await fetch(scanURL(stamp) + '?t=' + Date.now(), {cache:'no-store'});
     if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const cands = data.candidates || [];
-    const watch = data.watch || [];
-
-    $('updatedBadge').style.display = '';
-    $('updatedBadge').textContent = '갱신 ' + timeAgo(data.generated_at);
-    if(data.source){
-      $('sourceBadge').style.display = '';
-      $('sourceBadge').textContent = data.source === 'real' ? '실데이터' : data.source;
-    }
-    const rb = $('regimeBadge');
-    if(data.market_regime === true || data.market_regime === false){
-      rb.style.display = '';
-      rb.textContent = data.market_regime ? '🟢 시장 상승국면' : '🔴 시장 하락국면 · 매수 자제';
-      rb.style.color = data.market_regime ? 'var(--green)' : 'var(--red)';
-      rb.style.borderColor = data.market_regime ? 'rgba(45,206,137,.3)' : 'rgba(247,95,79,.3)';
-    } else { rb.style.display = 'none'; }
-    $('statusText').textContent = `매수 ${cands.length} · 관심 ${watch.length}`;
-
-    if(cands.length === 0 && watch.length === 0){ renderEmpty(); return; }
-    $('content').innerHTML =
-      sectionHTML('매수 신호', '🎯', '20일선 눌림 후 반등 확정', cands, 'buy',
-        '오늘은 매수 신호에 딱 맞는 종목이 없습니다. 아래 관심 종목을 지켜보세요.')
-      + sectionHTML('관심 · 눌림목 접근', '👀', '상승추세 · 20일선 근접 (반등 대기)', watch, 'watch',
-        '20일선에 근접한 상승추세 종목이 없습니다.');
+    const rows = parseCSV(await res.text());
+    $('dateBadge').style.display = '';
+    $('dateBadge').textContent = '📅 ' + fmtDate(stamp);
+    const buys = rows.filter(r => r.signal === 'buy').length;
+    $('statusText').textContent = `${rows.length}종목 · 매수신호 ${buys}`;
+    renderTable(rows);
   }catch(e){
     renderError(e.message || String(e));
   }
 }
 
-$('refreshBtn').addEventListener('click', load);
-load();
-setInterval(load, AUTO_REFRESH_MS);
+async function init(){
+  try{
+    const res = await fetch(INDEX_URL + '?t=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const idx = await res.json();
+    const dates = idx.dates || [];
+    if(!dates.length){ renderError('아직 저장된 스캔 결과가 없습니다.'); return; }
+    const sel = $('dateSel');
+    sel.innerHTML = dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
+    sel.value = idx.latest || dates[0];
+    sel.onchange = () => loadDate(sel.value);
+    await loadDate(sel.value);
+  }catch(e){
+    renderError(e.message || String(e));
+  }
+}
+
+$('refreshBtn').addEventListener('click', init);
+init();
 </script>
 </body>
 </html>
