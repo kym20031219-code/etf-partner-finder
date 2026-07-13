@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>눌림목 스윙 스코어 대시보드</title>
+<title>모멘텀 돌파 스코어 대시보드</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -79,7 +79,7 @@ tbody tr:hover{background:var(--surface)}
 <header class="hdr">
   <div class="hdr-row">
     <div class="logo">📊</div>
-    <h1>눌림목 스윙 스코어 대시보드<small>상승추세 종목을 0~100점으로 줄세운 '오늘 눈여겨볼 순위' · 장마감 후 매일 갱신</small></h1>
+    <h1>모멘텀 돌파 스코어 대시보드<small>며칠~수주간 강한 상승을 노리는 신고가 돌파 · 손실 짧게·수익 길게 · 장마감 후 매일 갱신</small></h1>
   </div>
 </header>
 
@@ -158,7 +158,7 @@ function rowHTML(r){
   const total = Number(r.total);
   const barW = Math.max(0, Math.min(100, total));
   const sig = r.signal === 'buy'
-    ? '<span class="sig buy">🎯 매수신호</span>'
+    ? '<span class="sig buy">🚀 돌파</span>'
     : '<span class="sig watch">👀 관심</span>';
   return `
   <tr>
@@ -175,7 +175,7 @@ function rowHTML(r){
       </div>
     </td>
     ${subCell(r.trend)}
-    ${subCell(r.pullback)}
+    ${subCell(r.breakout)}
     ${subCell(r.momentum)}
     ${subCell(r.volume)}
     <td class="sub dim">${r.rsi ?? '–'}</td>
@@ -189,7 +189,7 @@ function renderTable(rows){
       <div class="state-box">
         <div class="emoji">📭</div>
         <h2>이 날짜에는 상승추세 후보가 없습니다</h2>
-        <p>상승추세이면서 눌림목 자리에 있는 종목이 나오면 이곳에 순위로 표시됩니다.</p>
+        <p>장기추세 위에서 신고가 돌파에 근접한 종목이 나오면 이곳에 순위로 표시됩니다.</p>
       </div>`;
     return;
   }
@@ -198,7 +198,7 @@ function renderTable(rows){
       <table>
         <thead><tr>
           <th>#</th><th class="l">종목</th><th>종가</th><th>총점</th>
-          <th>추세</th><th>눌림</th><th>모멘텀</th><th>거래량</th><th>RSI</th><th class="l">신호</th>
+          <th>추세</th><th>돌파</th><th>모멘텀</th><th>거래량</th><th>RSI</th><th class="l">신호</th>
         </tr></thead>
         <tbody>${rows.map(rowHTML).join('')}</tbody>
       </table>
@@ -225,7 +225,7 @@ async function loadDate(stamp){
     $('dateBadge').style.display = '';
     $('dateBadge').textContent = '📅 ' + fmtDate(stamp);
     const buys = rows.filter(r => r.signal === 'buy').length;
-    $('statusText').textContent = `${rows.length}종목 · 매수신호 ${buys}`;
+    $('statusText').textContent = `${rows.length}종목 · 돌파신호 ${buys}`;
     renderTable(rows);
   }catch(e){
     renderError(e.message || String(e));

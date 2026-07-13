@@ -1,0 +1,72 @@
+name: 모멘텀 전략 백테스트 최적화
+
+# 실데이터로 모멘텀 돌파 전략의 파라미터 + 랭킹 점수 가중치를 최적화한다.
+# (이 원격 개발 샌드박스는 증시 데이터가 차단돼 실행 불가 → Actions/내 PC에서 실행)
+# 결과(results/momentum_best.json)를 커밋하면 일일 스캔이 자동으로 이 값을 사용한다.
+#
+# 무겁다: 기본은 수동 실행. 월 1회(매월 1일 새벽)만 자동 재최적화한다.
+on:
+  workflow_dispatch:
+    inputs:
+      objective:
+        description: "목적함수 (expectancy / winrate / blend)"
+        default: "blend"
+      winrate_floor:
+        description: "blend 모드 최소 승률 (0~1)"
+        default: "0.45"
+      top:
+        description: "대상 시총 상위 종목 수"
+        default: "150"
+      start:
+        description: "학습 시작일"
+        default: "2018-01-01"
+      max_combos:
+        description: "격자에서 무작위로 평가할 조합 수 (런타임 절약)"
+        default: "400"
+  schedule:
+    - cron: "20 18 1 * *"   # 매월 1일 UTC 18:20 (KST 익일 03:20)
+
+concurrency:
+  group: optimize
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 최적화 실행
+        run: |
+          python optimize_momentum.py \
+            --source real --market KOSPI \
+            --top "${{ github.event.inputs.top || '150' }}" \
+            --start "${{ github.event.inputs.start || '2018-01-01' }}" \
+            --objective "${{ github.event.inputs.objective || 'blend' }}" \
+            --winrate-floor "${{ github.event.inputs.winrate_floor || '0.45' }}" \
+            --max-combos "${{ github.event.inputs.max_combos || '400' }}" \
+            --regime --out-dir results
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -n "$(git status --porcelain results/momentum_best.json results/momentum_opt.csv)" ]; then
+            git add results/momentum_best.json results/momentum_opt.csv
+            git commit -m "chore: 모멘텀 전략 재최적화 $(date -u +%Y-%m-%d) [skip ci]"
+            git push
+          else
+            echo "변경 없음 — 커밋 생략"
+          fi
