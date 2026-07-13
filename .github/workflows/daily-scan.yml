@@ -35,7 +35,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python run_daily_scan.py --market KOSPI --top 100 --show 30
+        run: python run_daily_scan.py --market KOSPI --top 150 --show 30
 
       - name: 결과(results/) 커밋
         run: |
