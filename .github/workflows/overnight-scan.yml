@@ -30,8 +30,8 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 종가매매 스캔 (실데이터) — 분석·성과·오늘의 후보 갱신
-        run: python run_overnight.py --source real --market KOSPI --top 200 --start 2020-01-01
+      - name: 종가매매 스캔 (실데이터·국면필터) — 분석·성과·오늘의 후보 갱신
+        run: python run_overnight.py --source real --market KOSPI --top 200 --start 2020-01-01 --regime
 
       - name: 결과 커밋 (대시보드 반영)
         run: |

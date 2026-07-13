@@ -1,21 +1,19 @@
 name: 실데이터 백테스트 & 튜닝
 
-# ⚠️ 임시: 이 브랜치에서 종가매매 '승률 최적화(winrate) + 국면필터' 실데이터 검증을
-#    돌리기 위해 잠시 전용합니다. (overnight-validate.yml 이 아직 main 에 없어 직접
-#    dispatch 가 안 되므로, main 에 등록된 analyze.yml 을 ref=이브랜치 로 실행.)
-#    검증 후 원래(스윙) 내용으로 되돌립니다.
+# 실제 KOSPI 데이터로 (1) 현재 파라미터 백테스트, (2) 파라미터 튜닝(학습/검증 분리)을
+# 돌려 결과를 results/ 에 커밋한다. 수동 실행 전용.
 on:
   workflow_dispatch:
     inputs:
       top:
-        description: "시총 상위 종목 수"
-        default: "150"
+        description: "분석할 시총 상위 종목 수"
+        default: "100"
       start:
-        description: "시작일"
-        default: "2019-01-01"
-      slippage:
-        description: "매수 슬리피지"
-        default: "0.001"
+        description: "백테스트 시작일"
+        default: "2020-01-01"
+      tune:
+        description: "파라미터 튜닝도 실행 (false 면 백테스트만)"
+        default: "true"
 
 permissions:
   contents: write
@@ -37,31 +35,27 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 승률 최적화(winrate) + 국면필터 — 실데이터
+      - name: 현재 파라미터로 백테스트 (시장 국면 필터)
         run: >
-          python tune_overnight.py --source real --market KOSPI
-          --top ${{ inputs.top }} --start ${{ inputs.start }}
-          --slippage ${{ inputs.slippage }} --objective winrate --regime
-          --out results/overnight_validation.json
+          python run_backtest.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
+          --report-json results/backtest.json
 
-      - name: 스캔(국면필터) — 대시보드 갱신
+      - name: 파라미터 튜닝 (과최적화 방지, 시장 국면 필터)
+        if: ${{ inputs.tune == 'true' }}
         run: >
-          python run_overnight.py --source real --market KOSPI
-          --top 200 --start ${{ inputs.start }} --regime
+          python tune.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
+          --out-dir results
 
-      - name: 결과 커밋 (이 브랜치)
+      - name: 결과 커밋
         run: |
           git config user.email "noreply@anthropic.com"
           git config user.name "Claude"
-          git add results/overnight_validation.json results/overnight_study.json state/overnight_latest.json
-          if [ -z "$(git status --porcelain results/ state/)" ]; then
-            echo "결과 변경 없음"; exit 0
+          git add results/
+          if [ -n "$(git status --porcelain results/)" ]; then
+            git commit -m "chore: 실데이터 백테스트/튜닝 결과 [skip ci]"
+            git push
+          else
+            echo "결과 변경 없음"
           fi
-          git commit -m "chore: 종가매매 승률최적화+국면 실데이터 검증 [skip ci]"
-          for i in 1 2 3 4 5; do
-            git push && exit 0
-            echo "push 실패 — rebase 후 재시도 ($i)"
-            git pull --rebase origin "${GITHUB_REF_NAME}" || true
-            sleep $((2**i))
-          done
-          echo "::error::결과 push 실패"; exit 1
