@@ -103,9 +103,9 @@ python tests/test_overnight.py
   비갭상승 0.48). 실제로 다음날 갭을 예고한 건 **① 당일 큰 상승(+) ② 거래량 급증
   ③ 60일 신고가 돌파** 였습니다. (합성 데이터의 가정과 달랐고, 그래서 실데이터 검증이 중요합니다.)
 
-> 이 표는 GitHub Actions 에서 `analyze.yml`(이 브랜치용) 을 실행해 나온 값입니다.
-> `results/overnight_validation.json` 에 원본이 저장됩니다. 파라미터·기간을 바꿔 다시
-> 돌리면 값도 갱신됩니다.
+> 이 표는 GitHub Actions 의 **`종가매매 실데이터 검증`(`overnight-validate.yml`)** 워크플로우를
+> 돌려 나온 값입니다(`results/overnight_validation.json` 에 원본 저장). Actions 탭에서
+> **Run workflow** 로 종목 수·기간·슬리피지를 바꿔 다시 돌리면 값도 갱신됩니다.
 
 ### ⏱️ "3시 10분까지 데이터로 3시 20분에 매수 — 10분 안에 분석 가능한가?"
 
