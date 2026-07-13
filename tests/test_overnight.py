@@ -14,10 +14,16 @@ from overnight.engine import extract_trades
 from overnight.strategy import ClosingParams, generate_signals
 from overnight.study import gap_feature_study
 
+# 엔진/스터디 '기계적 동작'을 검증하려는 테스트다. 운영 기본 파라미터(실데이터
+# 최적화값)는 조건이 까다로워 합성 표본에선 신호가 드무므로, 여기서는 신호가
+# 충분히 나오는 완화된 파라미터를 고정으로 쓴다.
+TP = ClosingParams(up_min=0.02, close_pos_min=0.6, vol_mult=1.5,
+                   breakout_lookback=20, rsi_high=80.0)
+
 
 def test_entry_is_close_exit_is_next_open():
     """진입가는 신호일 '종가', 청산가는 '다음날 시가'여야 한다 (미래참조 없음)."""
-    p = ClosingParams()
+    p = TP
     uni = odata.overnight_universe(n=10, days=600)
     found = 0
     for code, df in uni.items():
@@ -34,7 +40,7 @@ def test_entry_is_close_exit_is_next_open():
 
 def test_returns_include_cost():
     """수익률은 (다음시가/종가 − 1 − 비용) 과 정확히 일치해야 한다."""
-    p = ClosingParams()
+    p = TP
     uni = odata.overnight_universe(n=8, days=500)
     for code, df in uni.items():
         for t in extract_trades(code, df, p):
@@ -44,7 +50,7 @@ def test_returns_include_cost():
 
 def test_signal_lifts_gap_up_rate():
     """규칙 통과 시 갭상승 확률이 기준선(base rate)보다 높아야 한다 (엣지 존재 확인)."""
-    p = ClosingParams()
+    p = TP
     uni = odata.overnight_universe(n=30, days=900)
     study = gap_feature_study(uni, p)
     assert study["n_days"] > 1000
@@ -56,7 +62,7 @@ def test_signal_lifts_gap_up_rate():
 
 def test_no_signal_without_breakout():
     """돌파가 없으면(약한 마감) 신호가 과도하게 남발되지 않는다."""
-    p = ClosingParams()
+    p = TP
     uni = odata.overnight_universe(n=15, days=700)
     total_days = total_sig = 0
     for _, df in uni.items():

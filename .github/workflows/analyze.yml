@@ -56,9 +56,15 @@ jobs:
           git config user.email "noreply@anthropic.com"
           git config user.name "Claude"
           git add results/overnight_validation.json results/overnight_study.json state/overnight_latest.json
-          if [ -n "$(git status --porcelain results/ state/)" ]; then
-            git commit -m "chore: 종가매매 실데이터 검증 결과 [skip ci]"
-            git push
-          else
-            echo "결과 변경 없음"
+          if [ -z "$(git status --porcelain results/ state/)" ]; then
+            echo "결과 변경 없음"; exit 0
           fi
+          git commit -m "chore: 종가매매 실데이터 검증 결과 [skip ci]"
+          # 세션에서 브랜치가 앞서갔을 수 있으니 rebase 후 재시도 (푸시 경합 방지)
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "push 실패 — rebase 후 재시도 ($i)"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            sleep $((2**i))
+          done
+          echo "::error::결과 push 실패"; exit 1
