@@ -29,8 +29,8 @@ def extract_trades(code: str, df: pd.DataFrame, p: ClosingParams) -> list[Trade]
     for i in range(n - 1):          # 마지막 봉은 다음 시가가 없어 제외
         if not entry_sig[i]:
             continue
-        entry_price = c[i]          # 당일 종가로 매수
-        exit_price = o[i + 1]       # 다음날 시가로 매도
+        entry_price = c[i] * (1 + p.entry_slippage)  # 15:20 매수(≈종가+슬리피지)
+        exit_price = o[i + 1]                          # 다음날 시가로 매도
         if not (np.isfinite(entry_price) and np.isfinite(exit_price)) or entry_price <= 0:
             continue
         gross = exit_price / entry_price - 1

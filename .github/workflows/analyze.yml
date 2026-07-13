@@ -1,19 +1,23 @@
 name: 실데이터 백테스트 & 튜닝
 
-# 실제 KOSPI 데이터로 (1) 현재 파라미터 백테스트, (2) 파라미터 튜닝(학습/검증 분리)을
-# 돌려 결과를 results/ 에 커밋한다. 수동 실행 전용.
+# ⚠️ 이 브랜치(claude/stock-recommendation-closing-trade-*)에서는 이 워크플로우를
+#    '종가매매법(오버나이트) 실데이터 검증' 용으로 바꿔서 씁니다. main 의 analyze.yml
+#    (눌림목 스윙 백테스트/튜닝) 과는 내용이 다릅니다. 이렇게 한 이유:
+#    새로 만든 overnight-*.yml 은 main 에 등록되지 않아 workflow_dispatch 로 돌릴 수
+#    없지만, analyze.yml 은 main 에 등록돼 있어 ref=이브랜치 로 지정하면 '이 브랜치의
+#    내용'을 GitHub 러너(네트워크 열림)에서 실행할 수 있기 때문입니다.
 on:
   workflow_dispatch:
     inputs:
       top:
         description: "분석할 시총 상위 종목 수"
-        default: "100"
+        default: "150"
       start:
         description: "백테스트 시작일"
-        default: "2020-01-01"
-      tune:
-        description: "파라미터 튜닝도 실행 (false 면 백테스트만)"
-        default: "true"
+        default: "2019-01-01"
+      slippage:
+        description: "매수 슬리피지(보수적, 소수). 0.001 = 0.1%"
+        default: "0.001"
 
 permissions:
   contents: write
@@ -35,26 +39,25 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 현재 파라미터로 백테스트 (시장 국면 필터)
+      - name: 종가매매 파라미터 최적화 (학습/검증 분리) — 실데이터
         run: >
-          python run_backtest.py --source real --market KOSPI
-          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
-          --report-json results/backtest.json
+          python tune_overnight.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --slippage ${{ inputs.slippage }}
+          --out results/overnight_validation.json
 
-      - name: 파라미터 튜닝 (과최적화 방지, 시장 국면 필터)
-        if: ${{ inputs.tune == 'true' }}
+      - name: 종가매매 스캔 (분석·성과·오늘의 후보) — 대시보드 갱신
         run: >
-          python tune.py --source real --market KOSPI
-          --top ${{ inputs.top }} --start ${{ inputs.start }} --regime
-          --out-dir results
+          python run_overnight.py --source real --market KOSPI
+          --top 200 --start ${{ inputs.start }}
 
-      - name: 결과 커밋
+      - name: 결과 커밋 (이 브랜치)
         run: |
           git config user.email "noreply@anthropic.com"
           git config user.name "Claude"
-          git add results/
-          if [ -n "$(git status --porcelain results/)" ]; then
-            git commit -m "chore: 실데이터 백테스트/튜닝 결과 [skip ci]"
+          git add results/overnight_validation.json results/overnight_study.json state/overnight_latest.json
+          if [ -n "$(git status --porcelain results/ state/)" ]; then
+            git commit -m "chore: 종가매매 실데이터 검증 결과 [skip ci]"
             git push
           else
             echo "결과 변경 없음"
