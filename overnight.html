@@ -139,6 +139,7 @@ td.dn{color:var(--sub)}
   </div>
 
   <div class="stats" id="statsRow" style="display:none"></div>
+  <div id="statsNote" style="display:none;font-size:11px;color:var(--sub);margin:-14px 0 22px;padding:0 2px"></div>
 
   <div id="content">
     <div class="state-box"><div class="spinner"></div><h2>데이터를 불러오는 중…</h2></div>
@@ -159,6 +160,7 @@ td.dn{color:var(--sub)}
 <script>
 const LATEST_URL = 'state/overnight_latest.json';
 const STUDY_URL  = 'results/overnight_study.json';
+const VALIDATION_URL = 'results/overnight_validation.json';
 const AUTO_REFRESH_MS = 3 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 
@@ -184,19 +186,37 @@ function statTile(k, v, cls, u){
   return `<div class="stat"><div class="k">${k}</div><div class="v ${cls||''}">${v}</div>${u?`<div class="u">${u}</div>`:''}</div>`;
 }
 
-function renderStats(s){
-  if(!s || s.trades == null){ return; }
-  const wr = s.win_rate != null ? (s.win_rate*100).toFixed(1)+'%' : '—';
-  const exp = s.expectancy != null ? signed(s.expectancy*100)+'%' : '—';
-  const expCls = (s.expectancy||0) >= 0 ? 'pos' : 'neg';
-  const lift = s.lift != null ? s.lift + '배' : '—';
-  const gapRate = s.signal_gap_up_rate != null ? s.signal_gap_up_rate.toFixed(0)+'%' : '—';
+function renderStats(s, val){
+  // val = overnight_validation.json (있으면 '미래 데이터' 검증 성적을 헤드라인으로)
+  let wr, exp, expCls, tpy, sub, note='';
+  const t = val && val.chosen && val.chosen.test_stats;
+  if(t){
+    wr = t.win_rate!=null ? (t.win_rate*100).toFixed(1)+'%' : '—';
+    exp = t.expectancy!=null ? signed(t.expectancy*100)+'%' : '—';
+    expCls = (t.expectancy||0)>=0 ? 'pos':'neg';
+    tpy = t.trades_per_year!=null ? t.trades_per_year+'회' : '—';
+    sub = `검증 ${fmtNum(t.trades||0)}건`;
+    note = `실데이터 · 미래(검증)구간 기준 · 경계 ${val.meta?val.meta.split_date:''}`;
+  } else if(s && s.trades!=null){
+    wr = s.win_rate!=null ? (s.win_rate*100).toFixed(1)+'%' : '—';
+    exp = s.expectancy!=null ? signed(s.expectancy*100)+'%' : '—';
+    expCls = (s.expectancy||0)>=0 ? 'pos':'neg';
+    tpy = '—';
+    sub = `${fmtNum(s.trades||0)}건 기준`;
+    note = (s.source==='real'?'실데이터':'검증(합성)') + ' · 전체구간';
+  } else { return; }
+  const lift = (val&&val.chosen&&val.chosen.study&&val.chosen.study.signal)
+      ? val.chosen.study.signal.lift : (s?s.lift:null);
+  const gapRate = (val&&val.chosen&&val.chosen.study&&val.chosen.study.signal)
+      ? val.chosen.study.signal.gap_up_rate : (s?s.signal_gap_up_rate:null);
   $('statsRow').style.display = '';
   $('statsRow').innerHTML =
-    statTile('승률', wr, 'pos', `${fmtNum(s.trades||0)}건 기준`) +
-    statTile('기대수익률 / 건', exp, expCls, '비용 반영 후') +
-    statTile('갭상승 적중률', gapRate, 'pos', `무작위 대비 ${lift}`) +
-    statTile('평균 익일 수익', s.avg_ret!=null?signed(s.avg_ret*100)+'%':'—', (s.avg_ret||0)>=0?'pos':'neg', '1박 보유');
+    statTile('승률', wr, 'pos', sub) +
+    statTile('기대수익률 / 건', exp, expCls, '비용·슬리피지 반영') +
+    statTile('갭상승 적중률', gapRate!=null?gapRate.toFixed(0)+'%':'—', 'pos', lift!=null?`무작위 대비 ${lift}배`:'') +
+    statTile('연간 거래횟수', tpy, '', '이 조건 충족 빈도');
+  $('statsNote').textContent = note;
+  $('statsNote').style.display = note ? '' : 'none';
 }
 
 function featureTable(study){
@@ -268,7 +288,11 @@ async function load(){
   try{
     const data = await fetchJSON(LATEST_URL);
     const cands = data.candidates || [];
-    renderStats(data.stats);
+    let val = null;
+    try{ val = await fetchJSON(VALIDATION_URL); }catch(_){}
+    const stats = data.stats || {};
+    stats.source = data.source;
+    renderStats(stats, val);
 
     $('updatedBadge').style.display = '';
     $('updatedBadge').textContent = '갱신 ' + timeAgo(data.generated_at);
