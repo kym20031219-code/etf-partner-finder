@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-07-13T07:46:32",
+  "generated_at": "2026-07-13T08:16:11",
   "source": "real",
   "stats": {
-    "win_rate": 0.464983164983165,
-    "expectancy": 0.0036022087109005467,
-    "avg_ret": 0.003602208710900545,
-    "trades": 2970,
+    "win_rate": 0.5020283975659229,
+    "expectancy": 0.005098543275746237,
+    "avg_ret": 0.005098543275746239,
+    "trades": 1972,
     "base_gap_up_rate": 15.82,
     "signal_gap_up_rate": 29.49,
     "lift": 1.86
