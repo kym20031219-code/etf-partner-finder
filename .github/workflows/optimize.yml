@@ -67,10 +67,18 @@ jobs:
         run: |
           git config user.email "noreply@anthropic.com"
           git config user.name "Claude"
-          if [ -n "$(git status --porcelain results/momentum_best.json results/momentum_opt.csv)" ]; then
-            git add results/momentum_best.json results/momentum_opt.csv
-            git commit -m "chore: 모멘텀 전략 재최적화 $(date -u +%Y-%m-%d) [skip ci]"
-            git push
-          else
-            echo "변경 없음 — 커밋 생략"
+          if [ -z "$(git status --porcelain results/momentum_best.json results/momentum_opt.csv)" ]; then
+            echo "변경 없음 — 커밋 생략"; exit 0
           fi
+          git add results/momentum_best.json results/momentum_opt.csv
+          git commit -m "chore: 모멘텀 전략 재최적화 $(date -u +%Y-%m-%d) [skip ci]"
+          # 장시간 실행 중 main 이 앞서갔을 수 있으므로 rebase 후 재시도 (충돌 방지)
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then pushed=1; break; fi
+            echo "push 거부 — 원격 반영 후 재시도 ($i)"
+            git fetch origin main || true
+            git rebase origin/main || git rebase --abort || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          if [ "$pushed" != "1" ]; then echo "::error::5회 재시도 후에도 push 실패"; exit 1; fi
