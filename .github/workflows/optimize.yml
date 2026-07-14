@@ -9,11 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       objective:
-        description: "목적함수 (expectancy / winrate / blend)"
-        default: "blend"
+        description: "목적함수 (return=총수익 / expectancy / winrate / blend)"
+        default: "return"
       winrate_floor:
         description: "blend 모드 최소 승률 (0~1)"
         default: "0.45"
+      max_positions:
+        description: "포트폴리오 동시 보유 종목 수 (총수익 시뮬 기준)"
+        default: "5"
       top:
         description: "대상 시총 상위 종목 수"
         default: "150"
@@ -54,8 +57,9 @@ jobs:
             --source real --market KOSPI \
             --top "${{ github.event.inputs.top || '150' }}" \
             --start "${{ github.event.inputs.start || '2018-01-01' }}" \
-            --objective "${{ github.event.inputs.objective || 'blend' }}" \
+            --objective "${{ github.event.inputs.objective || 'return' }}" \
             --winrate-floor "${{ github.event.inputs.winrate_floor || '0.45' }}" \
+            --max-positions "${{ github.event.inputs.max_positions || '5' }}" \
             --max-combos "${{ github.event.inputs.max_combos || '400' }}" \
             --regime --out-dir results
 

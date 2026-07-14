@@ -43,7 +43,8 @@ import numpy as np
 import pandas as pd
 
 from swing import data as datamod
-from swing.metrics import trade_stats
+from swing.engine import simulate_portfolio
+from swing.metrics import equity_stats, trade_stats
 from swing.momentum import (
     MomentumParams,
     ScoreWeights,
@@ -80,13 +81,22 @@ def spearman(a: list[float], b: list[float]) -> float:
     return float(np.corrcoef(ra, rb)[0, 1])
 
 
-def objective_score(stats: dict, mode: str, winrate_floor: float) -> float:
-    """목적함수 값 (클수록 좋음). 표본이 적으면 −inf."""
+def objective_score(stats: dict, estats: dict, mode: str, winrate_floor: float) -> float:
+    """목적함수 값 (클수록 좋음). 표본이 적으면 −inf.
+
+    - return   : 포트폴리오 **누적수익률**(총수익). 자본을 가장 크게 불리는 조합.
+    - expectancy: 거래당 평균수익 × 표본보정
+    - winrate  : 승률 × 표본보정
+    - blend    : 승률 하한을 넘는 조합 중 기대값 × 표본보정
+    """
     t = stats.get("trades", 0)
     if t < MIN_TRADES:
         return float("-inf")
     wr = stats.get("win_rate", 0.0)
     ex = stats.get("expectancy", 0.0)
+    if mode == "return":
+        # 총수익(누적수익률). 포트폴리오 시뮬 결과가 없으면 탈락.
+        return estats.get("total_return", float("-inf")) if estats else float("-inf")
     if mode == "winrate":
         return wr * math.sqrt(t)
     if mode == "blend":
@@ -107,11 +117,20 @@ def split_universe(universe: dict, ratio: float = 0.6, min_len: int = 200) -> tu
     return train, test
 
 
-def run_stats(universe: dict, p: MomentumParams, regime=None) -> dict:
+def run_eval(universe: dict, p: MomentumParams, regime, max_positions: int,
+             cash: float) -> tuple[dict, dict]:
+    """거래 통계 + 포트폴리오(누적수익률) 통계를 함께 반환.
+
+    개별 종목 신호를 모두 뽑아 trade_stats 를, 동시보유 한도 안에서 자본에 태워
+    equity_stats(누적수익률·CAGR·MDD)를 계산한다.
+    """
     trades = []
     for code, df in universe.items():
         trades.extend(extract_trades_momentum(code, df, p, regime=regime))
-    return trade_stats(trades)
+    tstats = trade_stats(trades)
+    estats = equity_stats(simulate_portfolio(trades, starting_cash=cash,
+                                             max_positions=max_positions))
+    return tstats, estats
 
 
 def load_universe(args) -> dict:
@@ -182,10 +201,13 @@ def main() -> int:
     ap.add_argument("--end", default=str(date.today()))
     ap.add_argument("--n", type=int, default=80)
     ap.add_argument("--days", type=int, default=1200)
-    ap.add_argument("--objective", choices=["expectancy", "winrate", "blend"],
-                    default="blend", help="1단계 목적함수")
+    ap.add_argument("--objective", choices=["return", "expectancy", "winrate", "blend"],
+                    default="return", help="1단계 목적함수 (기본: 총수익)")
     ap.add_argument("--winrate-floor", type=float, default=0.45,
                     help="blend 모드에서 요구할 최소 승률(0~1)")
+    ap.add_argument("--max-positions", type=int, default=5,
+                    help="포트폴리오 동시 보유 종목 수 (총수익 시뮬 기준)")
+    ap.add_argument("--cash", type=float, default=10_000_000, help="시작 자본")
     ap.add_argument("--max-combos", type=int, default=0,
                     help=">0 이면 격자에서 이 개수만 무작위 표본 (런타임 절약)")
     ap.add_argument("--weight-candidates", type=int, default=120)
@@ -224,21 +246,26 @@ def main() -> int:
     for n_done, combo in enumerate(combos, 1):
         ov = dict(zip(keys, combo))
         p = replace(base, **ov)
-        tr = run_stats(train, p, regime=regime)
-        te = run_stats(test, p, regime=regime)
+        tr, tr_eq = run_eval(train, p, regime, args.max_positions, args.cash)
+        te, te_eq = run_eval(test, p, regime, args.max_positions, args.cash)
         rows.append({
             **ov,
             "train_trades": tr.get("trades", 0),
             "train_winrate": round(tr.get("win_rate", 0) * 100, 1),
             "train_expect": round(tr.get("expectancy", 0) * 100, 2),
             "train_payoff": round(tr.get("payoff", 0), 2) if tr.get("trades") else 0,
+            "train_return": round(tr_eq.get("total_return", 0) * 100, 1),
+            "train_cagr": round(tr_eq.get("cagr", 0) * 100, 1),
             "test_trades": te.get("trades", 0),
             "test_winrate": round(te.get("win_rate", 0) * 100, 1),
             "test_expect": round(te.get("expectancy", 0) * 100, 2),
             "test_payoff": round(te.get("payoff", 0), 2) if te.get("trades") else 0,
+            "test_return": round(te_eq.get("total_return", 0) * 100, 1),
+            "test_cagr": round(te_eq.get("cagr", 0) * 100, 1),
+            "test_mdd": round(te_eq.get("mdd", 0) * 100, 1),
             "test_avghold": round(te.get("avg_hold", 0), 1),
-            "train_obj": objective_score(tr, args.objective, args.winrate_floor),
-            "test_obj": objective_score(te, args.objective, args.winrate_floor),
+            "train_obj": objective_score(tr, tr_eq, args.objective, args.winrate_floor),
+            "test_obj": objective_score(te, te_eq, args.objective, args.winrate_floor),
         })
         if n_done % 50 == 0:
             print(f"  ...{n_done}/{len(combos)}", flush=True)
@@ -248,25 +275,38 @@ def main() -> int:
     res.to_csv(os.path.join(args.out_dir, "momentum_opt.csv"),
                index=False, encoding="utf-8-sig")
 
-    robust = res[np.isfinite(res["train_obj"]) & np.isfinite(res["test_obj"])].copy()
+    finite = res[np.isfinite(res["train_obj"]) & np.isfinite(res["test_obj"])].copy()
+    # 강건성 가드: 승률 모드가 아니면 '학습구간에서도 수익(obj>0)'인 조합만 신뢰
+    robust = finite if args.objective == "winrate" else finite[finite["train_obj"] > 0].copy()
     robust = robust.sort_values(["test_obj", "train_obj"], ascending=False)
 
-    show_cols = keys + ["train_trades", "train_winrate", "train_expect",
+    show_cols = keys + ["train_trades", "train_winrate", "train_return",
                         "test_trades", "test_winrate", "test_expect",
-                        "test_payoff", "test_avghold"]
-    print("=" * 100)
+                        "test_payoff", "test_return", "test_cagr", "test_mdd", "test_avghold"]
+    print("=" * 110)
     print(f"  [1단계] 검증 성적 상위 전략 (목적함수={args.objective}"
           + (f", 승률하한 {args.winrate_floor:.0%}" if args.objective == "blend" else "") + ")")
-    print("=" * 100)
-    if robust.empty:
-        print("  조건을 만족하는 조합이 없습니다. --winrate-floor 를 낮추거나 종목/기간을 늘리세요.")
-        # 그래도 결과 파일은 남긴다
+    print("=" * 110)
+
+    fallback = False
+    if not robust.empty:
+        chosen = robust
+    elif not finite.empty:
+        # 강건 조합이 없으면(예: 학습구간 손실) 검증 성적 최상위를 차선으로 채택 + 경고
+        fallback = True
+        chosen = finite.sort_values(["test_obj", "train_obj"], ascending=False)
+        print("  ⚠️ 학습·검증 모두 만족하는 강건한 조합이 없어, 검증 최상위를 차선으로 채택합니다.")
+    else:
+        chosen = pd.DataFrame()
+
+    if chosen.empty:
+        print("  표본이 충분한 조합이 없습니다. 종목/기간을 늘리세요.")
         best_params = asdict(base)
         best_row = {}
     else:
-        with pd.option_context("display.width", 220, "display.max_columns", None):
-            print(robust[show_cols].head(args.top_show).to_string(index=False))
-        best_row = robust.iloc[0].to_dict()
+        with pd.option_context("display.width", 240, "display.max_columns", None):
+            print(chosen[show_cols].head(args.top_show).to_string(index=False))
+        best_row = chosen.iloc[0].to_dict()
         best_params = asdict(replace(base, **{k: (int(best_row[k]) if isinstance(GRID[k][0], int)
                                                   else float(best_row[k])) for k in keys}))
 
@@ -283,15 +323,16 @@ def main() -> int:
         "meta": {
             "source": args.source, "market": args.market, "top": args.top,
             "start": args.start, "end": args.end, "objective": args.objective,
-            "winrate_floor": args.winrate_floor, "regime": bool(args.regime),
-            "min_trades": MIN_TRADES, "generated_at": date.today().isoformat(),
+            "winrate_floor": args.winrate_floor, "max_positions": args.max_positions,
+            "regime": bool(args.regime), "min_trades": MIN_TRADES,
+            "fallback_used": fallback, "generated_at": date.today().isoformat(),
             "universe": len(universe), "train": len(train), "test": len(test),
         },
         "best_params": best_params,
         "best_stats": {k: best_row.get(k) for k in show_cols} if best_row else {},
         "best_weights": weights,
-        "note": ("실데이터로 검증한 강건한 조합입니다. synthetic 결과는 코드 동작 확인용일 뿐 "
-                 "실제 성과와 무관합니다."),
+        "note": ("실데이터로 검증한 조합입니다. objective=return 은 포트폴리오 누적수익률(총수익)을 "
+                 "최대화합니다. synthetic 결과는 코드 동작 확인용일 뿐 실제 성과와 무관합니다."),
     }
     with open(os.path.join(args.out_dir, "momentum_best.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
