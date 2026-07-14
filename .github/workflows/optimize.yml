@@ -61,7 +61,7 @@ jobs:
             --winrate-floor "${{ github.event.inputs.winrate_floor || '0.45' }}" \
             --max-positions "${{ github.event.inputs.max_positions || '5' }}" \
             --max-combos "${{ github.event.inputs.max_combos || '400' }}" \
-            --regime --out-dir results
+            --include-delisted --regime --out-dir results
 
       - name: 결과 커밋
         run: |

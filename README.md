@@ -249,6 +249,10 @@ python optimize_momentum.py --source synthetic --n 80 --days 1200 --max-combos 2
   - **`return`(기본)**: 포트폴리오 **누적수익률(총수익)**. `--max-positions`(기본 5)로
     동시 보유 종목 수를 정해 자본에 태워 시뮬한 뒤 검증구간 총수익이 최대인 조합을 고른다
   - `expectancy`(거래당 기대값) / `winrate`(승률) / `blend`(승률 하한 + 기대값)
+- **생존편향 완화**: `--include-delisted` 를 주면 현재 상장 종목뿐 아니라 그동안
+  **상장폐지된 종목(패자)까지 유니버스에 되살려** 백테스트한다. 현재 상장 종목만 쓰면
+  성과가 부풀려지므로, 실데이터 최적화(`optimize.yml`)는 이 옵션을 기본으로 켠다.
+  (폐지 목록을 못 가져오면 경고를 남기고 상장 종목만으로 진행)
 - 결과는 `results/momentum_best.json` 에 저장되고, **일일 스캔이 다음 실행부터 이
   파라미터·가중치를 자동으로 사용**합니다
 - `.github/workflows/optimize.yml` 의 **Run workflow** 로 실데이터 최적화를 돌릴 수 있습니다
