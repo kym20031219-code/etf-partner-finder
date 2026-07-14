@@ -44,6 +44,60 @@ def fetch_universe(market: str = "KOSPI", top_n: int = 100) -> list[str]:
     return listing[code_col].astype(str).str.zfill(6).head(top_n).tolist()
 
 
+def fetch_delisted(market: str = "KOSPI", start: str = "2018-01-01",
+                   limit: int = 200) -> list[str]:
+    """상장폐지 종목코드 목록 (백테스트 **생존편향 완화**용).
+
+    현재 상장 종목만으로 백테스트하면 그동안 폐지된 '패자'가 빠져 성과가 부풀려진다.
+    `start` 이후에 폐지된 종목(=백테스트 기간 중 거래됐던 종목)을 되살려 유니버스에
+    합친다.
+
+    FDR 버전/네트워크에 따라 폐지 목록 조회가 실패할 수 있으므로 **방어적으로** 처리하고,
+    실패하면 빈 리스트를 돌려준다(그 경우 생존편향 주의가 그대로 남는다).
+    """
+    try:
+        import FinanceDataReader as fdr
+    except Exception:  # noqa: BLE001
+        return []
+
+    lst = None
+    for key in ("KRX-DELISTING", "KRX-Delisting", "KRX_DELISTING"):
+        try:
+            lst = fdr.StockListing(key)
+            if lst is not None and len(lst):
+                break
+        except Exception:  # noqa: BLE001
+            lst = None
+    if lst is None or len(lst) == 0:
+        return []
+
+    try:
+        df = lst.copy()
+        low = {c.lower(): c for c in df.columns}
+        code_col = next((low[c] for c in ("symbol", "code", "isucode") if c in low), None)
+        if code_col is None:
+            return []
+        df["_code"] = df[code_col].astype(str).str.extract(r"(\d{6})")[0]
+        df = df.dropna(subset=["_code"])
+
+        # 폐지일 컬럼(있으면) 기준으로 start 이후만
+        date_col = next((c for c in df.columns if "delist" in c.lower()), None)
+        if date_col is None:
+            date_col = next((c for c in df.columns if "date" in c.lower()), None)
+        if date_col is not None:
+            dd = pd.to_datetime(df[date_col], errors="coerce")
+            df = df[dd >= pd.to_datetime(start)]
+
+        # 시장 필터(컬럼 있으면)
+        mkt_col = low.get("market")
+        if mkt_col is not None:
+            df = df[df[mkt_col].astype(str).str.upper().str.contains(market.upper(), na=False)]
+
+        return df["_code"].dropna().unique().tolist()[:limit]
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def fetch_index(code: str = "KS11", start: str = "2015-01-01", end: str | None = None) -> pd.DataFrame:
     """지수 일봉 (기본 KS11 = KOSPI 종합지수). 네트워크 필요."""
     import FinanceDataReader as fdr

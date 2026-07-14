@@ -134,18 +134,38 @@ def run_eval(universe: dict, p: MomentumParams, regime, max_positions: int,
 
 
 def load_universe(args) -> dict:
-    if args.source == "real":
-        codes = datamod.fetch_universe(args.market, args.top)
-        uni = {}
-        for code in codes:
-            try:
-                df = datamod.fetch_ohlcv(code, args.start, args.end)
-                if len(df) > 400:
-                    uni[code] = df
-            except Exception:  # noqa: BLE001
-                pass
-        return uni
-    return datamod.synthetic_universe(n=args.n, days=args.days)
+    if args.source != "real":
+        return datamod.synthetic_universe(n=args.n, days=args.days)
+
+    codes = datamod.fetch_universe(args.market, args.top)
+    n_listed = len(codes)
+    n_delisted_added = 0
+    if args.include_delisted:
+        # 생존편향 완화: 폐지 종목(패자)을 유니버스에 되살린다
+        dl = datamod.fetch_delisted(args.market, args.start, limit=args.delisted_cap)
+        seen = set(codes)
+        extra = [c for c in dl if c not in seen]
+        n_delisted_added = len(extra)
+        codes = codes + extra
+        print(f"[유니버스] 현재상장 {n_listed} + 폐지종목 {n_delisted_added} "
+              f"= 후보 {len(codes)} (생존편향 완화 {'ON' if n_delisted_added else 'OFF/불가'})",
+              flush=True)
+        if args.include_delisted and n_delisted_added == 0:
+            print("  ⚠️ 폐지 목록을 가져오지 못했습니다 — 생존편향 주의가 그대로 남습니다.",
+                  flush=True)
+
+    uni = {}
+    n_with_data = 0
+    for code in codes:
+        try:
+            df = datamod.fetch_ohlcv(code, args.start, args.end)
+            if len(df) > 400:
+                uni[code] = df
+                n_with_data += 1
+        except Exception:  # noqa: BLE001
+            pass
+    print(f"[유니버스] 데이터 확보 {len(uni)}종목 (요청 {len(codes)})", flush=True)
+    return uni
 
 
 # ---------------------------------------------------------------------------
@@ -208,6 +228,10 @@ def main() -> int:
     ap.add_argument("--max-positions", type=int, default=5,
                     help="포트폴리오 동시 보유 종목 수 (총수익 시뮬 기준)")
     ap.add_argument("--cash", type=float, default=10_000_000, help="시작 자본")
+    ap.add_argument("--include-delisted", action="store_true",
+                    help="생존편향 완화: 폐지 종목을 유니버스에 포함(실데이터)")
+    ap.add_argument("--delisted-cap", type=int, default=200,
+                    help="포함할 폐지 종목 최대 수")
     ap.add_argument("--max-combos", type=int, default=0,
                     help=">0 이면 격자에서 이 개수만 무작위 표본 (런타임 절약)")
     ap.add_argument("--weight-candidates", type=int, default=120)
@@ -324,6 +348,7 @@ def main() -> int:
             "source": args.source, "market": args.market, "top": args.top,
             "start": args.start, "end": args.end, "objective": args.objective,
             "winrate_floor": args.winrate_floor, "max_positions": args.max_positions,
+            "include_delisted": bool(args.include_delisted),
             "regime": bool(args.regime), "min_trades": MIN_TRADES,
             "fallback_used": fallback, "generated_at": date.today().isoformat(),
             "universe": len(universe), "train": len(train), "test": len(test),
