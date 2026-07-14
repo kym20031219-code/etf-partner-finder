@@ -232,20 +232,25 @@ GitHub Pages 배포 방법은 3단계와 동일합니다
 
 ```bash
 # 실데이터 (네트워크 열린 환경) — 학습/검증 분리로 강건한 조합만 채택
+# 기본 목적함수 = return(총수익). 포트폴리오 누적수익률을 가장 크게 하는 조합을 고른다.
 python optimize_momentum.py --source real --market KOSPI --top 150 --start 2018-01-01 \
-    --objective blend --winrate-floor 0.45 --regime --max-combos 400
+    --objective return --regime --max-combos 400
 
 # 오프라인 코드 검증 (합성 데이터 — 수치는 참고 불가)
 python optimize_momentum.py --source synthetic --n 80 --days 1200 --max-combos 200
 ```
 
 - **1단계**: 진입 돌파창·추세선·거래량·RSI·ATR 손절/트레일·보유일 등 **전략 파라미터**를
-  격자 탐색. 각 종목 시계열을 앞(학습)/뒤(검증)로 나눠 **검증에서도 유지되는** 조합만 채택
+  격자 탐색. 각 종목 시계열을 앞(학습)/뒤(검증)로 나눠 **검증에서도 유지되는** 조합만 채택.
+  강건 가드로 **학습구간에서도 수익(obj>0)인 조합만** 신뢰한다(과최적화 배제)
 - **2단계**: 그 전략으로 **랭킹 점수 가중치**를 탐색해, '점수가 높을수록 실제 수익이
   좋았는지'를 순위상관(Spearman)으로 학습·검증에서 확인
-- `--objective` 로 무엇을 최대화할지 선택: `expectancy`(기대값) / `winrate`(승률) /
-  `blend`(승률 하한 + 기대값). 결과는 `results/momentum_best.json` 에 저장되고,
-  **일일 스캔이 다음 실행부터 이 파라미터·가중치를 자동으로 사용**합니다
+- `--objective` 로 무엇을 최대화할지 선택:
+  - **`return`(기본)**: 포트폴리오 **누적수익률(총수익)**. `--max-positions`(기본 5)로
+    동시 보유 종목 수를 정해 자본에 태워 시뮬한 뒤 검증구간 총수익이 최대인 조합을 고른다
+  - `expectancy`(거래당 기대값) / `winrate`(승률) / `blend`(승률 하한 + 기대값)
+- 결과는 `results/momentum_best.json` 에 저장되고, **일일 스캔이 다음 실행부터 이
+  파라미터·가중치를 자동으로 사용**합니다
 - `.github/workflows/optimize.yml` 의 **Run workflow** 로 실데이터 최적화를 돌릴 수 있습니다
   (무겁기 때문에 수동 + 월 1회 자동). 목적함수·승률하한·기간을 입력으로 조정
 
