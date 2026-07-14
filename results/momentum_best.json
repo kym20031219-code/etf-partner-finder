@@ -8,13 +8,14 @@
     "objective": "return",
     "winrate_floor": 0.45,
     "max_positions": 5,
+    "include_delisted": true,
     "regime": true,
     "min_trades": 30,
     "fallback_used": false,
     "generated_at": "2026-07-14",
-    "universe": 146,
-    "train": 145,
-    "test": 145
+    "universe": 272,
+    "train": 270,
+    "test": 270
   },
   "best_params": {
     "entry_lookback": 120,
@@ -25,33 +26,33 @@
     "vol_ma": 20,
     "vol_mult": 1.0,
     "rsi_period": 14,
-    "rsi_min": 50,
+    "rsi_min": 45,
     "rsi_max": 85.0,
     "atr_period": 14,
-    "init_stop_atr": 2.5,
+    "init_stop_atr": 2.0,
     "trail_atr": 4.5,
     "exit_lookback": 20,
-    "max_hold": 30
+    "max_hold": 60
   },
   "best_stats": {
     "entry_lookback": 120.0,
     "ma_trend": 150.0,
     "vol_mult": 1.0,
-    "rsi_min": 50.0,
-    "init_stop_atr": 2.5,
+    "rsi_min": 45.0,
+    "init_stop_atr": 2.0,
     "trail_atr": 4.5,
-    "max_hold": 30.0,
-    "train_trades": 379.0,
-    "train_winrate": 44.9,
-    "train_return": 59.2,
-    "test_trades": 611.0,
-    "test_winrate": 41.7,
-    "test_expect": 2.85,
-    "test_payoff": 2.13,
-    "test_return": 188.9,
-    "test_cagr": 52.1,
-    "test_mdd": -22.0,
-    "test_avghold": 15.3
+    "max_hold": 60.0,
+    "train_trades": 527.0,
+    "train_winrate": 35.3,
+    "train_return": 56.0,
+    "test_trades": 739.0,
+    "test_winrate": 34.8,
+    "test_expect": 1.8,
+    "test_payoff": 2.51,
+    "test_return": 63.8,
+    "test_cagr": 9.0,
+    "test_mdd": -10.2,
+    "test_avghold": 13.9
   },
   "best_weights": {
     "weights": {
@@ -68,9 +69,9 @@
       "rsi_ideal": 62.0,
       "rsi_span": 25.0
     },
-    "train_corr": -0.0067,
-    "test_corr": 0.0615,
-    "train_signals": 379
+    "train_corr": 0.1021,
+    "test_corr": 0.0101,
+    "train_signals": 527
   },
   "note": "실데이터로 검증한 조합입니다. objective=return 은 포트폴리오 누적수익률(총수익)을 최대화합니다. synthetic 결과는 코드 동작 확인용일 뿐 실제 성과와 무관합니다."
 }
