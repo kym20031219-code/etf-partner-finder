@@ -1,12 +1,12 @@
 {
   "as_of": "2026-07-15",
-  "kospi_close": 7413.26,
-  "kospi_change_pct": 8.11,
-  "score": 53.2,
-  "bias": "중립",
-  "confidence": "낮음",
-  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적, 거시. 역풍: 기술적, 한국경제.",
-  "data_factors_available": 4,
+  "kospi_close": 7289.16,
+  "kospi_change_pct": 6.31,
+  "score": 57.3,
+  "bias": "중립-강세",
+  "confidence": "보통",
+  "outlook": "단기 코스피는 상방에 무게가 실립니다. 버팀목: 기업실적, 밸류에이션. 역풍: 기술적, 수급.",
+  "data_factors_available": 6,
   "data_factors_total": 6,
   "factors": [
     {
@@ -15,7 +15,7 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.2,
-      "score": 62.1,
+      "score": 61.7,
       "bias": "중립-강세",
       "signals": [
         {
@@ -38,8 +38,8 @@
         },
         {
           "name": "달러/원 환율",
-          "detail": "1,487 (-1.6% / 20일)",
-          "score": 76.6,
+          "detail": "1,488 (-1.5% / 20일)",
+          "score": 75.0,
           "available": true
         }
       ],
@@ -52,13 +52,13 @@
       "icon": "🇰🇷",
       "desc": "원화·중국 경기·코스닥·반도체 상대강도",
       "weight": 0.15,
-      "score": 39.5,
-      "bias": "중립-약세",
+      "score": 44.1,
+      "bias": "중립",
       "signals": [
         {
           "name": "원화 강도(1년 범위)",
-          "detail": "환율 상위 75%ile",
-          "score": 24.8,
+          "detail": "환율 상위 76%ile",
+          "score": 24.4,
           "available": true
         },
         {
@@ -69,13 +69,13 @@
         },
         {
           "name": "코스닥 상대강도",
-          "detail": "코스피 대비 -3.4%p",
-          "score": 7.6,
+          "detail": "코스피 대비 -1.9%p",
+          "score": 26.4,
           "available": true
         },
         {
           "name": "반도체 상대강도",
-          "detail": "코스피 대비 +49.6%p / 60일",
+          "detail": "코스피 대비 +51.0%p / 60일",
           "score": 100.0,
           "available": true
         }
@@ -89,29 +89,29 @@
       "icon": "🏭",
       "desc": "반도체 실적사이클 프록시 + 코스피 PER 방향",
       "weight": 0.15,
-      "score": 83.3,
+      "score": 100.0,
       "bias": "강세",
       "signals": [
         {
           "name": "반도체 실적사이클",
-          "detail": "대표주 +68.7% / 60일 (기대 선반영)",
+          "detail": "대표주 +68.1% / 60일 (기대 선반영)",
           "score": 100.0,
           "available": true
         },
         {
           "name": "코스피 이익 방향",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "PER -100.0% / 20일",
+          "score": 100.0,
+          "available": true
         },
         {
           "name": "지수 중기추세(120일)",
-          "detail": "+53.1%",
+          "detail": "+50.6%",
           "score": 100.0,
           "available": true
         }
       ],
-      "available_signals": 2,
+      "available_signals": 3,
       "total_signals": 3
     },
     {
@@ -120,29 +120,29 @@
       "icon": "💰",
       "desc": "외국인·기관 순매수 방향과 강도",
       "weight": 0.2,
-      "score": 50.0,
-      "bias": "중립",
+      "score": 40.6,
+      "bias": "중립-약세",
       "signals": [
         {
           "name": "외국인 순매수(20일)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "20일 누적 -379,868억",
+          "score": 10.3,
+          "available": true
         },
         {
           "name": "기관 순매수(20일)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "20일 누적 +45,068억",
+          "score": 55.8,
+          "available": true
         },
         {
           "name": "외국인 단기(5일)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "+13,316억",
+          "score": 55.6,
+          "available": true
         }
       ],
-      "available_signals": 0,
+      "available_signals": 3,
       "total_signals": 3
     },
     {
@@ -151,20 +151,20 @@
       "icon": "⚖️",
       "desc": "PER·PBR 역사적 백분위와 ERP",
       "weight": 0.1,
-      "score": 50.0,
-      "bias": "중립",
+      "score": 83.3,
+      "bias": "강세",
       "signals": [
         {
           "name": "PER 백분위(3년)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "0.0배 · 상위 0%ile",
+          "score": 99.9,
+          "available": true
         },
         {
           "name": "PBR 백분위(3년)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "0.00배 · 상위 0%ile",
+          "score": 99.9,
+          "available": true
         },
         {
           "name": "ERP(위험프리미엄)",
@@ -173,7 +173,7 @@
           "available": false
         }
       ],
-      "available_signals": 0,
+      "available_signals": 2,
       "total_signals": 3
     },
     {
@@ -182,8 +182,8 @@
       "icon": "📈",
       "desc": "추세·RSI·MACD·모멘텀·거래량·52주 위치",
       "weight": 0.2,
-      "score": 37.0,
-      "bias": "중립-약세",
+      "score": 34.5,
+      "bias": "약세",
       "signals": [
         {
           "name": "이평선 배열",
@@ -193,14 +193,14 @@
         },
         {
           "name": "60일선 이격",
-          "detail": "-4.2%",
-          "score": 8.4,
+          "detail": "-5.7%",
+          "score": 0.0,
           "available": true
         },
         {
           "name": "RSI(14)",
-          "detail": "45",
-          "score": 37.3,
+          "detail": "43",
+          "score": 33.1,
           "available": true
         },
         {
@@ -211,20 +211,20 @@
         },
         {
           "name": "20일 모멘텀",
-          "detail": "-16.4%",
+          "detail": "-17.8%",
           "score": 0.0,
           "available": true
         },
         {
           "name": "거래량 추세",
-          "detail": "5일/60일 0.75배",
-          "score": 75.0,
+          "detail": "5일/60일 0.78배",
+          "score": 71.8,
           "available": true
         },
         {
           "name": "52주 범위 위치",
-          "detail": "72%ile",
-          "score": 71.6,
+          "detail": "70%ile",
+          "score": 69.6,
           "available": true
         }
       ],
@@ -234,5 +234,5 @@
   ],
   "disclaimer": "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 매매 권유가 아닙니다. 전망은 확률적 판단으로 언제든 빗나갈 수 있고, 본 시스템에는 어떤 자동 매수/매도 기능도 없습니다. 투자 판단과 책임은 전적으로 본인에게 있습니다.",
   "weights_optimized": false,
-  "generated_at": "2026-07-15T06:31:07"
+  "generated_at": "2026-07-15T06:47:37"
 }
