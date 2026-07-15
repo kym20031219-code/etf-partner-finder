@@ -1,9 +1,10 @@
 {
-  "latest": "20260714",
+  "latest": "20260715",
   "dates": [
+    "20260715",
     "20260714",
     "20260713"
   ],
-  "generated_at": "2026-07-14T05:25:32",
+  "generated_at": "2026-07-15T08:59:56",
   "strategy": "momentum-breakout"
 }
