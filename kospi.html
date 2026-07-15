@@ -393,8 +393,9 @@ function render(fc, hist, bt){
   ${(fc.data_factors_available != null && fc.data_factors_available < fc.data_factors_total) ? `
   <div class="data-note"><div class="inner">
     <b>ℹ️ 일부 데이터 소스 미연결</b> — 현재 <b>${fc.data_factors_available}/${fc.data_factors_total}</b> 팩터만 실데이터가 반영됐습니다.
-    이 실행 환경에서 접근이 차단된 소스(예: 해외지수·환율·PER/PBR·투자자 수급)에 기반한 팩터는 <b>중립(미가용)</b>으로 처리되고,
-    가용 신호 비율만큼만 방향성에 반영됩니다. 모든 소스가 열린 곳(예: GitHub Actions 자동 실행)에서 갱신되면 6팩터 전부 실데이터로 채워집니다.
+    데이터를 못 받은 신호는 <b>중립(미가용)</b>으로 처리되고, 가용 신호 비율만큼만 방향성에 반영됩니다.
+    <b>수급·밸류에이션(PER/PBR)</b> 팩터는 KRX 데이터포털 <b>계정</b>이 있어야 채워집니다 —
+    저장소 Secrets 에 <code>KRX_ID</code>·<code>KRX_PW</code>(무료 KRX 계정)를 넣으면 6팩터 전부 실데이터로 갱신됩니다.
   </div></div>` : ''}
   <div class="sec-title">6팩터 세부 진단</div>
   <div class="legend">

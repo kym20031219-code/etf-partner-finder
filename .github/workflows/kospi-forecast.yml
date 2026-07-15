@@ -39,6 +39,10 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # KRX 데이터포털 계정(있으면) → PER/PBR·투자자 수급 팩터 활성화. 없으면 해당
+          # 팩터는 자동으로 '미가용(중립)' 처리되고 나머지는 정상 동작한다.
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           python run_kospi_forecast.py \
             --start 2022-01-01 \
