@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>코스피 단기 전망 대시보드</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080c;--surface:#0d0f17;--card:#111420;--border:#1a1d2e;--border2:#22253a;
+  --accent:#4f8ef7;--accent2:#7ba8ff;
+  --green:#2dce89;--red:#f75f4f;--gold:#f5c542;--purple:#9b5cf6;--orange:#ff9f43;
+  --text:#e8ecf5;--sub:#6b7290;--muted:#8a90ad;--dim:#2a2d42;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,#0b0e19 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hdr::after{content:'';position:absolute;top:-80px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 65%);pointer-events:none}
+.hdr-row{display:flex;align-items:center;gap:11px;max-width:1040px;margin:0 auto}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.hdr h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.hdr h1 small{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px;letter-spacing:0}
+.meta{max-width:1040px;margin:14px auto 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 20px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 11px;font-size:11.5px;font-weight:600}
+.badge.live{background:rgba(45,206,137,.1);border:1px solid rgba(45,206,137,.22);color:var(--green)}
+.badge.info{background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.18);color:var(--accent2)}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+.refresh{background:var(--card);border:1px solid var(--border2);color:var(--sub);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s,color .2s}
+.refresh:hover{border-color:var(--accent);color:var(--accent2)}
+.refresh:active{transform:scale(.97)}
+
+.main{max-width:1040px;margin:0 auto;padding:20px}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:300px 1fr;gap:18px;margin-bottom:18px}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.gauge-panel{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-wrap{position:relative;width:240px;height:150px}
+.gauge-score{position:absolute;bottom:6px;left:0;right:0;text-align:center}
+.gauge-score .num{font-size:46px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.gauge-score .of{font-size:13px;color:var(--sub);font-weight:600}
+.bias-badge{margin-top:14px;display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:8px 16px;font-size:16px;font-weight:800}
+.conf{margin-top:8px;font-size:12px;color:var(--sub);font-weight:600}
+
+.kospi-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.kospi-head .lbl{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.kospi-head .val{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kospi-head .chg{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.outlook{margin-top:14px;font-size:14px;line-height:1.65;color:var(--text)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+@media(max-width:520px){.charts{grid-template-columns:1fr}}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 12px 6px}
+.chart-box h4{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
+.chart-box h4 span{font-size:13px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.spark{width:100%;height:64px;display:block;overflow:visible}
+
+/* SECTION TITLE */
+.sec-title{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin:6px 4px 12px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* FACTOR GRID */
+.factors{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.factors{grid-template-columns:1fr}}
+.fcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.fcard-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.fcard-icon{font-size:20px}
+.fcard-name{font-size:15px;font-weight:800}
+.fcard-w{margin-left:auto;font-size:10.5px;color:var(--sub);font-weight:700;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:2px 7px}
+.fcard-desc{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:12px}
+.fscore-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.fscore-num{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;min-width:52px}
+.fbar{flex:1;height:9px;border-radius:5px;background:var(--dim);overflow:hidden;position:relative}
+.fbar>span{display:block;height:100%;border-radius:5px}
+.fscore-bias{font-size:11px;font-weight:800;border-radius:6px;padding:3px 9px;white-space:nowrap}
+
+.sig{padding:8px 0;border-top:1px solid var(--border)}
+.sig-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+.sig-name{font-size:12.5px;font-weight:700}
+.sig-detail{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;text-align:right}
+.sig-bar{height:5px;border-radius:3px;background:var(--dim);overflow:hidden;position:relative}
+.sig-bar .mid{position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:var(--border2)}
+.sig-bar>span{display:block;height:100%;border-radius:3px}
+.sig.na .sig-name,.sig.na .sig-detail{color:var(--dim)}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:2px 4px 16px;font-size:11.5px;color:var(--sub)}
+.legend .k{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.legend .sw{width:11px;height:11px;border-radius:3px}
+
+/* STATES */
+.state-box{text-align:center;padding:60px 24px;color:var(--sub)}
+.state-box .emoji{font-size:44px;margin-bottom:14px;opacity:.85}
+.state-box h2{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.state-box p{font-size:13px;line-height:1.6;max-width:420px;margin:0 auto}
+.spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DISCLAIMER */
+.foot{max-width:1040px;margin:8px auto 40px;padding:16px 20px}
+.disc{background:rgba(247,95,79,.05);border:1px solid rgba(247,95,79,.16);border-radius:10px;padding:12px 15px;font-size:12px;line-height:1.6;color:var(--sub)}
+.disc b{color:#f7a99f}
+
+.tt{position:fixed;pointer-events:none;background:#050609;border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:11.5px;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;transition:opacity .12s;z-index:20;white-space:nowrap}
+.tt b{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-row">
+    <div class="logo">📊</div>
+    <h1>코스피 단기 전망 대시보드<small>거시·한국경제·실적·수급·밸류에이션·기술 6팩터 종합 · 장마감 후 매일 갱신</small></h1>
+  </div>
+</header>
+
+<div class="meta">
+  <span class="badge live"><span class="dot"></span><span id="statusText">불러오는 중…</span></span>
+  <span class="badge info" id="dateBadge" style="display:none"></span>
+  <div class="controls">
+    <a class="refresh" href="dashboard.html" style="text-decoration:none">📈 종목 스코어</a>
+    <button class="refresh" id="refreshBtn">↻ 새로고침</button>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content">
+    <div class="state-box"><div class="spinner"></div><h2>전망을 불러오는 중…</h2></div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="disc" id="discBox">
+    <b>⚠️ 이 대시보드는 공개 시장데이터 기반의 참고용 전망 점수만 제공합니다.</b>
+    표시된 종합점수·팩터점수·방향은 규칙 기반 계산 결과일 뿐 매매 권유가 아니며,
+    전망은 확률적 판단으로 언제든 빗나갈 수 있습니다. 실제 투자 판단과 책임은 본인에게 있으며,
+    이 시스템에는 어떤 자동 매수/매도 주문 기능도 없습니다.
+  </div>
+</footer>
+
+<div class="tt" id="tt"></div>
+
+<script>
+const FORECAST_URL = 'results/kospi_forecast.json';
+const HISTORY_URL  = 'results/kospi_history.csv';
+const $ = (id) => document.getElementById(id);
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+const fmtNum = (n,d=0) => Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+// 점수(0~100) → 색: 약세(적)·중립(금)·강세(녹). 라벨과 항상 병기하므로 색 단독 아님.
+function scoreColor(s){
+  if(s >= 57) return 'var(--green)';
+  if(s > 43)  return 'var(--gold)';
+  return 'var(--red)';
+}
+function scoreRGBA(s,a){
+  if(s >= 57) return `rgba(45,206,137,${a})`;
+  if(s > 43)  return `rgba(245,197,66,${a})`;
+  return `rgba(247,95,79,${a})`;
+}
+function biasStyle(s){
+  const c = scoreColor(s);
+  return `color:${c};background:${scoreRGBA(s,.12)};border:1px solid ${scoreRGBA(s,.3)}`;
+}
+
+/* ---- 반원 게이지 (다이버징: 약세 ← 중립 → 강세) ---- */
+function gaugeSVG(score){
+  const cx=120, cy=130, r=100, sw=18;
+  const polar = (deg)=>{const a=(180-deg)*Math.PI/180;return [cx+r*Math.cos(a), cy-r*Math.sin(a)];};
+  // score 0..100 → angle 0..180
+  const arc = (a0,a1,color)=>{
+    const [x0,y0]=polar(a0), [x1,y1]=polar(a1);
+    const large = (a1-a0)>180?1:0;
+    return `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="butt"/>`;
+  };
+  const toA = (sc)=> sc/100*180;
+  // 3구간(2° 갭): 약세 0-43, 중립 43-57, 강세 57-100
+  let segs = '';
+  segs += arc(toA(0),  toA(43)-2, 'rgba(247,95,79,.55)');
+  segs += arc(toA(43)+1, toA(57)-1, 'rgba(245,197,66,.55)');
+  segs += arc(toA(57)+2, toA(100), 'rgba(45,206,137,.55)');
+  // 활성 채움(0 → score) 위에 밝게
+  const a = toA(Math.max(0,Math.min(100,score)));
+  segs += arc(0.5, Math.max(1,a), scoreColor(score));
+  // needle
+  const [nx,ny]=polar(a);
+  const needle = `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="var(--text)"/>`;
+  return `<svg viewBox="0 0 240 150" class="gauge-svg" width="240" height="150">
+    ${segs}${needle}
+    <text x="14" y="148" fill="var(--sub)" font-size="10" font-weight="700">약세</text>
+    <text x="226" y="148" fill="var(--sub)" font-size="10" font-weight="700" text-anchor="end">강세</text>
+  </svg>`;
+}
+
+function factorCard(f){
+  const bar = `<div class="fbar"><span style="width:${f.score}%;background:${scoreColor(f.score)}"></span></div>`;
+  const sigs = f.signals.map(s=>{
+    const na = s.available ? '' : ' na';
+    const fill = s.available
+      ? `<span style="width:${s.score}%;background:${scoreColor(s.score)}"></span>`
+      : `<span style="width:0"></span>`;
+    return `<div class="sig${na}">
+      <div class="sig-top">
+        <span class="sig-name">${escapeHTML(s.name)}</span>
+        <span class="sig-detail">${escapeHTML(s.detail)}${s.available?` · ${s.score.toFixed(0)}`:''}</span>
+      </div>
+      <div class="sig-bar"><span class="mid"></span>${fill}</div>
+    </div>`;
+  }).join('');
+  return `<div class="fcard">
+    <div class="fcard-top">
+      <span class="fcard-icon">${f.icon}</span>
+      <span class="fcard-name">${escapeHTML(f.label)}</span>
+      <span class="fcard-w">비중 ${(f.weight*100).toFixed(0)}%</span>
+    </div>
+    <div class="fcard-desc">${escapeHTML(f.desc)}</div>
+    <div class="fscore-row">
+      <span class="fscore-num" style="color:${scoreColor(f.score)}">${f.score.toFixed(0)}</span>
+      ${bar}
+      <span class="fscore-bias" style="${biasStyle(f.score)}">${escapeHTML(f.bias)}</span>
+    </div>
+    ${sigs}
+  </div>`;
+}
+
+/* ---- 스파크라인 (단일 시계열, 얇은 2px 라인 + 호버 크로스헤어) ---- */
+function sparkline(el, pts, {color, fmt}){
+  if(pts.length < 2){ el.innerHTML = ''; return; }
+  const W=el.clientWidth||300, H=64, pad=6;
+  const xs = pts.map((_,i)=>i), ys = pts.map(p=>p.v);
+  const ymin=Math.min(...ys), ymax=Math.max(...ys), yr=(ymax-ymin)||1;
+  const X = i => pad + i/(pts.length-1)*(W-2*pad);
+  const Y = v => H-pad - (v-ymin)/yr*(H-2*pad);
+  const d = pts.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(' ');
+  const area = `M${X(0)} ${H-pad} `+pts.map((p,i)=>`L${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(' ')+` L${X(pts.length-1)} ${H-pad} Z`;
+  const gid = 'g'+Math.random().toString(36).slice(2,7);
+  el.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  el.innerHTML = `
+    <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(pts.length-1)}" cy="${Y(ys[ys.length-1])}" r="3" fill="${color}"/>
+    <line class="cross" x1="0" x2="0" y1="${pad}" y2="${H-pad}" stroke="var(--border2)" stroke-width="1" style="opacity:0"/>
+    <circle class="dot" r="3.5" fill="${color}" stroke="var(--bg)" stroke-width="1.5" style="opacity:0"/>`;
+  const cross=el.querySelector('.cross'), dot=el.querySelector('.dot'), tt=$('tt');
+  el.onmousemove = (e)=>{
+    const rect=el.getBoundingClientRect();
+    const rx=(e.clientX-rect.left)/rect.width*W;
+    let i=Math.round((rx-pad)/((W-2*pad))*(pts.length-1));
+    i=Math.max(0,Math.min(pts.length-1,i));
+    const px=X(i), py=Y(ys[i]);
+    cross.setAttribute('x1',px);cross.setAttribute('x2',px);cross.style.opacity=1;
+    dot.setAttribute('cx',px);dot.setAttribute('cy',py);dot.style.opacity=1;
+    tt.innerHTML=`${escapeHTML(pts[i].d)} · <b>${fmt(pts[i].v)}</b>`;
+    tt.style.opacity=1;tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY-34)+'px';
+  };
+  el.onmouseleave = ()=>{cross.style.opacity=0;dot.style.opacity=0;$('tt').style.opacity=0;};
+}
+
+function render(fc, hist){
+  const chgColor = fc.kospi_change_pct >= 0 ? 'var(--green)' : 'var(--red)';
+  const html = `
+  <div class="hero">
+    <div class="panel gauge-panel">
+      <div class="gauge-wrap">
+        ${gaugeSVG(fc.score)}
+        <div class="gauge-score"><span class="num" style="color:${scoreColor(fc.score)}">${fc.score.toFixed(0)}</span><span class="of"> / 100</span></div>
+      </div>
+      <div class="bias-badge" style="${biasStyle(fc.score)}">${escapeHTML(fc.bias)}</div>
+      <div class="conf">신뢰도 · <b>${escapeHTML(fc.confidence)}</b></div>
+    </div>
+    <div class="panel">
+      <div class="kospi-head">
+        <span class="lbl">KOSPI 종가</span>
+        <span class="val">${fmtNum(fc.kospi_close,2)}</span>
+        <span class="chg" style="color:${chgColor}">${fc.kospi_change_pct>=0?'▲':'▼'} ${Math.abs(fc.kospi_change_pct).toFixed(2)}%</span>
+      </div>
+      <div class="outlook">${escapeHTML(fc.outlook)}</div>
+      <div class="charts">
+        <div class="chart-box">
+          <h4>종합 전망 점수 추이 <span style="color:${scoreColor(fc.score)}">${fc.score.toFixed(0)}</span></h4>
+          <svg class="spark" id="sparkScore"></svg>
+        </div>
+        <div class="chart-box">
+          <h4>코스피 종가 추이 <span>${fmtNum(fc.kospi_close,0)}</span></h4>
+          <svg class="spark" id="sparkKospi"></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">6팩터 세부 진단</div>
+  <div class="legend">
+    <span class="k"><span class="sw" style="background:var(--red)"></span>약세(0~43)</span>
+    <span class="k"><span class="sw" style="background:var(--gold)"></span>중립(43~57)</span>
+    <span class="k"><span class="sw" style="background:var(--green)"></span>강세(57~100)</span>
+    <span class="k" style="margin-left:auto">각 팩터·신호는 0~100점(50=중립)</span>
+  </div>
+  <div class="factors">${fc.factors.map(factorCard).join('')}</div>`;
+  $('content').innerHTML = html;
+
+  const scorePts = hist.map(h=>({d:h.date, v:+h.score}));
+  const kospiPts = hist.map(h=>({d:h.date, v:+h.kospi_close}));
+  sparkline($('sparkScore'), scorePts, {color:scoreColor(fc.score), fmt:v=>v.toFixed(1)+'점'});
+  sparkline($('sparkKospi'), kospiPts, {color:'var(--accent)', fmt:v=>fmtNum(v,0)});
+  if(fc.disclaimer) $('discBox').innerHTML = '<b>⚠️ '+escapeHTML(fc.disclaimer.split('.')[0])+'.</b> '+escapeHTML(fc.disclaimer.split('.').slice(1).join('.').trim());
+}
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  const head = lines[0].split(',');
+  return lines.slice(1).map(l=>{const c=l.split(',');return Object.fromEntries(head.map((h,i)=>[h,c[i]]));});
+}
+
+function renderError(msg){
+  $('statusText').textContent = '불러오기 실패';
+  $('content').innerHTML = `
+    <div class="state-box"><div class="emoji">⚠️</div>
+      <h2>전망 데이터를 불러오지 못했습니다</h2>
+      <p>${escapeHTML(msg)}<br><br>전망 스캔이 아직 실행되지 않았거나 GitHub Pages 가 갱신 중일 수 있습니다.
+      <br><code>python run_kospi_forecast.py</code> 실행 후 results/ 가 커밋되면 표시됩니다.</p>
+    </div>`;
+}
+
+async function init(){
+  $('statusText').textContent = '불러오는 중…';
+  try{
+    const [fRes, hRes] = await Promise.all([
+      fetch(FORECAST_URL+'?t='+Date.now(), {cache:'no-store'}),
+      fetch(HISTORY_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
+    ]);
+    if(!fRes.ok) throw new Error('HTTP '+fRes.status);
+    const fc = await fRes.json();
+    let hist = [];
+    if(hRes && hRes.ok){ try{ hist = parseCSV(await hRes.text()); }catch(e){} }
+    $('dateBadge').style.display='';
+    $('dateBadge').textContent = '📅 '+fc.as_of+' 기준';
+    $('statusText').textContent = `종합 ${fc.score}점 · ${fc.bias}`;
+    render(fc, hist);
+  }catch(e){
+    renderError(e.message || String(e));
+  }
+}
+
+$('refreshBtn').addEventListener('click', init);
+init();
+</script>
+</body>
+</html>
