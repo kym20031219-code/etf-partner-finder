@@ -74,6 +74,41 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 .data-note .inner{background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.2);border-radius:9px;padding:9px 13px;font-size:11.5px;line-height:1.55;color:var(--sub)}
 .data-note b{color:var(--gold)}
 
+/* TOOLTIP DOT */
+.info-dot{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2);color:var(--sub);font-size:9px;font-weight:800;cursor:help;margin-left:5px;vertical-align:middle}
+.info-dot:hover{color:var(--accent2);border-color:var(--accent)}
+
+/* WEEKLY CHANGE */
+.wc-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+.wc-head{font-size:13.5px;font-weight:700;margin-bottom:8px}
+.wc-formula{font-size:11.5px;color:var(--sub);font-family:'Courier New',monospace;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;margin-bottom:12px;display:inline-block}
+.wc-movers{display:flex;flex-wrap:wrap;gap:9px}
+.mv{display:inline-flex;flex-direction:column;gap:1px;border:1px solid var(--border2);border-radius:9px;padding:6px 11px;font-size:12px}
+.mv-sub{font-size:10px;color:var(--sub);font-variant-numeric:tabular-nums}
+.wc-none{font-size:12px;color:var(--sub)}
+
+/* WIN/LOSS ROW */
+.wl{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--sub);margin:-4px 0 14px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.wl b{font-variant-numeric:tabular-nums;color:var(--text)}
+
+/* SUB HEADING + VERDICT + TABLES */
+.sub-h{font-size:12px;font-weight:800;color:var(--muted);margin:16px 0 9px;display:flex;align-items:center;gap:2px}
+.bt-verdict{font-size:12px;color:var(--sub);margin-top:8px}
+.bt-verdict b{font-variant-numeric:tabular-nums}
+.tbl-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.vtbl{width:100%;border-collapse:collapse;font-size:12px;min-width:340px}
+.vtbl th{text-align:right;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--sub);padding:9px 11px;border-bottom:1px solid var(--border2);white-space:nowrap;background:var(--surface)}
+.vtbl th.l,.vtbl td.l{text-align:left}
+.vtbl td{text-align:right;padding:8px 11px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vtbl tbody tr:last-child td{border-bottom:none}
+.vtbl tr.comp{background:rgba(79,142,247,.06)}
+.vtbl tr.comp td{font-weight:800}
+.tag{display:inline-block;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800}
+.tag.ok{background:rgba(45,206,137,.12);color:var(--green);border:1px solid rgba(45,206,137,.3)}
+.tag.warn{background:rgba(245,197,66,.1);color:var(--gold);border:1px solid rgba(245,197,66,.28)}
+.val-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.val-grid{grid-template-columns:1fr}}
+
 /* BACKTEST */
 .bt-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
 .bt-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
@@ -154,7 +189,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
   <div class="disc" id="discBox">
     <b>⚠️ 이 대시보드는 공개 시장데이터 기반의 참고용 전망 점수만 제공합니다.</b>
     표시된 종합점수·팩터점수·방향은 규칙 기반 계산 결과일 뿐 매매 권유가 아니며,
-    전망은 확률적 판단으로 언제든 빗나갈 수 있습니다. 실제 투자 판단과 책임은 본인에게 있으며,
+    전망은 불확실하며 언제든 빗나갈 수 있습니다. 실제 투자 판단과 책임은 본인에게 있으며,
     이 시스템에는 어떤 자동 매수/매도 주문 기능도 없습니다.
   </div>
 </footer>
@@ -165,6 +200,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 const FORECAST_URL = 'results/kospi_forecast.json';
 const HISTORY_URL  = 'results/kospi_history.csv';
 const BACKTEST_URL = 'results/kospi_backtest.json';
+const VALIDATION_URL = 'results/kospi_validation.json';
 const $ = (id) => document.getElementById(id);
 
 function escapeHTML(s){
@@ -330,35 +366,158 @@ function equityChart(el, curve){
 
 function pctSigned(x){ return (x>=0?'+':'')+(x*100).toFixed(1)+'%'; }
 
+/* ---- 항목7: 이번 주 점수 변화 요인 (고정 가중치 계산식 분해) ---- */
+function weeklyChangeSection(fc){
+  const wc = fc.weekly_change;
+  if(!wc || !wc.factors || !wc.factors.length) return '';
+  const movers = wc.factors.filter(c=>Math.abs(c.contrib_delta) >= 0.05).slice(0,5);
+  const chip = (c)=>{
+    const up = c.contrib_delta>=0;
+    const col = up?'var(--green)':'var(--red)';
+    return `<span class="mv" style="border-color:${col}"><b style="color:${col}">${c.icon} ${escapeHTML(c.label)} ${up?'+':''}${c.contrib_delta.toFixed(1)}점</b>
+      <span class="mv-sub">${c.score_prev}→${c.score_now}</span></span>`;
+  };
+  const sd = wc.score_delta;
+  const sdTxt = sd==null?'':`<b style="color:${sd>=0?'var(--green)':'var(--red)'}">${sd>=0?'+':''}${sd.toFixed(1)}점</b>`;
+  return `
+  <div class="sec-title">이번 주 점수 변화 요인 <span class="info-dot" title="종합점수 = Σ(팩터 가중치 × 팩터 점수). 전주(약 5거래일 전) 대비 각 팩터의 기여분(가중치×점수) 변화를 그대로 분해한 값입니다. 모델 기반 설명(SHAP 등)이 아니라 고정 가중치 계산식 분해입니다.">ⓘ</span></div>
+  <div class="wc-wrap">
+    <div class="wc-head">전주(${escapeHTML(wc.ref_date)}) 대비 종합점수 ${wc.score_prev}→${wc.score_now} ${sdTxt}</div>
+    <div class="wc-formula">종합점수 = Σ ( 팩터 가중치 × 팩터 점수 )</div>
+    ${movers.length ? `<div class="wc-movers">${movers.map(chip).join('')}</div>`
+      : `<div class="wc-none">지난 주 대비 팩터 기여 변화가 미미합니다(±0.05점 미만).</div>`}
+  </div>`;
+}
+
+/* ---- 항목1·3·5: 백테스트 (워크포워드 + 구간별 + 승률·손익비 분해) ---- */
 function backtestSection(bt){
   if(!bt || !bt.strategy) return '';
   const s=bt.strategy, h=bt.buy_hold, x=bt.excess;
   const exCol = x.total_return>=0 ? 'var(--green)' : 'var(--red)';
   const wr = s.win_rate!=null ? (s.win_rate*100).toFixed(0)+'%' : '–';
+  const payoff = s.payoff!=null ? s.payoff.toFixed(2) : '–';
+  const top5 = s.top5_win_share!=null ? (s.top5_win_share*100).toFixed(0)+'%' : '–';
   const tiles = [
     {lbl:'전략 총수익', val:pctSigned(s.total_return), sub:`연 ${pctSigned(s.cagr)}`, col:s.total_return>=0?'var(--green)':'var(--red)'},
     {lbl:'단순보유 대비', val:pctSigned(x.total_return)+'p', sub:`CAGR ${pctSigned(x.cagr)}p`, col:exCol},
     {lbl:'최대낙폭(MDD)', val:(s.mdd*100).toFixed(1)+'%', sub:`보유 ${(h.mdd*100).toFixed(1)}%`, col:'var(--text)'},
-    {lbl:'승률', val:wr, sub:`${s.n_trades}회 매매`, col:'var(--text)'},
     {lbl:'샤프비율', val:s.sharpe.toFixed(2), sub:`보유 ${h.sharpe.toFixed(2)}`, col:'var(--text)'},
+    {lbl:'승률 · 손익비', val:`${wr}`, sub:`손익비 ${payoff} · ${s.n_trades}회`, col:'var(--text)'},
   ].map(t=>`<div class="tile"><div class="t-lbl">${t.lbl}</div><div class="t-val" style="color:${t.col}">${t.val}</div><div class="t-sub">${t.sub}</div></div>`).join('');
+
+  // 항목5: 승률-손익비 분해
+  const wlRow = (s.avg_win!=null) ? `
+    <div class="wl">
+      <span>평균 익절 <b style="color:var(--green)">${pctSigned(s.avg_win)}</b></span>
+      <span>평균 손절 <b style="color:var(--red)">${pctSigned(s.avg_loss)}</b></span>
+      <span>손익비 <b>${payoff}</b></span>
+      <span title="상위 5개 이익 거래가 전체 이익합에서 차지하는 비중. 높을수록 소수 대박(outlier)에 의존.">상위5거래 이익기여 <b style="color:${(s.top5_win_share||0)>0.6?'var(--gold)':'var(--text)'}">${top5}</b></span>
+    </div>` : '';
+
+  // 항목3: 구간별 성과표
+  const sp = (bt.subperiods||[]);
+  const spPositive = sp.filter(p=>p.excess_return>0).length;
+  const spRows = sp.map(p=>{
+    const c = p.excess_return>=0?'var(--green)':'var(--red)';
+    return `<tr><td class="l">${escapeHTML(p.period)}</td><td>${p.n_days}</td>
+      <td>${pctSigned(p.strategy_return)}</td><td>${pctSigned(p.buy_hold_return)}</td>
+      <td style="color:${c};font-weight:800">${pctSigned(p.excess_return)}p</td></tr>`;
+  }).join('');
+  const wf = bt.mode==='walkforward';
+  const desc = wf
+    ? `매 ${bt.params.rebalance}거래일마다 <b>과거 데이터만으로 매수/매도 임계값을 재추정</b>(최소 롤링윈도 ${Math.round(bt.params.min_window/21)}개월)하고 그 임계값으로 신호 생성. 다음날 체결·비용 ${(bt.params.cost*100).toFixed(1)}%/회. 임계값 재추정 ${bt.threshold_reestimations}회. 시장노출 ${(s.time_in_market*100).toFixed(0)}%.`
+    : `고정 임계값(54/46) 기준선. 시장노출 ${(s.time_in_market*100).toFixed(0)}%.`;
+
   return `
-  <div class="sec-title">전망 점수 백테스트 (워크포워드 · 미래참조 없음)</div>
+  <div class="sec-title">전망 점수 백테스트 ${wf?'(진짜 워크포워드 · 임계값 재추정 · 미래참조 없음)':'(고정 임계값)'}</div>
   <div class="bt-wrap">
-    <div class="bt-head"><h3>매수/매도 시그널 vs 단순보유</h3>
+    <div class="bt-head"><h3>매수/현금 시그널 vs 단순보유</h3>
       <span class="rng">${escapeHTML(bt.date_range[0])} ~ ${escapeHTML(bt.date_range[1])} · ${bt.n_days}거래일</span></div>
-    <div class="bt-desc">종합점수 ≥ ${bt.params.buy_thr} 매수 · ≤ ${bt.params.sell_thr} 현금(매도), 다음날 체결·비용 ${(bt.params.cost*100).toFixed(1)}%/회.
-      가중치는 기본값(prior)으로 인샘플 튜닝을 배제했습니다. 시장노출 ${(s.time_in_market*100).toFixed(0)}%.</div>
+    <div class="bt-desc">${desc}</div>
     <div class="bt-tiles">${tiles}</div>
+    ${wlRow}
     <div class="bt-legend">
       <span class="k"><span class="ln" style="background:var(--green)"></span>전망점수 전략</span>
       <span class="k"><span class="ln" style="background:var(--sub)"></span>단순보유(Buy&amp;Hold)</span>
     </div>
     <svg class="eq-chart" id="eqChart"></svg>
+    ${sp.length ? `
+    <h4 class="sub-h">구간별 성과 — 초과수익이 특정 구간에 쏠렸는지 <span class="info-dot" title="완료기준: 초과수익이 한 구간에만 쏠리지 않고 최소 2개 이상 구간에서 일관되게 (+)여야 신뢰. 최근 구간에만 (+)면 최근 상승장 의존.">ⓘ</span></h4>
+    <div class="tbl-scroll"><table class="vtbl">
+      <thead><tr><th class="l">구간</th><th>거래일</th><th>전략</th><th>단순보유</th><th>초과수익</th></tr></thead>
+      <tbody>${spRows}</tbody>
+    </table></div>
+    <div class="bt-verdict">초과수익 (+) 구간: <b style="color:${spPositive>=2?'var(--green)':'var(--gold)'}">${spPositive}/${sp.length}</b>
+      ${spPositive>=2?'— 여러 구간에서 일관':'— 특정 구간 쏠림 주의'}</div>` : ''}
   </div>`;
 }
 
-function render(fc, hist, bt){
+/* ---- 항목2·4: 검증 (팩터 유효성 IC + 점수-미래수익) ---- */
+function validationSection(val){
+  if(!val || !val.factor_ic) return '';
+  const H = val.horizon_days;
+  const icRows = val.factor_ic.map(r=>{
+    const isComp = r.key==='_composite';
+    const sigTxt = r.significant ? `<span class="tag ok">유의</span>`
+      : (r.removal_candidate ? `<span class="tag warn">제거후보</span>` : '');
+    const ricCol = r.rank_ic>=0?'var(--green)':'var(--red)';
+    return `<tr class="${isComp?'comp':''}"><td class="l">${escapeHTML(r.label)}</td>
+      <td style="color:${r.ic>=0?'var(--green)':'var(--red)'}">${r.ic>=0?'+':''}${r.ic.toFixed(3)}</td>
+      <td style="color:${ricCol};font-weight:800">${r.rank_ic>=0?'+':''}${r.rank_ic.toFixed(3)}</td>
+      <td>${r.t_stat>=0?'+':''}${r.t_stat.toFixed(2)}</td><td>${sigTxt}</td></tr>`;
+  }).join('');
+  const svf = val.score_vs_forward || {};
+  const bkRows = (svf.bucket_table||[]).map(b=>{
+    const c = b.avg_fwd_return>=0?'var(--green)':'var(--red)';
+    return `<tr><td class="l">${escapeHTML(b.bucket)}</td><td>${b.n}</td>
+      <td style="color:${c}">${pctSigned(b.avg_fwd_return)}</td>
+      <td>${(b.up_ratio*100).toFixed(0)}%</td></tr>`;
+  }).join('');
+  const sig = val.significant_factor_count;
+  return `
+  <div class="sec-title">검증 — 점수가 실제 미래수익을 설명하는가</div>
+  <div class="val-grid">
+    <div class="bt-wrap">
+      <h4 class="sub-h">팩터 유효성 (IC / Rank IC) <span class="info-dot" title="IC(Information Coefficient)=팩터점수와 ${H}거래일 후 수익률의 상관. Rank IC=순위상관(이상치에 강건). |t|≥1.96 이면 통계적으로 유의(단, 20일 라벨 겹침으로 t는 과대평가 경향). 단기 지수 IC는 원래 작습니다(0.05~0.1도 유의미).">ⓘ</span></h4>
+      <div class="tbl-scroll"><table class="vtbl">
+        <thead><tr><th class="l">대상</th><th>IC</th><th>Rank IC</th><th>t</th><th></th></tr></thead>
+        <tbody>${icRows}</tbody>
+      </table></div>
+      <div class="bt-verdict">통계적으로 유의한 팩터: <b style="color:${sig>=3?'var(--green)':'var(--gold)'}">${sig}/6</b>
+        · 라벨: ${H}거래일 후 KOSPI 수익률 · 표본 ${svf.n||val.factor_ic[0].n}</div>
+    </div>
+    <div class="bt-wrap">
+      <h4 class="sub-h">종합점수 → ${H}일 후 수익률 <span class="info-dot" title="가로축=그날의 종합점수(0~100), 세로축=그 뒤 ${H}거래일 KOSPI 수익률. 우상향 관계면 점수의 예측력이 있다는 뜻. 종합점수 IC ${(svf.composite_ic!=null?svf.composite_ic.toFixed(3):'–')}.">ⓘ</span></h4>
+      <svg class="eq-chart" id="scatterChart" style="height:180px"></svg>
+      <div class="tbl-scroll" style="margin-top:8px"><table class="vtbl">
+        <thead><tr><th class="l">점수대</th><th>표본</th><th>평균 ${H}일 수익</th><th>상승비율</th></tr></thead>
+        <tbody>${bkRows}</tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+/* ---- 산점도 (점수 vs 미래수익) ---- */
+function scatterChart(el, pts){
+  if(!pts || pts.length<3){ el.innerHTML=''; return; }
+  const W=el.clientWidth||500, H=180, pad=26;
+  const xs=pts.map(p=>p.score), ys=pts.map(p=>p.fwd);
+  const xmin=0, xmax=100;
+  let ymin=Math.min(...ys), ymax=Math.max(...ys); const yr=(ymax-ymin)||1; ymin-=yr*0.05; ymax+=yr*0.05;
+  const X=v=>pad+(v-xmin)/(xmax-xmin)*(W-pad-8);
+  const Y=v=>H-pad-(v-ymin)/(ymax-ymin)*(H-pad-8);
+  const y0=Y(0), x50=X(50);
+  const dots=pts.map(p=>`<circle cx="${X(p.score).toFixed(1)}" cy="${Y(p.fwd).toFixed(1)}" r="2.2" fill="${p.fwd>=0?'rgba(45,206,137,.55)':'rgba(247,95,79,.55)'}"/>`).join('');
+  el.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  el.innerHTML = `
+    <line x1="${pad}" x2="${W-8}" y1="${y0}" y2="${y0}" stroke="var(--border2)" stroke-dasharray="3 3"/>
+    <line x1="${x50}" x2="${x50}" y1="8" y2="${H-pad}" stroke="var(--border2)" stroke-dasharray="3 3"/>
+    ${dots}
+    <text x="${x50}" y="${H-8}" fill="var(--sub)" font-size="10" text-anchor="middle">종합점수 50</text>
+    <text x="${pad-4}" y="${y0-4}" fill="var(--sub)" font-size="10" text-anchor="start">0%</text>`;
+}
+
+function render(fc, hist, bt, val){
   const chgColor = fc.kospi_change_pct >= 0 ? 'var(--green)' : 'var(--red)';
   const html = `
   <div class="hero">
@@ -368,7 +527,7 @@ function render(fc, hist, bt){
         <div class="gauge-score"><span class="num" style="color:${scoreColor(fc.score)}">${fc.score.toFixed(0)}</span><span class="of"> / 100</span></div>
       </div>
       <div class="bias-badge" style="${biasStyle(fc.score)}">${escapeHTML(fc.bias)}</div>
-      <div class="conf">신뢰도 · <b>${escapeHTML(fc.confidence)}</b></div>
+      <div class="conf">신뢰도 · <b>${escapeHTML(fc.confidence)}</b><span class="info-dot" title="신뢰도 = ①방향의 세기(|종합점수−50|)와 ②팩터 합치도(같은 방향 팩터 비율)로 산정합니다.&#10;• 높음: |점수−50|≥12 이고 6팩터 중 5개 이상 같은 방향&#10;• 보통: |점수−50|≥6 이고 절반 이상 같은 방향&#10;• 낮음: 그 외(방향이 약하거나 팩터가 엇갈림)&#10;※ 상승'확률' 같은 수치가 아니라, 신호의 뚜렷함 정도입니다.">ⓘ</span></div>
     </div>
     <div class="panel">
       <div class="kospi-head">
@@ -405,7 +564,9 @@ function render(fc, hist, bt){
     <span class="k" style="margin-left:auto">각 팩터·신호는 0~100점(50=중립)</span>
   </div>
   <div class="factors">${fc.factors.map(factorCard).join('')}</div>
-  ${backtestSection(bt)}`;
+  ${weeklyChangeSection(fc)}
+  ${backtestSection(bt)}
+  ${validationSection(val)}`;
   $('content').innerHTML = html;
 
   const scorePts = hist.map(h=>({d:h.date, v:+h.score}));
@@ -413,6 +574,7 @@ function render(fc, hist, bt){
   sparkline($('sparkScore'), scorePts, {color:scoreColor(fc.score), fmt:v=>v.toFixed(1)+'점'});
   sparkline($('sparkKospi'), kospiPts, {color:'var(--accent)', fmt:v=>fmtNum(v,0)});
   if(bt && bt.equity) equityChart($('eqChart'), bt.equity);
+  if(val && val.score_vs_forward && val.score_vs_forward.scatter) scatterChart($('scatterChart'), val.score_vs_forward.scatter);
   if(fc.disclaimer) $('discBox').innerHTML = '<b>⚠️ '+escapeHTML(fc.disclaimer.split('.')[0])+'.</b> '+escapeHTML(fc.disclaimer.split('.').slice(1).join('.').trim());
 }
 
@@ -435,21 +597,23 @@ function renderError(msg){
 async function init(){
   $('statusText').textContent = '불러오는 중…';
   try{
-    const [fRes, hRes, bRes] = await Promise.all([
+    const [fRes, hRes, bRes, vRes] = await Promise.all([
       fetch(FORECAST_URL+'?t='+Date.now(), {cache:'no-store'}),
       fetch(HISTORY_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
       fetch(BACKTEST_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
+      fetch(VALIDATION_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
     ]);
     if(!fRes.ok) throw new Error('HTTP '+fRes.status);
     const fc = await fRes.json();
     let hist = [];
     if(hRes && hRes.ok){ try{ hist = parseCSV(await hRes.text()); }catch(e){} }
-    let bt = null;
+    let bt = null, val = null;
     if(bRes && bRes.ok){ try{ bt = await bRes.json(); }catch(e){} }
+    if(vRes && vRes.ok){ try{ val = await vRes.json(); }catch(e){} }
     $('dateBadge').style.display='';
     $('dateBadge').textContent = '📅 '+fc.as_of+' 기준';
     $('statusText').textContent = `종합 ${fc.score}점 · ${fc.bias}`;
-    render(fc, hist, bt);
+    render(fc, hist, bt, val);
   }catch(e){
     renderError(e.message || String(e));
   }

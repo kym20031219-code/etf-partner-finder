@@ -203,25 +203,79 @@ def save_forecast(result: dict) -> None:
     )
 
 
+# 히스토리 CSV 컬럼: 기본 + 6팩터 점수(주간 기여도 변화 계산용)
+FACTOR_ORDER = ["macro", "korea", "earnings", "flows", "valuation", "technical"]
+HISTORY_FIELDS = ["date", "kospi_close", "score", "bias"] + FACTOR_ORDER
+
+
+def _history_row(result: dict) -> dict:
+    fmap = {f["key"]: f["score"] for f in result["factors"]}
+    row = {"date": result["as_of"], "kospi_close": result["kospi_close"],
+           "score": result["score"], "bias": result["bias"]}
+    for k in FACTOR_ORDER:
+        row[k] = fmap.get(k, "")
+    return row
+
+
 def update_history(result: dict, keep: int = 400) -> None:
-    """(date, kospi_close, score, bias) 를 히스토리 CSV 에 upsert."""
+    """(date, 종가, 종합점수, 방향, 6팩터점수) 를 히스토리 CSV 에 upsert."""
     RESULTS_DIR.mkdir(exist_ok=True)
     rows: dict[str, dict] = {}
     if HISTORY_CSV.exists():
         with HISTORY_CSV.open(encoding="utf-8") as f:
             for r in csv.DictReader(f):
                 rows[r["date"]] = r
-    rows[result["as_of"]] = {
-        "date": result["as_of"],
-        "kospi_close": result["kospi_close"],
-        "score": result["score"],
-        "bias": result["bias"],
-    }
+    rows[result["as_of"]] = _history_row(result)
     ordered = [rows[k] for k in sorted(rows)][-keep:]
     with HISTORY_CSV.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["date", "kospi_close", "score", "bias"])
+        w = csv.DictWriter(f, fieldnames=HISTORY_FIELDS, extrasaction="ignore")
         w.writeheader()
-        w.writerows(ordered)
+        for r in ordered:
+            w.writerow({k: r.get(k, "") for k in HISTORY_FIELDS})
+
+
+def compute_weekly_change(result: dict, lookback: int = 5) -> dict | None:
+    """전주(약 lookback 거래일 전) 대비 **팩터별 기여분 변화**.
+
+    종합점수 = Σ(가중치 × 팩터점수) 이므로, 각 팩터의 기여분 = 가중치×점수.
+    히스토리에서 lookback 거래일 이전 행을 찾아 팩터별 기여분 델타를 계산한다.
+    (확률 표현 없이, 고정 가중치 계산식을 그대로 분해해 보여주는 수준)
+    """
+    if not HISTORY_CSV.exists():
+        return None
+    with HISTORY_CSV.open(encoding="utf-8") as f:
+        rows = [r for r in csv.DictReader(f) if r["date"] < result["as_of"]]
+    if not rows:
+        return None
+    rows.sort(key=lambda r: r["date"])
+    ref = rows[-lookback] if len(rows) >= lookback else rows[0]
+    changes = []
+    for fct in result["factors"]:
+        k, w = fct["key"], fct["weight"]
+        now = float(fct["score"])
+        try:
+            prev = float(ref.get(k, "") or "nan")
+        except ValueError:
+            prev = float("nan")
+        if prev != prev:  # 과거 팩터점수가 없으면(구버전 히스토리) 건너뜀
+            continue
+        changes.append({
+            "key": k, "label": fct["label"], "icon": fct["icon"],
+            "score_now": round(now, 1), "score_prev": round(prev, 1),
+            "contrib_delta": round(w * (now - prev), 2),
+        })
+    changes.sort(key=lambda c: abs(c["contrib_delta"]), reverse=True)
+    try:
+        prev_score = round(float(ref["score"]), 1)
+    except (KeyError, ValueError):
+        prev_score = None
+    return {
+        "ref_date": ref["date"],
+        "score_prev": prev_score,
+        "score_now": result["score"],
+        "score_delta": round(result["score"] - prev_score, 1) if prev_score is not None else None,
+        "factors": changes,
+    }
 
 
 def load_weights() -> tuple[ForecastWeights, bool]:
@@ -305,11 +359,15 @@ def main() -> int:
 
     result = compute_forecast(bundle, w)
     result["weights_optimized"] = optimized
-    save_forecast(result)
     update_history(result)
     if args.backfill > 0:
         n = backfill_history(bundle, args.backfill, w)
         print(f"[backfill] 과거 {n}일 점수 소급 기록")
+    # 전주 대비 팩터 기여도 변화(히스토리가 채워진 뒤 계산 → 첫 실행에도 반영)
+    wc = compute_weekly_change(result)
+    if wc:
+        result["weekly_change"] = wc
+    save_forecast(result)
 
     print(f"\n✅ {FORECAST_JSON} 저장")
     print(f"   기준일 {result['as_of']} · 코스피 {result['kospi_close']:,} "

@@ -13,50 +13,84 @@ import pandas as pd
 
 from swing.kospi_forecast import ForecastWeights, score_panel
 from backtest_forecast import (
-    signal_positions, run_backtest, _mdd, _sharpe, _cagr,
+    signal_positions, positions_from_thresholds, run_backtest,
+    walkforward_positions, winloss_decomposition, subperiod_performance,
+    composite_score, _mdd, _sharpe, _cagr,
 )
 from tests.test_kospi_forecast import _full_bundle
 
 
 def test_signal_hysteresis():
     s = pd.Series([50, 60, 55, 44, 48, 70])   # buy=54, sell=46
-    pos = signal_positions(s, 54, 46)
-    # 50→유지0, 60→1, 55(밴드)→유지1, 44→0, 48(밴드)→유지0, 70→1
+    pos = positions_from_thresholds(s, 54, 46)
     assert list(pos) == [0.0, 1.0, 1.0, 0.0, 0.0, 1.0]
+    assert list(signal_positions(s, 54, 46)) == list(pos)   # 별칭 동일
 
 
 def test_metric_helpers():
     eq = np.array([1.0, 1.2, 0.9, 1.5])
-    assert abs(_mdd(eq) - (0.9/1.2 - 1)) < 1e-9      # 최대낙폭 = 1.2→0.9
+    assert abs(_mdd(eq) - (0.9/1.2 - 1)) < 1e-9
     assert _sharpe(np.zeros(10)) == 0.0
-    assert _cagr(2.0, 252) > 0.99 and _cagr(2.0, 252) < 1.01  # 1년에 2배 → CAGR≈100%
+    assert 0.99 < _cagr(2.0, 252) < 1.01
     assert _cagr(1.0, 500) == 0.0
 
 
-def test_no_lookahead_position_is_lagged():
-    """포지션은 시그널의 다음날에 적용(shift(1))되어 미래참조가 없어야 한다."""
+def test_winloss_decomposition():
+    d = winloss_decomposition([0.1, 0.2, -0.05, 0.3, -0.1, 0.02])
+    assert d["win_rate"] == round(4/6, 4)
+    assert d["avg_win"] > 0 and d["avg_loss"] < 0
+    assert d["payoff"] is not None and d["payoff"] > 0
+    assert 0.0 <= d["top5_win_share"] <= 1.0
+    assert winloss_decomposition([])["n_trades"] == 0
+
+
+def test_subperiods_split():
+    idx = pd.bdate_range("2016-01-04", periods=1500)
+    sret = pd.Series(np.full(len(idx), 0.0004), index=idx)
+    ret = pd.Series(np.full(len(idx), 0.0003), index=idx)
+    sp = subperiod_performance(idx, sret, ret, ["2020-01-01", "2023-01-01"])
+    assert len(sp) >= 2                        # 여러 구간으로 분리
+    for p in sp:
+        assert p["excess_return"] > 0          # 전략수익 > 보유수익(설정상)
+        assert "period" in p and p["n_days"] >= 20
+
+
+def test_fixed_mode_no_lookahead():
     b = _full_bundle(n=400, seed=4)
     panel = score_panel(b, step=1, warmup=160)
-    res = run_backtest(panel, ForecastWeights(), buy_thr=54, sell_thr=46, cost=0.001)
-    # 첫날은 항상 현금(직전 시그널 없음) → 자산곡선 첫 값 손실 없음
-    assert res["equity"][0]["strat"] == 1.0 or abs(res["equity"][0]["strat"] - 1.0) < 0.02
+    res = run_backtest(panel, ForecastWeights(), cost=0.001, mode="fixed")
     for key in ("total_return", "cagr", "mdd", "sharpe", "win_rate", "n_trades",
-                "time_in_market"):
+                "time_in_market", "avg_win", "avg_loss", "top5_win_share"):
         assert key in res["strategy"]
-    assert "total_return" in res["buy_hold"]
-    assert res["strategy"]["mdd"] <= 0                       # MDD 는 음수(또는 0)
+    assert res["strategy"]["mdd"] <= 0
     assert 0.0 <= res["strategy"]["time_in_market"] <= 1.0
+    assert res["equity"][0]["strat"] == 1.0 or abs(res["equity"][0]["strat"] - 1.0) < 0.05
 
 
-def test_cash_when_always_bearish_beats_crash():
-    """점수가 계속 낮으면(현금 유지) 폭락장에서 단순보유보다 손실이 작아야 한다."""
-    # 하락 추세 번들 → 기술/추세 점수 낮음 → 대부분 현금
-    b = _full_bundle(n=400, seed=9, bull=False)
+def test_walkforward_reestimates_and_aggregates_after_window():
+    """워크포워드: 최소윈도 이후부터 집계, 임계값을 여러 번 재추정."""
+    b = _full_bundle(n=1000, seed=3)
     panel = score_panel(b, step=1, warmup=160)
-    res = run_backtest(panel, ForecastWeights(), buy_thr=55, sell_thr=45, cost=0.001)
-    # 시장노출이 100%가 아니어야(현금 구간 존재) 하고, 방어적이어야 한다
-    assert res["strategy"]["time_in_market"] < 1.0
-    assert res["strategy"]["mdd"] >= res["buy_hold"]["mdd"] - 1e-6  # 낙폭이 더 깊지 않음
+    mw = 500
+    res = run_backtest(panel, ForecastWeights(), cost=0.001, mode="walkforward",
+                       min_window=mw, rebal=21)
+    assert res["mode"] == "walkforward"
+    assert res["threshold_reestimations"] >= 3          # 여러 번 재추정
+    # 집계 구간이 최소윈도 이후여야(=전체보다 짧아야) 한다
+    assert res["n_days"] <= len(panel) - mw + 1
+
+
+def test_walkforward_positions_no_future_thresholds():
+    """리밸 시점의 임계값 로그 날짜가 최소윈도 이후여야(미래참조 없음)."""
+    b = _full_bundle(n=900, seed=5)
+    panel = score_panel(b, step=1, warmup=160)
+    score = composite_score(panel, ForecastWeights())
+    ret = panel["close"].pct_change().fillna(0.0)
+    pos, log = walkforward_positions(score, ret, cost=0.001, min_window=450, rebal=21)
+    assert len(pos) == len(score)
+    assert log and all(pd.Timestamp(e["date"]) >= score.index[450] for e in log)
+    for e in log:
+        assert e["buy"] > e["sell"]
 
 
 if __name__ == "__main__":

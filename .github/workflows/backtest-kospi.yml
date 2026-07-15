@@ -1,8 +1,8 @@
-name: 코스피 전망 백테스트
+name: 코스피 전망 백테스트·검증
 
-# 전망 점수(6팩터)로 매수/현금 시그널을 줬을 때의 과거 성과를 워크포워드로 검증한다.
-# 시점별 점수 재계산이 무거우므로 월 1회 + 수동 실행. 결과(results/kospi_backtest.json)
-# 는 kospi.html 대시보드가 자산곡선·지표로 표시한다.
+# 전망 점수(6팩터)의 과거 성과(진짜 워크포워드: 임계값 재추정)와 유효성(팩터 IC,
+# 점수-미래수익 라벨)을 검증한다. 시점별 점수 재계산이 무거우므로 월 1회 + 수동 실행.
+# 결과(results/kospi_backtest.json·kospi_validation.json)를 kospi.html 대시보드가 표시.
 # ⚠️ 예약(schedule)은 기본 브랜치(main)에 이 파일이 있어야 동작한다.
 on:
   schedule:
@@ -10,17 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       start:
-        description: "백테스트 시작일 (길수록 표본↑)"
+        description: "백테스트·검증 시작일 (길수록 표본↑)"
         required: false
         default: "2016-01-01"
-      buy_thr:
-        description: "매수 임계 점수"
-        required: false
-        default: "54"
-      sell_thr:
-        description: "매도(현금) 임계 점수"
-        required: false
-        default: "46"
 
 concurrency:
   group: backtest-kospi
@@ -43,27 +35,34 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 백테스트 실행 (실데이터, 6팩터)
+      - name: 백테스트 실행 (실데이터, 6팩터, 진짜 워크포워드)
         env:
-          # KRX 계정(있으면) → PER/PBR·수급 팩터 포함해 백테스트. 없으면 해당 팩터는 중립.
+          # KRX 계정(있으면) → PER/PBR·수급 팩터 포함. 없으면 해당 팩터는 중립.
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           python backtest_forecast.py \
+            --source real --mode walkforward \
+            --start "${{ github.event.inputs.start || '2016-01-01' }}"
+
+      - name: 유효성 검증 (팩터 IC + 점수-미래수익 라벨)
+        env:
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+        run: |
+          python validate_forecast.py \
             --source real \
-            --start "${{ github.event.inputs.start || '2016-01-01' }}" \
-            --buy-thr "${{ github.event.inputs.buy_thr || '54' }}" \
-            --sell-thr "${{ github.event.inputs.sell_thr || '46' }}"
+            --start "${{ github.event.inputs.start || '2016-01-01' }}"
 
       - name: 결과 커밋
         run: |
           git config user.email "noreply@anthropic.com"
           git config user.name "Claude"
-          if [ -z "$(git status --porcelain results/kospi_backtest.json)" ]; then
+          if [ -z "$(git status --porcelain results/kospi_backtest.json results/kospi_validation.json)" ]; then
             echo "변경 없음 — 커밋 생략"; exit 0
           fi
-          git add results/kospi_backtest.json
-          git commit -m "chore: 코스피 전망 백테스트 갱신 $(date -u +%Y-%m-%d) [skip ci]"
+          git add results/kospi_backtest.json results/kospi_validation.json
+          git commit -m "chore: 코스피 백테스트·검증 갱신 $(date -u +%Y-%m-%d) [skip ci]"
           pushed=0
           for i in 1 2 3 4 5; do
             if git push origin HEAD:main; then pushed=1; break; fi
