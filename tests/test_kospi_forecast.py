@@ -102,6 +102,31 @@ def test_missing_data_damps_factor_toward_neutral():
     assert 0 <= r["data_factors_available"] <= 6
 
 
+def test_zero_per_pbr_ignored():
+    """PER/PBR 에 0(미확정값)이 섞여도 '초저평가 강세'로 오인하지 않는다."""
+    n = 320
+    idx = pd.bdate_range(start="2023-01-02", periods=n)
+    # 10~12 범위에서 변동하는 PER/PBR, 마지막 행만 0 (당일 미집계)
+    per = 11.0 + np.sin(np.arange(n) / 10.0); per[-1] = 0.0
+    pbr = 1.0 + 0.1 * np.sin(np.arange(n) / 10.0); pbr[-1] = 0.0
+    b = MarketBundle(
+        kospi=_kospi(n=n), per=pd.Series(per, index=idx), pbr=pd.Series(pbr, index=idx),
+        us10y=pd.Series(np.full(n, 4.0), index=idx),
+    )
+    r = compute_forecast(b)
+    val = next(f for f in r["factors"] if f["key"] == "valuation")
+    per_sig = next(s for s in val["signals"] if s["name"].startswith("PER"))
+    # 0 이 아니라 직전 유효값(~11)이 쓰여야 한다(초저평가 0.0배로 오인 없음)
+    assert per_sig["available"] and per_sig["detail"].startswith("1")  # "11.x배 …"
+    assert "0.0배" not in per_sig["detail"]
+    earn = next(f for f in r["factors"] if f["key"] == "earnings")
+    dir_sig = next(s for s in earn["signals"] if "이익 방향" in s["name"])
+    assert "-100" not in dir_sig["detail"]        # 0 으로 인한 -100% 오인 없음
+    # ERP 도 0 나눗셈 없이 유효값으로 계산된다
+    erp_sig = next(s for s in val["signals"] if s["name"].startswith("ERP"))
+    assert erp_sig["available"]
+
+
 def test_full_data_no_damping():
     """모든 신호가 가용하면(avail=1) 축소가 없어 종합=팩터 가중합 그대로."""
     r = compute_forecast(_full_bundle())

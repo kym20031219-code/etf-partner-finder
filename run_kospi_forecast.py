@@ -91,9 +91,15 @@ def _pykrx_fundamental(start: str, end: str) -> tuple[pd.Series | None, pd.Serie
         if df is None or df.empty:
             return None, None
         df.index = pd.to_datetime(df.index)
-        per = df["PER"].dropna() if "PER" in df.columns else None
-        pbr = df["PBR"].dropna() if "PBR" in df.columns else None
-        return per, pbr
+        # 장중/미확정 행은 PER·PBR 이 0 으로 들어오는 경우가 있어(예: 당일 데이터 미집계)
+        # 양수만 유효값으로 취급한다. 0/음수는 버려 최근 '유효' 값이 마지막이 되게 한다.
+        def _positive(col: str) -> pd.Series | None:
+            if col not in df.columns:
+                return None
+            s = pd.to_numeric(df[col], errors="coerce")
+            s = s[s > 0].dropna()
+            return s if len(s) else None
+        return _positive("PER"), _positive("PBR")
     except Exception as e:  # noqa: BLE001
         print(f"  [pykrx] PER/PBR 실패: {e}", file=sys.stderr)
         return None, None
