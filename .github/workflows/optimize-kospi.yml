@@ -44,6 +44,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 가중치 최적화 (실데이터)
+        env:
+          # KRX 계정(있으면) → PER/PBR·수급 팩터 포함해 최적화. 없으면 해당 팩터는 중립.
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
           python optimize_kospi.py \
             --source real \

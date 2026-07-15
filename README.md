@@ -340,9 +340,14 @@ python run_kospi_forecast.py --source synthetic --backfill 120 --dry-run
 2. 저장소 **Settings → Actions** 에서 Actions 를 활성화(필요 시).
 3. (선택) **Settings → Secrets** 에 `TELEGRAM_TOKEN`·`TELEGRAM_CHAT_ID` 를 넣으면
    매일 전망 요약이 텔레그램으로도 옵니다.
-4. **Actions → 코스피 단기 전망 → Run workflow** 를 `backfill=120` 으로 한 번 실행 →
+4. (선택, **수급·밸류에이션 팩터 활성화**) **Settings → Secrets** 에 `KRX_ID`·`KRX_PW`
+   (무료 [KRX 데이터포털](http://data.krx.co.kr) 계정)를 넣으세요. 현재 `pykrx` 는 KRX
+   포털 **로그인(계정)** 이 있어야 지수 **PER/PBR** 과 **외국인·기관 투자자 수급**을
+   내려받습니다. 계정이 없으면 이 두 팩터는 자동으로 **미가용(중립)** 처리되고 나머지
+   (거시·한국경제·실적·기술) 4개 팩터는 실데이터로 정상 동작합니다.
+5. **Actions → 코스피 단기 전망 → Run workflow** 를 `backfill=120` 으로 한 번 실행 →
    실데이터로 최신 전망 + 최근 120일 점수 히스토리가 채워집니다.
-5. 이후 **평일 장마감(KST 15:40, UTC 06:40)마다 자동 실행**되어 `results/` 를 커밋하고
+6. 이후 **평일 장마감(KST 15:40, UTC 06:40)마다 자동 실행**되어 `results/` 를 커밋하고
    `kospi.html` 대시보드에 바로 반영됩니다.
 
 > 더 자주 보고 싶으면 `kospi-forecast.yml` 의 `cron` 에 장중 시간대를 한 줄 더 추가하면
