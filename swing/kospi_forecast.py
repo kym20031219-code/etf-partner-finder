@@ -229,7 +229,9 @@ def factor_earnings(b: MarketBundle) -> list[dict]:
         sigs.append(_sig("반도체 실적사이클", "데이터 없음", 50, available=False))
 
     # 코스피 이익 방향: 가격은 버티는데 PER 하락 → 이익(E) 개선(긍정)
+    # (PER 은 양수만 유효 — 0/음수 미확정값이 -100% 급락으로 오인되지 않게 거른다)
     per = pd.Series(b.per).dropna() if b.per is not None else pd.Series(dtype=float)
+    per = per[per > 0]
     if len(per) >= 40:
         dper = float(per.iloc[-1]) / float(per.iloc[-21]) - 1.0  # 20일 PER 변화
         price_up = _roc(b.kospi["Close"], 20)
@@ -287,8 +289,10 @@ def factor_flows(b: MarketBundle) -> list[dict]:
 def factor_valuation(b: MarketBundle) -> list[dict]:
     sigs: list[dict] = []
 
-    # PER 백분위(3년): 낮을수록 저평가(긍정) → 반전
+    # PER 백분위(3년): 낮을수록 저평가(긍정) → 반전.
+    # PER·PBR 은 반드시 양수여야 유효(0/음수는 미확정·결측값이므로 버린다).
     per = pd.Series(b.per).dropna() if b.per is not None else pd.Series(dtype=float)
+    per = per[per > 0]
     if len(per) >= 60:
         rank = _pct_rank(per.tail(750), float(per.iloc[-1]))
         sigs.append(_sig("PER 백분위(3년)", f"{float(per.iloc[-1]):.1f}배 · 상위 {rank:.0f}%ile",
@@ -298,6 +302,7 @@ def factor_valuation(b: MarketBundle) -> list[dict]:
 
     # PBR 백분위(3년): 낮을수록 저평가(긍정) → 반전
     pbr = pd.Series(b.pbr).dropna() if b.pbr is not None else pd.Series(dtype=float)
+    pbr = pbr[pbr > 0]
     if len(pbr) >= 60:
         rank = _pct_rank(pbr.tail(750), float(pbr.iloc[-1]))
         sigs.append(_sig("PBR 백분위(3년)", f"{float(pbr.iloc[-1]):.2f}배 · 상위 {rank:.0f}%ile",
@@ -306,7 +311,7 @@ def factor_valuation(b: MarketBundle) -> list[dict]:
         sigs.append(_sig("PBR 백분위(3년)", "데이터 없음", 50, available=False))
 
     # ERP(주식위험프리미엄) = 이익수익률(1/PER) - 미10년물 금리. 높을수록 매력(긍정)
-    per_last = _last(b.per)
+    per_last = float(per.iloc[-1]) if len(per) else float("nan")
     y = _last(b.us10y)
     if per_last == per_last and per_last > 0 and y == y:
         erp = (1.0 / per_last) * 100.0 - y  # %p
