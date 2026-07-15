@@ -484,15 +484,25 @@ def compute_forecast(b: MarketBundle, w: ForecastWeights | None = None) -> dict:
 
     factors: list[dict] = []
     factor_scores: dict[str, float] = {}
+    avail_factors = 0
     for key, fn in _FACTOR_FNS.items():
         sigs = fn(b)
-        fscore = _factor_score(sigs)
+        n_total = len(sigs)
+        n_avail = sum(1 for s in sigs if s["available"])
+        raw = _factor_score(sigs)
+        # 결측 비례 축소: 신호가 일부만 있으면 그만큼만 확신을 주고 중립(50)으로 당긴다.
+        # (전체 신호가 있으면 avail=1 → 변화 없음. 프록시 하나로 과한 방향성 주장 방지)
+        avail = n_avail / n_total if n_total else 0.0
+        fscore = 50.0 + (raw - 50.0) * avail
+        if n_avail:
+            avail_factors += 1
         factor_scores[key] = fscore
         label, icon, desc = FACTOR_META[key]
         factors.append({
             "key": key, "label": label, "icon": icon, "desc": desc,
             "weight": round(w[key], 3), "score": round(fscore, 1),
             "bias": bias_label(fscore), "signals": sigs,
+            "available_signals": n_avail, "total_signals": n_total,
         })
 
     composite = float(sum(factor_scores[k] * w[k] for k in factor_scores))
@@ -512,6 +522,8 @@ def compute_forecast(b: MarketBundle, w: ForecastWeights | None = None) -> dict:
         "bias": bias,
         "confidence": conf,
         "outlook": _outlook_text(composite, bias, factor_scores),
+        "data_factors_available": avail_factors,
+        "data_factors_total": len(factors),
         "factors": factors,
         "disclaimer": (
             "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 "

@@ -84,6 +84,33 @@ def test_forecast_minimal_bundle_neutral():
     assert val["score"] == 50.0
 
 
+def test_missing_data_damps_factor_toward_neutral():
+    """일부 신호만 있는 팩터는 가용 비율만큼만 방향성을 갖고 중립으로 축소된다."""
+    # 코스피만 있는 최소 번들: 실적 팩터는 '지수 120일 추세' 1개만 가용(1/3)
+    b = MarketBundle(kospi=_kospi(n=300, drift=0.004))  # 강한 상승 → 추세 신호 만점 근처
+    r = compute_forecast(b)
+    earn = next(f for f in r["factors"] if f["key"] == "earnings")
+    assert earn["available_signals"] == 1 and earn["total_signals"] == 3
+    # 원 신호는 100 근처지만 1/3 가용이라 대략 50+(raw-50)/3 로 축소 → 70 미만
+    assert earn["score"] < 72
+    assert earn["score"] > 50            # 그래도 상방 신호는 남는다
+    # 전부 미가용 팩터는 정확히 50
+    macro = next(f for f in r["factors"] if f["key"] == "macro")
+    assert macro["available_signals"] == 0 and macro["score"] == 50.0
+    # 상위 요약 필드
+    assert r["data_factors_total"] == 6
+    assert 0 <= r["data_factors_available"] <= 6
+
+
+def test_full_data_no_damping():
+    """모든 신호가 가용하면(avail=1) 축소가 없어 종합=팩터 가중합 그대로."""
+    r = compute_forecast(_full_bundle())
+    for f in r["factors"]:
+        assert f["available_signals"] == f["total_signals"]
+    manual = sum(f["score"] * f["weight"] for f in r["factors"])
+    assert abs(manual - r["score"]) < 0.15
+
+
 def test_scores_and_weights_in_range():
     b = _full_bundle()
     w = ForecastWeights()

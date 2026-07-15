@@ -69,6 +69,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 .fcard-icon{font-size:20px}
 .fcard-name{font-size:15px;font-weight:800}
 .fcard-w{margin-left:auto;font-size:10.5px;color:var(--sub);font-weight:700;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:2px 7px}
+.fcard-avail{margin-left:8px;font-size:10px;font-weight:800;background:transparent;border:1px solid currentColor;border-radius:6px;padding:2px 7px;opacity:.85}
+.data-note{max-width:1040px;margin:10px auto 0;padding:0 20px}
+.data-note .inner{background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.2);border-radius:9px;padding:9px 13px;font-size:11.5px;line-height:1.55;color:var(--sub)}
+.data-note b{color:var(--gold)}
 .fcard-desc{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:12px}
 .fscore-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .fscore-num{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;min-width:52px}
@@ -197,6 +201,13 @@ function gaugeSVG(score){
 
 function factorCard(f){
   const bar = `<div class="fbar"><span style="width:${f.score}%;background:${scoreColor(f.score)}"></span></div>`;
+  const nAvail = f.available_signals, nTot = f.total_signals;
+  let availChip = '';
+  if(nTot != null){
+    const full = nAvail === nTot, none = nAvail === 0;
+    const col = none ? 'var(--red)' : (full ? 'var(--green)' : 'var(--gold)');
+    availChip = `<span class="fcard-avail" title="이 팩터에 실제로 반영된 실데이터 신호 수" style="color:${col};border-color:${col}">실데이터 ${nAvail}/${nTot}</span>`;
+  }
   const sigs = f.signals.map(s=>{
     const na = s.available ? '' : ' na';
     const fill = s.available
@@ -214,6 +225,7 @@ function factorCard(f){
     <div class="fcard-top">
       <span class="fcard-icon">${f.icon}</span>
       <span class="fcard-name">${escapeHTML(f.label)}</span>
+      ${availChip}
       <span class="fcard-w">비중 ${(f.weight*100).toFixed(0)}%</span>
     </div>
     <div class="fcard-desc">${escapeHTML(f.desc)}</div>
@@ -294,6 +306,12 @@ function render(fc, hist){
     </div>
   </div>
 
+  ${(fc.data_factors_available != null && fc.data_factors_available < fc.data_factors_total) ? `
+  <div class="data-note"><div class="inner">
+    <b>ℹ️ 일부 데이터 소스 미연결</b> — 현재 <b>${fc.data_factors_available}/${fc.data_factors_total}</b> 팩터만 실데이터가 반영됐습니다.
+    이 실행 환경에서 접근이 차단된 소스(예: 해외지수·환율·PER/PBR·투자자 수급)에 기반한 팩터는 <b>중립(미가용)</b>으로 처리되고,
+    가용 신호 비율만큼만 방향성에 반영됩니다. 모든 소스가 열린 곳(예: GitHub Actions 자동 실행)에서 갱신되면 6팩터 전부 실데이터로 채워집니다.
+  </div></div>` : ''}
   <div class="sec-title">6팩터 세부 진단</div>
   <div class="legend">
     <span class="k"><span class="sw" style="background:var(--red)"></span>약세(0~43)</span>
