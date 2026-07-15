@@ -1,12 +1,12 @@
 {
   "as_of": "2026-07-15",
-  "kospi_close": 7232.29,
-  "kospi_change_pct": 5.48,
-  "score": 48.4,
+  "kospi_close": 7413.26,
+  "kospi_change_pct": 8.11,
+  "score": 53.1,
   "bias": "중립",
   "confidence": "낮음",
-  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적. 역풍: 기술적, 한국경제.",
-  "data_factors_available": 3,
+  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적, 거시. 역풍: 기술적, 한국경제.",
+  "data_factors_available": 4,
   "data_factors_total": 6,
   "factors": [
     {
@@ -15,35 +15,35 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.2,
-      "score": 50.0,
-      "bias": "중립",
+      "score": 61.3,
+      "bias": "중립-강세",
       "signals": [
         {
           "name": "미 S&P500 추세",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "50일선 대비 +1.0%",
+          "score": 60.0,
+          "available": true
         },
         {
           "name": "VIX(변동성)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "17.2",
+          "score": 78.1,
+          "available": true
         },
         {
           "name": "미 10년 국채금리",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "4.61% (+3% / 20일)",
+          "score": 33.6,
+          "available": true
         },
         {
           "name": "달러/원 환율",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "1,490 (-1.4% / 20일)",
+          "score": 73.6,
+          "available": true
         }
       ],
-      "available_signals": 0,
+      "available_signals": 4,
       "total_signals": 4
     },
     {
@@ -52,35 +52,35 @@
       "icon": "🇰🇷",
       "desc": "원화·중국 경기·코스닥·반도체 상대강도",
       "weight": 0.15,
-      "score": 42.8,
+      "score": 39.3,
       "bias": "중립-약세",
       "signals": [
         {
           "name": "원화 강도(1년 범위)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "환율 상위 76%ile",
+          "score": 24.0,
+          "available": true
         },
         {
           "name": "중국 증시 모멘텀",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "-2.9% / 20일",
+          "score": 25.7,
+          "available": true
         },
         {
           "name": "코스닥 상대강도",
-          "detail": "코스피 대비 -2.3%p",
-          "score": 21.1,
+          "detail": "코스피 대비 -3.4%p",
+          "score": 7.6,
           "available": true
         },
         {
           "name": "반도체 상대강도",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "코스피 대비 +50.3%p / 60일",
+          "score": 100.0,
+          "available": true
         }
       ],
-      "available_signals": 1,
+      "available_signals": 4,
       "total_signals": 4
     },
     {
@@ -89,14 +89,14 @@
       "icon": "🏭",
       "desc": "반도체 실적사이클 프록시 + 코스피 PER 방향",
       "weight": 0.15,
-      "score": 66.7,
+      "score": 83.3,
       "bias": "강세",
       "signals": [
         {
           "name": "반도체 실적사이클",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "대표주 +69.4% / 60일 (기대 선반영)",
+          "score": 100.0,
+          "available": true
         },
         {
           "name": "코스피 이익 방향",
@@ -106,12 +106,12 @@
         },
         {
           "name": "지수 중기추세(120일)",
-          "detail": "+49.4%",
+          "detail": "+53.1%",
           "score": 100.0,
           "available": true
         }
       ],
-      "available_signals": 1,
+      "available_signals": 2,
       "total_signals": 3
     },
     {
@@ -182,7 +182,7 @@
       "icon": "📈",
       "desc": "추세·RSI·MACD·모멘텀·거래량·52주 위치",
       "weight": 0.2,
-      "score": 35.1,
+      "score": 37.0,
       "bias": "중립-약세",
       "signals": [
         {
@@ -193,14 +193,14 @@
         },
         {
           "name": "60일선 이격",
-          "detail": "-6.5%",
-          "score": 0.0,
+          "detail": "-4.2%",
+          "score": 8.4,
           "available": true
         },
         {
           "name": "RSI(14)",
-          "detail": "42",
-          "score": 31.1,
+          "detail": "45",
+          "score": 37.3,
           "available": true
         },
         {
@@ -211,20 +211,20 @@
         },
         {
           "name": "20일 모멘텀",
-          "detail": "-18.4%",
+          "detail": "-16.4%",
           "score": 0.0,
           "available": true
         },
         {
           "name": "거래량 추세",
-          "detail": "5일/60일 0.71배",
-          "score": 79.4,
+          "detail": "5일/60일 0.75배",
+          "score": 75.0,
           "available": true
         },
         {
           "name": "52주 범위 위치",
-          "detail": "69%ile",
-          "score": 68.6,
+          "detail": "72%ile",
+          "score": 71.6,
           "available": true
         }
       ],
@@ -234,5 +234,5 @@
   ],
   "disclaimer": "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 매매 권유가 아닙니다. 전망은 확률적 판단으로 언제든 빗나갈 수 있고, 본 시스템에는 어떤 자동 매수/매도 기능도 없습니다. 투자 판단과 책임은 전적으로 본인에게 있습니다.",
   "weights_optimized": false,
-  "generated_at": "2026-07-15T04:35:35"
+  "generated_at": "2026-07-15T05:36:41"
 }
