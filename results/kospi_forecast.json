@@ -2,11 +2,11 @@
   "as_of": "2026-07-15",
   "kospi_close": 7289.16,
   "kospi_change_pct": 6.31,
-  "score": 50.9,
+  "score": 51.2,
   "bias": "중립",
   "confidence": "낮음",
-  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적, 거시. 역풍: 밸류에이션, 기술적.",
-  "data_factors_available": 6,
+  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적, 거시. 역풍: 기술적, 수급.",
+  "data_factors_available": 5,
   "data_factors_total": 6,
   "factors": [
     {
@@ -15,7 +15,7 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.2,
-      "score": 61.5,
+      "score": 60.5,
       "bias": "중립-강세",
       "signals": [
         {
@@ -38,8 +38,8 @@
         },
         {
           "name": "달러/원 환율",
-          "detail": "1,489 (-1.5% / 20일)",
-          "score": 74.5,
+          "detail": "1,492 (-1.2% / 20일)",
+          "score": 70.5,
           "available": true
         }
       ],
@@ -52,13 +52,13 @@
       "icon": "🇰🇷",
       "desc": "원화·중국 경기·코스닥·반도체 상대강도",
       "weight": 0.15,
-      "score": 44.1,
+      "score": 43.8,
       "bias": "중립",
       "signals": [
         {
           "name": "원화 강도(1년 범위)",
-          "detail": "환율 상위 76%ile",
-          "score": 24.4,
+          "detail": "환율 상위 77%ile",
+          "score": 22.8,
           "available": true
         },
         {
@@ -70,7 +70,7 @@
         {
           "name": "코스닥 상대강도",
           "detail": "코스피 대비 -1.9%p",
-          "score": 26.4,
+          "score": 26.8,
           "available": true
         },
         {
@@ -89,7 +89,7 @@
       "icon": "🏭",
       "desc": "반도체 실적사이클 프록시 + 코스피 PER 방향",
       "weight": 0.15,
-      "score": 100.0,
+      "score": 83.3,
       "bias": "강세",
       "signals": [
         {
@@ -100,9 +100,9 @@
         },
         {
           "name": "코스피 이익 방향",
-          "detail": "PER -21.4% / 20일",
-          "score": 100.0,
-          "available": true
+          "detail": "데이터 없음",
+          "score": 50.0,
+          "available": false
         },
         {
           "name": "지수 중기추세(120일)",
@@ -111,7 +111,7 @@
           "available": true
         }
       ],
-      "available_signals": 3,
+      "available_signals": 2,
       "total_signals": 3
     },
     {
@@ -120,25 +120,25 @@
       "icon": "💰",
       "desc": "외국인·기관 순매수 방향과 강도",
       "weight": 0.2,
-      "score": 40.6,
+      "score": 40.7,
       "bias": "중립-약세",
       "signals": [
         {
           "name": "외국인 순매수(20일)",
-          "detail": "20일 누적 -379,874억",
-          "score": 10.3,
+          "detail": "20일 누적 -379,178억",
+          "score": 10.5,
           "available": true
         },
         {
           "name": "기관 순매수(20일)",
-          "detail": "20일 누적 +45,067억",
-          "score": 55.8,
+          "detail": "20일 누적 +45,366억",
+          "score": 55.9,
           "available": true
         },
         {
           "name": "외국인 단기(5일)",
-          "detail": "+13,310억",
-          "score": 55.6,
+          "detail": "+14,006억",
+          "score": 55.8,
           "available": true
         }
       ],
@@ -151,29 +151,29 @@
       "icon": "⚖️",
       "desc": "PER·PBR 역사적 백분위와 ERP",
       "weight": 0.1,
-      "score": 19.9,
-      "bias": "약세",
+      "score": 50.0,
+      "bias": "중립",
       "signals": [
         {
           "name": "PER 백분위(3년)",
-          "detail": "18.6배 · 상위 61%ile",
-          "score": 39.3,
-          "available": true
+          "detail": "데이터 없음",
+          "score": 50.0,
+          "available": false
         },
         {
           "name": "PBR 백분위(3년)",
-          "detail": "1.95배 · 상위 92%ile",
-          "score": 8.0,
-          "available": true
+          "detail": "데이터 없음",
+          "score": 50.0,
+          "available": false
         },
         {
           "name": "ERP(위험프리미엄)",
-          "detail": "+0.8%p (이익수익률−금리)",
-          "score": 12.5,
-          "available": true
+          "detail": "데이터 없음",
+          "score": 50.0,
+          "available": false
         }
       ],
-      "available_signals": 3,
+      "available_signals": 0,
       "total_signals": 3
     },
     {
@@ -234,5 +234,5 @@
   ],
   "disclaimer": "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 매매 권유가 아닙니다. 전망은 확률적 판단으로 언제든 빗나갈 수 있고, 본 시스템에는 어떤 자동 매수/매도 기능도 없습니다. 투자 판단과 책임은 전적으로 본인에게 있습니다.",
   "weights_optimized": false,
-  "generated_at": "2026-07-15T06:58:40"
+  "generated_at": "2026-07-15T09:02:08"
 }
