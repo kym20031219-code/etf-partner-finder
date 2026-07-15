@@ -1,0 +1,71 @@
+name: 코스피 전망 가중치 최적화
+
+# 6팩터 가중치를 '단기 미래수익 예측력(IC)' 기준으로 캘리브레이션한다.
+# 무겁고 자주 바뀔 필요가 없으므로 월 1회 + 수동 실행. 결과(results/kospi_weights_best.json)
+# 는 이후 매일 전망(kospi-forecast.yml)이 자동으로 사용한다.
+# ⚠️ 예약(schedule) 실행은 기본 브랜치(main)에 이 파일이 있어야 동작한다.
+on:
+  schedule:
+    - cron: "30 18 1 * *"   # 매월 1일 UTC 18:30
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "학습 시작일 (길수록 표본↑·신뢰도↑)"
+        required: false
+        default: "2016-01-01"
+      horizon:
+        description: "목표 예측기간(거래일). 단기~3개월이면 60 근처"
+        required: false
+        default: "60"
+      samples:
+        description: "가중치 후보 표본 수"
+        required: false
+        default: "4000"
+
+concurrency:
+  group: optimize-kospi
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 가중치 최적화 (실데이터)
+        run: |
+          python optimize_kospi.py \
+            --source real \
+            --start "${{ github.event.inputs.start || '2016-01-01' }}" \
+            --horizon "${{ github.event.inputs.horizon || '60' }}" \
+            --samples "${{ github.event.inputs.samples || '4000' }}"
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -z "$(git status --porcelain results/kospi_weights_best.json)" ]; then
+            echo "변경 없음 — 커밋 생략"; exit 0
+          fi
+          git add results/kospi_weights_best.json
+          git commit -m "chore: 코스피 전망 가중치 재최적화 $(date -u +%Y-%m-%d) [skip ci]"
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then pushed=1; break; fi
+            echo "push 거부 — 재시도 ($i)"
+            git fetch origin main || true
+            git rebase origin/main || git rebase --abort || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          if [ "$pushed" != "1" ]; then echo "::error::5회 재시도 후에도 push 실패"; exit 1; fi

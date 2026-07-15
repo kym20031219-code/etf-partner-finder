@@ -1,0 +1,65 @@
+name: 코스피 단기 전망 (장마감 후)
+
+# 평일 한국시간 15:40 (KRX 장마감 15:30 직후) = UTC 06:40 에 하루 1회 실행.
+# results/kospi_forecast.json + kospi_history.csv 를 갱신해 kospi.html 대시보드에 반영.
+# ⚠️ 예약(schedule) 실행은 '기본 브랜치(main)'에 이 파일이 있어야만 동작합니다.
+#    브랜치에서 테스트할 때는 workflow_dispatch(수동 실행)를 사용하세요.
+on:
+  schedule:
+    - cron: "40 6 * * 1-5"   # UTC 06:40 = KST 15:40, 평일
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: "최근 N 거래일 점수 소급 계산(첫 실행 시 히스토리 채우기, 0=끔)"
+        required: false
+        default: "0"
+
+concurrency:
+  group: kospi-forecast
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # results/ 결과물을 커밋하기 위해
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 전망 점수 계산 + JSON/CSV 저장 (+ 텔레그램 요약)
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python run_kospi_forecast.py \
+            --start 2022-01-01 \
+            --backfill "${{ github.event.inputs.backfill || '0' }}"
+
+      - name: 결과(results/) 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -z "$(git status --porcelain results/)" ]; then
+            echo "변경 없음 — 커밋 생략"; exit 0
+          fi
+          git add results/kospi_forecast.json results/kospi_history.csv
+          git commit -m "chore: 코스피 전망 갱신 $(date -u +%Y-%m-%d) [skip ci]"
+          # 다른 워크플로우와 동시 push 충돌 방지: rebase 후 재시도
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then pushed=1; break; fi
+            echo "push 거부 — 원격 반영 후 재시도 ($i)"
+            git fetch origin main || true
+            git rebase origin/main || git rebase --abort || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          if [ "$pushed" != "1" ]; then echo "::error::5회 재시도 후에도 push 실패"; exit 1; fi
