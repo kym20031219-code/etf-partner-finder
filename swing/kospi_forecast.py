@@ -428,6 +428,28 @@ def composite_from(scores: dict[str, float], w: ForecastWeights | None = None) -
     return float(sum(scores.get(k, 50.0) * wd[k] for k in wd))
 
 
+FACTOR_KEYS = list(_FACTOR_FNS)
+
+
+def score_panel(b: MarketBundle, min_obs: int = 150, step: int = 1,
+                warmup: int = 150) -> pd.DataFrame:
+    """각 날짜의 6팩터 점수 + 종가 패널(미래참조 없음). 최적화·백테스트 공용.
+
+    step>1 이면 날짜를 건너뛰며 계산(속도↑). 각 시점 t 의 점수는 t 까지의 데이터만
+    사용(slice_bundle)하므로 미래참조가 없다.
+    """
+    idx = b.kospi.index
+    close = b.kospi["Close"]
+    rows = []
+    for i in range(warmup, len(idx), step):
+        d = idx[i]
+        sub = slice_bundle(b, d)
+        if len(sub.kospi) < min_obs:
+            continue
+        rows.append({"date": d, "close": float(close.iloc[i]), **factor_scores(sub)})
+    return pd.DataFrame(rows).set_index("date") if rows else pd.DataFrame()
+
+
 # ---------------------------------------------------------------------------
 # 방향/신뢰도 매핑
 # ---------------------------------------------------------------------------

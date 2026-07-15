@@ -73,6 +73,23 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 .data-note{max-width:1040px;margin:10px auto 0;padding:0 20px}
 .data-note .inner{background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.2);border-radius:9px;padding:9px 13px;font-size:11.5px;line-height:1.55;color:var(--sub)}
 .data-note b{color:var(--gold)}
+
+/* BACKTEST */
+.bt-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.bt-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.bt-head h3{font-size:15px;font-weight:800}
+.bt-head .rng{font-size:11.5px;color:var(--sub);font-weight:600}
+.bt-desc{font-size:11.5px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+.bt-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:680px){.bt-tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+.tile .t-lbl{font-size:10.5px;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.tile .t-val{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:5px}
+.tile .t-sub{font-size:10.5px;color:var(--sub);font-variant-numeric:tabular-nums;margin-top:2px}
+.bt-legend{display:flex;gap:16px;align-items:center;margin:0 0 6px;font-size:11.5px;font-weight:600}
+.bt-legend .k{display:inline-flex;align-items:center;gap:6px;color:var(--sub)}
+.bt-legend .ln{width:16px;height:3px;border-radius:2px}
+.eq-chart{width:100%;height:200px;display:block;overflow:visible}
 .fcard-desc{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:12px}
 .fscore-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .fscore-num{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;min-width:52px}
@@ -147,6 +164,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic
 <script>
 const FORECAST_URL = 'results/kospi_forecast.json';
 const HISTORY_URL  = 'results/kospi_history.csv';
+const BACKTEST_URL = 'results/kospi_backtest.json';
 const $ = (id) => document.getElementById(id);
 
 function escapeHTML(s){
@@ -274,7 +292,73 @@ function sparkline(el, pts, {color, fmt}){
   el.onmouseleave = ()=>{cross.style.opacity=0;dot.style.opacity=0;$('tt').style.opacity=0;};
 }
 
-function render(fc, hist){
+/* ---- 자산곡선 (전략 vs 단순보유, 2계열 단일축 라인 + 호버) ---- */
+function equityChart(el, curve){
+  if(!curve || curve.length < 2){ el.innerHTML=''; return; }
+  const W=el.clientWidth||600, H=200, padL=6, padR=6, padT=10, padB=18;
+  const all = curve.flatMap(p=>[p.strat, p.bh]);
+  const ymin=Math.min(...all), ymax=Math.max(...all), yr=(ymax-ymin)||1;
+  const X = i => padL + i/(curve.length-1)*(W-padL-padR);
+  const Y = v => H-padB - (v-ymin)/yr*(H-padT-padB);
+  const line = (key) => curve.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(p[key]).toFixed(1)}`).join(' ');
+  const gStrat='var(--green)', gBH='var(--sub)';
+  // 기준선(자산=1.0)
+  const y1 = Y(1.0);
+  el.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  el.innerHTML = `
+    ${(1.0>=ymin&&1.0<=ymax)?`<line x1="${padL}" x2="${W-padR}" y1="${y1}" y2="${y1}" stroke="var(--border2)" stroke-dasharray="3 3" stroke-width="1"/>`:''}
+    <path d="${line('bh')}" fill="none" stroke="${gBH}" stroke-width="2" stroke-linejoin="round" opacity=".8"/>
+    <path d="${line('strat')}" fill="none" stroke="${gStrat}" stroke-width="2.4" stroke-linejoin="round"/>
+    <line class="cross" x1="0" x2="0" y1="${padT}" y2="${H-padB}" stroke="var(--border2)" stroke-width="1" style="opacity:0"/>
+    <circle class="ds" r="4" fill="${gStrat}" stroke="var(--bg)" stroke-width="1.5" style="opacity:0"/>
+    <circle class="db" r="4" fill="${gBH}" stroke="var(--bg)" stroke-width="1.5" style="opacity:0"/>`;
+  const cross=el.querySelector('.cross'), ds=el.querySelector('.ds'), db=el.querySelector('.db'), tt=$('tt');
+  el.onmousemove=(e)=>{
+    const rect=el.getBoundingClientRect();
+    let i=Math.round(((e.clientX-rect.left)/rect.width*W - padL)/((W-padL-padR))*(curve.length-1));
+    i=Math.max(0,Math.min(curve.length-1,i));
+    const px=X(i);
+    cross.setAttribute('x1',px);cross.setAttribute('x2',px);cross.style.opacity=1;
+    ds.setAttribute('cx',px);ds.setAttribute('cy',Y(curve[i].strat));ds.style.opacity=1;
+    db.setAttribute('cx',px);db.setAttribute('cy',Y(curve[i].bh));db.style.opacity=1;
+    const pct=v=>((v-1)*100>=0?'+':'')+((v-1)*100).toFixed(1)+'%';
+    tt.innerHTML=`${escapeHTML(curve[i].d)}<br>전략 <b style="color:var(--green)">${pct(curve[i].strat)}</b> · 보유 <b>${pct(curve[i].bh)}</b>`;
+    tt.style.opacity=1;tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY-42)+'px';
+  };
+  el.onmouseleave=()=>{cross.style.opacity=0;ds.style.opacity=0;db.style.opacity=0;$('tt').style.opacity=0;};
+}
+
+function pctSigned(x){ return (x>=0?'+':'')+(x*100).toFixed(1)+'%'; }
+
+function backtestSection(bt){
+  if(!bt || !bt.strategy) return '';
+  const s=bt.strategy, h=bt.buy_hold, x=bt.excess;
+  const exCol = x.total_return>=0 ? 'var(--green)' : 'var(--red)';
+  const wr = s.win_rate!=null ? (s.win_rate*100).toFixed(0)+'%' : '–';
+  const tiles = [
+    {lbl:'전략 총수익', val:pctSigned(s.total_return), sub:`연 ${pctSigned(s.cagr)}`, col:s.total_return>=0?'var(--green)':'var(--red)'},
+    {lbl:'단순보유 대비', val:pctSigned(x.total_return)+'p', sub:`CAGR ${pctSigned(x.cagr)}p`, col:exCol},
+    {lbl:'최대낙폭(MDD)', val:(s.mdd*100).toFixed(1)+'%', sub:`보유 ${(h.mdd*100).toFixed(1)}%`, col:'var(--text)'},
+    {lbl:'승률', val:wr, sub:`${s.n_trades}회 매매`, col:'var(--text)'},
+    {lbl:'샤프비율', val:s.sharpe.toFixed(2), sub:`보유 ${h.sharpe.toFixed(2)}`, col:'var(--text)'},
+  ].map(t=>`<div class="tile"><div class="t-lbl">${t.lbl}</div><div class="t-val" style="color:${t.col}">${t.val}</div><div class="t-sub">${t.sub}</div></div>`).join('');
+  return `
+  <div class="sec-title">전망 점수 백테스트 (워크포워드 · 미래참조 없음)</div>
+  <div class="bt-wrap">
+    <div class="bt-head"><h3>매수/매도 시그널 vs 단순보유</h3>
+      <span class="rng">${escapeHTML(bt.date_range[0])} ~ ${escapeHTML(bt.date_range[1])} · ${bt.n_days}거래일</span></div>
+    <div class="bt-desc">종합점수 ≥ ${bt.params.buy_thr} 매수 · ≤ ${bt.params.sell_thr} 현금(매도), 다음날 체결·비용 ${(bt.params.cost*100).toFixed(1)}%/회.
+      가중치는 기본값(prior)으로 인샘플 튜닝을 배제했습니다. 시장노출 ${(s.time_in_market*100).toFixed(0)}%.</div>
+    <div class="bt-tiles">${tiles}</div>
+    <div class="bt-legend">
+      <span class="k"><span class="ln" style="background:var(--green)"></span>전망점수 전략</span>
+      <span class="k"><span class="ln" style="background:var(--sub)"></span>단순보유(Buy&amp;Hold)</span>
+    </div>
+    <svg class="eq-chart" id="eqChart"></svg>
+  </div>`;
+}
+
+function render(fc, hist, bt){
   const chgColor = fc.kospi_change_pct >= 0 ? 'var(--green)' : 'var(--red)';
   const html = `
   <div class="hero">
@@ -319,13 +403,15 @@ function render(fc, hist){
     <span class="k"><span class="sw" style="background:var(--green)"></span>강세(57~100)</span>
     <span class="k" style="margin-left:auto">각 팩터·신호는 0~100점(50=중립)</span>
   </div>
-  <div class="factors">${fc.factors.map(factorCard).join('')}</div>`;
+  <div class="factors">${fc.factors.map(factorCard).join('')}</div>
+  ${backtestSection(bt)}`;
   $('content').innerHTML = html;
 
   const scorePts = hist.map(h=>({d:h.date, v:+h.score}));
   const kospiPts = hist.map(h=>({d:h.date, v:+h.kospi_close}));
   sparkline($('sparkScore'), scorePts, {color:scoreColor(fc.score), fmt:v=>v.toFixed(1)+'점'});
   sparkline($('sparkKospi'), kospiPts, {color:'var(--accent)', fmt:v=>fmtNum(v,0)});
+  if(bt && bt.equity) equityChart($('eqChart'), bt.equity);
   if(fc.disclaimer) $('discBox').innerHTML = '<b>⚠️ '+escapeHTML(fc.disclaimer.split('.')[0])+'.</b> '+escapeHTML(fc.disclaimer.split('.').slice(1).join('.').trim());
 }
 
@@ -348,18 +434,21 @@ function renderError(msg){
 async function init(){
   $('statusText').textContent = '불러오는 중…';
   try{
-    const [fRes, hRes] = await Promise.all([
+    const [fRes, hRes, bRes] = await Promise.all([
       fetch(FORECAST_URL+'?t='+Date.now(), {cache:'no-store'}),
       fetch(HISTORY_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
+      fetch(BACKTEST_URL+'?t='+Date.now(), {cache:'no-store'}).catch(()=>null),
     ]);
     if(!fRes.ok) throw new Error('HTTP '+fRes.status);
     const fc = await fRes.json();
     let hist = [];
     if(hRes && hRes.ok){ try{ hist = parseCSV(await hRes.text()); }catch(e){} }
+    let bt = null;
+    if(bRes && bRes.ok){ try{ bt = await bRes.json(); }catch(e){} }
     $('dateBadge').style.display='';
     $('dateBadge').textContent = '📅 '+fc.as_of+' 기준';
     $('statusText').textContent = `종합 ${fc.score}점 · ${fc.bias}`;
-    render(fc, hist);
+    render(fc, hist, bt);
   }catch(e){
     renderError(e.message || String(e));
   }

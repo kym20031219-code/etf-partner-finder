@@ -44,7 +44,8 @@ import numpy as np
 import pandas as pd
 
 from swing.kospi_forecast import (
-    ForecastWeights, MarketBundle, composite_from, factor_scores, slice_bundle,
+    ForecastWeights, MarketBundle, composite_from, factor_scores, score_panel,
+    slice_bundle,
 )
 
 RESULTS_DIR = Path("results")
@@ -78,24 +79,8 @@ def hit_rate(scores: np.ndarray, fwd: np.ndarray) -> float:
 # ---------------------------------------------------------------------------
 # 패널 생성 (시점별 6팩터 점수 + 미래수익) — 미래참조 없음
 # ---------------------------------------------------------------------------
-def build_panel(b: MarketBundle, min_obs: int = 150, step: int = 1,
-                warmup: int = 150) -> pd.DataFrame:
-    """각 날짜의 6팩터 점수 패널을 만든다.
-
-    step>1 이면 날짜를 건너뛰며 계산(속도↑). 미래수익은 후단계에서 horizon 별로 붙인다.
-    """
-    idx = b.kospi.index
-    close = b.kospi["Close"]
-    rows = []
-    for i in range(warmup, len(idx), step):
-        d = idx[i]
-        sub = slice_bundle(b, d)
-        if len(sub.kospi) < min_obs:
-            continue
-        sc = factor_scores(sub)
-        rows.append({"date": d, "close": float(close.iloc[i]), **sc})
-    panel = pd.DataFrame(rows).set_index("date")
-    return panel
+# 패널 생성은 엔진의 score_panel 을 공용으로 사용한다(백테스트와 동일 경로).
+build_panel = score_panel
 
 
 def attach_forward(panel: pd.DataFrame, full_close: pd.Series, h: int) -> pd.DataFrame:

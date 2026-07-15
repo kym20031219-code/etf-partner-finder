@@ -1,0 +1,71 @@
+name: 코스피 전망 백테스트
+
+# 전망 점수(6팩터)로 매수/현금 시그널을 줬을 때의 과거 성과를 워크포워드로 검증한다.
+# 시점별 점수 재계산이 무거우므로 월 1회 + 수동 실행. 결과(results/kospi_backtest.json)
+# 는 kospi.html 대시보드가 자산곡선·지표로 표시한다.
+# ⚠️ 예약(schedule)은 기본 브랜치(main)에 이 파일이 있어야 동작한다.
+on:
+  schedule:
+    - cron: "0 19 1 * *"   # 매월 1일 UTC 19:00
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "백테스트 시작일 (길수록 표본↑)"
+        required: false
+        default: "2016-01-01"
+      buy_thr:
+        description: "매수 임계 점수"
+        required: false
+        default: "54"
+      sell_thr:
+        description: "매도(현금) 임계 점수"
+        required: false
+        default: "46"
+
+concurrency:
+  group: backtest-kospi
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 백테스트 실행 (실데이터, 6팩터)
+        run: |
+          python backtest_forecast.py \
+            --source real \
+            --start "${{ github.event.inputs.start || '2016-01-01' }}" \
+            --buy-thr "${{ github.event.inputs.buy_thr || '54' }}" \
+            --sell-thr "${{ github.event.inputs.sell_thr || '46' }}"
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -z "$(git status --porcelain results/kospi_backtest.json)" ]; then
+            echo "변경 없음 — 커밋 생략"; exit 0
+          fi
+          git add results/kospi_backtest.json
+          git commit -m "chore: 코스피 전망 백테스트 갱신 $(date -u +%Y-%m-%d) [skip ci]"
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then pushed=1; break; fi
+            echo "push 거부 — 재시도 ($i)"
+            git fetch origin main || true
+            git rebase origin/main || git rebase --abort || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          if [ "$pushed" != "1" ]; then echo "::error::5회 재시도 후에도 push 실패"; exit 1; fi
