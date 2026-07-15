@@ -31,11 +31,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from swing.kospi_forecast import MarketBundle, compute_forecast
+from swing.kospi_forecast import (
+    ForecastWeights, MarketBundle, compute_forecast, slice_bundle,
+)
 
 RESULTS_DIR = Path("results")
 FORECAST_JSON = RESULTS_DIR / "kospi_forecast.json"
 HISTORY_CSV = RESULTS_DIR / "kospi_history.csv"
+WEIGHTS_JSON = RESULTS_DIR / "kospi_weights_best.json"
 
 # 반도체 대표주 (지수 핵심 엔진): 삼성전자 · SK하이닉스
 SEMI_LEADERS = ["005930", "000660"]
@@ -215,20 +218,25 @@ def update_history(result: dict, keep: int = 400) -> None:
         w.writerows(ordered)
 
 
-def _slice_bundle(b: MarketBundle, end: pd.Timestamp) -> MarketBundle:
-    """번들의 모든 시계열을 end 이하로 잘라 '그 날 시점' 번들을 만든다(소급 계산용)."""
-    def cut(x):
-        if x is None:
-            return None
-        return x[x.index <= end]
-    return MarketBundle(
-        kospi=cut(b.kospi), sp500=cut(b.sp500), vix=cut(b.vix), us10y=cut(b.us10y),
-        usdkrw=cut(b.usdkrw), china=cut(b.china), kosdaq=cut(b.kosdaq), semis=cut(b.semis),
-        per=cut(b.per), pbr=cut(b.pbr), foreign=cut(b.foreign), inst=cut(b.inst),
-    )
+def load_weights() -> tuple[ForecastWeights, bool]:
+    """results/kospi_weights_best.json 이 있으면 최적화된 팩터 가중치를 로드.
+
+    (optimize_kospi.py 가 생성. 없으면 코드 기본값=합리적 초기값 사용)
+    """
+    if not WEIGHTS_JSON.exists():
+        return ForecastWeights(), False
+    try:
+        d = json.loads(WEIGHTS_JSON.read_text(encoding="utf-8"))
+        bw = d.get("best_weights") or {}
+        fields = set(ForecastWeights.__dataclass_fields__)
+        w = ForecastWeights(**{k: float(v) for k, v in bw.items() if k in fields})
+        return w, True
+    except Exception as e:  # noqa: BLE001
+        print(f"[경고] {WEIGHTS_JSON} 읽기 실패, 기본 가중치 사용: {e}", file=sys.stderr)
+        return ForecastWeights(), False
 
 
-def backfill_history(b: MarketBundle, n: int) -> int:
+def backfill_history(b: MarketBundle, n: int, w: ForecastWeights | None = None) -> int:
     """최근 n 거래일에 대해 전망 점수를 소급 계산해 히스토리 CSV 를 채운다.
 
     각 날짜 시점의 데이터만으로(미래 참조 없이) 종합점수를 재계산하므로, 대시보드가
@@ -240,11 +248,11 @@ def backfill_history(b: MarketBundle, n: int) -> int:
     for d in dates:
         if d == idx[-1]:
             continue  # 최신일은 메인 결과가 이미 기록
-        sub = _slice_bundle(b, d)
+        sub = slice_bundle(b, d)
         if len(sub.kospi) < 120:
             continue
         try:
-            update_history(compute_forecast(sub))
+            update_history(compute_forecast(sub, w))
             done += 1
         except Exception as e:  # noqa: BLE001
             print(f"  [backfill] {d.date()} 스킵: {e}", file=sys.stderr)
@@ -286,11 +294,15 @@ def main() -> int:
             print(f"[경고] 실데이터 수집 실패 → 합성 데이터로 대체: {e}", file=sys.stderr)
             bundle = build_synthetic_bundle(days=args.days)
 
-    result = compute_forecast(bundle)
+    w, optimized = load_weights()
+    print(f"[가중치] 팩터 가중치 {'최적화값' if optimized else '기본값(합리적 초기값)'} 사용", flush=True)
+
+    result = compute_forecast(bundle, w)
+    result["weights_optimized"] = optimized
     save_forecast(result)
     update_history(result)
     if args.backfill > 0:
-        n = backfill_history(bundle, args.backfill)
+        n = backfill_history(bundle, args.backfill, w)
         print(f"[backfill] 과거 {n}일 점수 소급 기록")
 
     print(f"\n✅ {FORECAST_JSON} 저장")

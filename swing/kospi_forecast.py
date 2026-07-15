@@ -406,6 +406,28 @@ def _factor_score(sigs: list[dict]) -> float:
     return float(np.mean(vals)) if vals else 50.0
 
 
+def slice_bundle(b: MarketBundle, end: pd.Timestamp) -> MarketBundle:
+    """번들의 모든 시계열을 end 시점 이하로 자른 '그 날 시점' 번들(미래참조 없음)."""
+    def cut(x):
+        return None if x is None else x[x.index <= end]
+    return MarketBundle(
+        kospi=cut(b.kospi), sp500=cut(b.sp500), vix=cut(b.vix), us10y=cut(b.us10y),
+        usdkrw=cut(b.usdkrw), china=cut(b.china), kosdaq=cut(b.kosdaq), semis=cut(b.semis),
+        per=cut(b.per), pbr=cut(b.pbr), foreign=cut(b.foreign), inst=cut(b.inst),
+    )
+
+
+def factor_scores(b: MarketBundle) -> dict[str, float]:
+    """최신 봉 기준 6팩터 점수(0~100)만 계산. 최적화/백테스트용 경량 경로."""
+    return {k: _factor_score(fn(b)) for k, fn in _FACTOR_FNS.items()}
+
+
+def composite_from(scores: dict[str, float], w: ForecastWeights | None = None) -> float:
+    """팩터 점수 dict + 가중치 → 종합 점수(0~100)."""
+    wd = (w or ForecastWeights()).as_dict()
+    return float(sum(scores.get(k, 50.0) * wd[k] for k in wd))
+
+
 # ---------------------------------------------------------------------------
 # 방향/신뢰도 매핑
 # ---------------------------------------------------------------------------
