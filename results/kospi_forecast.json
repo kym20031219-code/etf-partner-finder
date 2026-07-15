@@ -2,10 +2,10 @@
   "as_of": "2026-07-15",
   "kospi_close": 7289.16,
   "kospi_change_pct": 6.31,
-  "score": 57.3,
-  "bias": "중립-강세",
-  "confidence": "보통",
-  "outlook": "단기 코스피는 상방에 무게가 실립니다. 버팀목: 기업실적, 밸류에이션. 역풍: 기술적, 수급.",
+  "score": 50.9,
+  "bias": "중립",
+  "confidence": "낮음",
+  "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 기업실적, 거시. 역풍: 밸류에이션, 기술적.",
   "data_factors_available": 6,
   "data_factors_total": 6,
   "factors": [
@@ -15,7 +15,7 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.2,
-      "score": 61.7,
+      "score": 61.5,
       "bias": "중립-강세",
       "signals": [
         {
@@ -38,8 +38,8 @@
         },
         {
           "name": "달러/원 환율",
-          "detail": "1,488 (-1.5% / 20일)",
-          "score": 75.0,
+          "detail": "1,489 (-1.5% / 20일)",
+          "score": 74.5,
           "available": true
         }
       ],
@@ -100,7 +100,7 @@
         },
         {
           "name": "코스피 이익 방향",
-          "detail": "PER -100.0% / 20일",
+          "detail": "PER -21.4% / 20일",
           "score": 100.0,
           "available": true
         },
@@ -125,19 +125,19 @@
       "signals": [
         {
           "name": "외국인 순매수(20일)",
-          "detail": "20일 누적 -379,868억",
+          "detail": "20일 누적 -379,874억",
           "score": 10.3,
           "available": true
         },
         {
           "name": "기관 순매수(20일)",
-          "detail": "20일 누적 +45,068억",
+          "detail": "20일 누적 +45,067억",
           "score": 55.8,
           "available": true
         },
         {
           "name": "외국인 단기(5일)",
-          "detail": "+13,316억",
+          "detail": "+13,310억",
           "score": 55.6,
           "available": true
         }
@@ -151,29 +151,29 @@
       "icon": "⚖️",
       "desc": "PER·PBR 역사적 백분위와 ERP",
       "weight": 0.1,
-      "score": 83.3,
-      "bias": "강세",
+      "score": 19.9,
+      "bias": "약세",
       "signals": [
         {
           "name": "PER 백분위(3년)",
-          "detail": "0.0배 · 상위 0%ile",
-          "score": 99.9,
+          "detail": "18.6배 · 상위 61%ile",
+          "score": 39.3,
           "available": true
         },
         {
           "name": "PBR 백분위(3년)",
-          "detail": "0.00배 · 상위 0%ile",
-          "score": 99.9,
+          "detail": "1.95배 · 상위 92%ile",
+          "score": 8.0,
           "available": true
         },
         {
           "name": "ERP(위험프리미엄)",
-          "detail": "데이터 없음",
-          "score": 50.0,
-          "available": false
+          "detail": "+0.8%p (이익수익률−금리)",
+          "score": 12.5,
+          "available": true
         }
       ],
-      "available_signals": 2,
+      "available_signals": 3,
       "total_signals": 3
     },
     {
@@ -234,5 +234,5 @@
   ],
   "disclaimer": "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 매매 권유가 아닙니다. 전망은 확률적 판단으로 언제든 빗나갈 수 있고, 본 시스템에는 어떤 자동 매수/매도 기능도 없습니다. 투자 판단과 책임은 전적으로 본인에게 있습니다.",
   "weights_optimized": false,
-  "generated_at": "2026-07-15T06:47:37"
+  "generated_at": "2026-07-15T06:58:40"
 }
