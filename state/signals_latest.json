@@ -1,32 +1,32 @@
 {
-  "generated_at": "2026-07-16T04:35:14",
+  "generated_at": "2026-07-16T07:16:02",
   "source": "real",
   "market_regime": true,
   "candidates": [],
   "watch": [
     {
-      "code": "055550",
+      "code": "003490",
       "date": "2026-07-16",
-      "close": 107200.0,
-      "ma20": 102170.0,
-      "rsi": 58.0,
-      "dist_pct": 4.9,
+      "close": 26500.0,
+      "ma20": 27575.0,
+      "rsi": 46.1,
+      "dist_pct": -3.9,
       "tier": "watch",
-      "stop": 99696.0,
-      "target": 123280.0,
-      "name": "신한지주"
+      "stop": 24645.0,
+      "target": 30475.0,
+      "name": "대한항공"
     },
     {
-      "code": "000810",
+      "code": "055550",
       "date": "2026-07-16",
-      "close": 684000.0,
-      "ma20": 649050.0,
-      "rsi": 58.4,
-      "dist_pct": 5.4,
+      "close": 107900.0,
+      "ma20": 102205.0,
+      "rsi": 59.0,
+      "dist_pct": 5.6,
       "tier": "watch",
-      "stop": 636120.0,
-      "target": 786600.0,
-      "name": "삼성화재"
+      "stop": 100347.0,
+      "target": 124085.0,
+      "name": "신한지주"
     }
   ]
 }
