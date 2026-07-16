@@ -1,55 +1,31 @@
 {
-  "generated_at": "2026-07-16T01:28:18",
+  "generated_at": "2026-07-16T04:35:14",
   "source": "real",
   "market_regime": true,
   "candidates": [],
   "watch": [
     {
-      "code": "003490",
-      "date": "2026-07-16",
-      "close": 26750.0,
-      "ma20": 27587.5,
-      "rsi": 47.4,
-      "dist_pct": -3.0,
-      "tier": "watch",
-      "stop": 24877.5,
-      "target": 30762.5,
-      "name": "대한항공"
-    },
-    {
       "code": "055550",
       "date": "2026-07-16",
-      "close": 106400.0,
-      "ma20": 102130.0,
-      "rsi": 56.4,
-      "dist_pct": 4.2,
+      "close": 107200.0,
+      "ma20": 102170.0,
+      "rsi": 58.0,
+      "dist_pct": 4.9,
       "tier": "watch",
-      "stop": 98952.0,
-      "target": 122360.0,
+      "stop": 99696.0,
+      "target": 123280.0,
       "name": "신한지주"
-    },
-    {
-      "code": "021240",
-      "date": "2026-07-16",
-      "close": 95700.0,
-      "ma20": 91110.0,
-      "rsi": 56.9,
-      "dist_pct": 5.0,
-      "tier": "watch",
-      "stop": 89001.0,
-      "target": 110055.0,
-      "name": "코웨이"
     },
     {
       "code": "000810",
       "date": "2026-07-16",
-      "close": 685000.0,
-      "ma20": 649100.0,
-      "rsi": 58.5,
-      "dist_pct": 5.5,
+      "close": 684000.0,
+      "ma20": 649050.0,
+      "rsi": 58.4,
+      "dist_pct": 5.4,
       "tier": "watch",
-      "stop": 637050.0,
-      "target": 787750.0,
+      "stop": 636120.0,
+      "target": 786600.0,
       "name": "삼성화재"
     }
   ]
