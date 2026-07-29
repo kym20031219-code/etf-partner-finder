@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T04:42:25",
+  "generated_at": "2026-07-29T07:38:37",
   "source": "real",
   "market_regime": false,
   "candidates": [],
@@ -7,13 +7,13 @@
     {
       "code": "078930",
       "date": "2026-07-29",
-      "close": 83200.0,
-      "ma20": 81985.0,
-      "rsi": 53.0,
-      "dist_pct": 1.5,
+      "close": 84100.0,
+      "ma20": 82030.0,
+      "rsi": 54.2,
+      "dist_pct": 2.5,
       "tier": "watch",
-      "stop": 77376.0,
-      "target": 95680.0,
+      "stop": 78213.0,
+      "target": 96715.0,
       "name": "GS"
     }
   ]
