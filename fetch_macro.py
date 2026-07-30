@@ -2,62 +2,72 @@
 """미국 거시경제 지표를 모아 대시보드용 JSON(results/macro.json)으로 저장한다.
 
 목적(사용자 요구):
-  - 매달: 미국 CPI(물가), 고용지표(NFP·실업률), FOMC(연준 정책금리)
-  - 분기: S&P 500 실적 흐름, GDP 성장률
-  - 매일: 미국 10년물 국채금리, VIX(공포지수), 달러 인덱스
-  위 지표를 한 화면에서 보고, "시장이 왜 움직이는지"를 체계적으로 판단하도록
-  각 지표를 해석(regime 엔진)해 초보 투자자용 가이드까지 함께 만든다.
+  미국 경제가 지금 어떤 상태인지 '종합적으로 판단'해 주는 대시보드용 데이터.
+  - 매일: 10년물 국채금리, VIX(공포지수), 달러 인덱스, S&P 500
+  - 매달: CPI(전년비 물가), 신규고용 NFP, 실업률, FOMC 정책금리
+  - 분기: 실질 GDP 성장률, S&P 500 분기 흐름
+  각 지표의 '현재 수치 + 직전 대비 변화 + 과거 시계열(1일~5년 그래프용)'을 담고,
+  regime 엔진으로 '시장 날씨'와 '지금 지표가 어떤지 쉽게 풀어주는 설명'을 만든다.
 
 데이터 출처:
-  세인트루이스 연준의 FRED 공개 CSV 엔드포인트
-  (https://fred.stlouisfed.org/graph/fredgraph.csv?id=<SERIES> ). API 키 불필요.
-  → GitHub Actions 러너(외부망 개방)에서 매일 실행해 결과를 커밋한다.
+  세인트루이스 연준의 FRED 공개 CSV (API 키 불필요).
+  → GitHub Actions 러너(외부망 개방)에서 매일 자동 실행해 결과를 커밋한다.
 
-동작:
-  1. 각 지표 시계열을 내려받아(실패해도 다른 지표에 영향 없음)
-  2. 최신값·직전값·변화·간단한 히스토리(스파크라인용)를 뽑고
-  3. regime 엔진으로 "시장 날씨"와 초보용 가이드를 계산해
-  4. results/macro.json 으로 저장한다.
-
-오프라인/초기 seed:
-  네트워크가 막힌 환경(이 저장소 개발 세션 등)에서는 --seed 로 예시 데이터를
-  만들어 페이지가 비지 않게 한다. seed 데이터는 source="seed"로 표시되고
-  대시보드에 '예시(초기) 데이터' 배너가 뜬다. 최초 Actions 실행이 실제값으로 덮어쓴다.
-
-⚠️ 이 스크립트는 지표를 '보여주고 해석'만 한다. 어떤 매수/매도 주문도 하지 않는다.
-   가이드는 교육용이며 투자 권유가 아니다. 매매는 본인 판단·책임이다.
+⚠️ 지표를 '보여주고 해석'만 한다. 어떤 매수/매도 주문도 하지 않는다.
+   설명·판단은 교육용 참고이며 투자 권유가 아니다.
 
 사용:
-  python fetch_macro.py                 # 실데이터 → results/macro.json
-  python fetch_macro.py --seed          # 오프라인 예시 데이터
-  python fetch_macro.py --out out.json  # 저장 경로 지정
+  python fetch_macro.py            # 실데이터 → results/macro.json
+  python fetch_macro.py --seed     # 오프라인 예시 데이터(과거 시계열도 합성 생성)
 """
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 import urllib.request
-import urllib.error
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from pathlib import Path
 
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}&cosd={cosd}"
 RESULTS_DIR = Path("results")
 OUT_JSON = RESULTS_DIR / "macro.json"
 
-# 대시보드가 쓰는 FRED 시리즈 ID
-SERIES = {
-    "us10y": "DGS10",       # 미국 10년물 국채금리 (일간, %)
-    "vix": "VIXCLS",        # CBOE 변동성지수 VIX (일간)
-    "dxy": "DTWEXBGS",      # 광의 달러 인덱스 (일간, 2006=100)
-    "sp500": "SP500",       # S&P 500 지수 (일간, 약 10년치)
-    "cpi": "CPIAUCSL",      # 소비자물가지수 CPI (월간, 계절조정)
-    "nfp": "PAYEMS",        # 비농업부문 고용자수 (월간, 천명)
-    "unrate": "UNRATE",     # 실업률 (월간, %)
-    "fedfunds": "DFEDTARU", # 연방기금 목표금리 상단 (FOMC가 정함, %)
-    "gdp": "A191RL1Q225SBEA",  # 실질 GDP 전분기比 연율 (분기, %)
-}
+# 지표 정의. cat=화면 구획, invert=값이 오르면 '나쁨'인지(색상),
+# transform=원자료 가공(yoy=전년비, diff=전월증감), years=받아올 과거 연수.
+INDICATORS = [
+    dict(key="us10y", sid="DGS10", label="미국 10년물 국채금리", unit="%",
+         cat="daily", invert=True, dec=2, years=5,
+         sub="돈의 값. 오르면 대출·주식 밸류에이션 부담↑"),
+    dict(key="vix", sid="VIXCLS", label="VIX 공포지수", unit="",
+         cat="daily", invert=True, dec=2, years=5,
+         sub="시장의 불안 온도. 20↑ 경계, 30↑ 공포"),
+    dict(key="dxy", sid="DTWEXBGS", label="달러 인덱스", unit="",
+         cat="daily", invert=True, dec=2, years=5,
+         sub="강달러=신흥국·원자재·수출주엔 역풍"),
+    dict(key="sp500", sid="SP500", label="S&P 500", unit="",
+         cat="daily", invert=False, dec=0, years=5,
+         sub="미국 대표 500대 기업 주가지수"),
+    dict(key="cpi", sid="CPIAUCSL", label="CPI 물가 (전년비)", unit="%",
+         cat="monthly", invert=True, dec=2, years=11, transform="yoy",
+         sub="연준 목표 2% 대비. 낮아질수록 금리인하 여지↑"),
+    dict(key="nfp", sid="PAYEMS", label="신규고용 NFP", unit="천명",
+         cat="monthly", invert=False, dec=0, years=11, transform="diff",
+         sub="매달 늘어난 일자리 수. 경기 확장/위축의 척도"),
+    dict(key="unrate", sid="UNRATE", label="실업률", unit="%",
+         cat="monthly", invert=True, dec=1, years=11,
+         sub="급등하면 경기침체 경고 신호"),
+    dict(key="fedfunds", sid="DFEDTARU", label="FOMC 정책금리 (상단)", unit="%",
+         cat="monthly", invert=True, dec=2, years=5,
+         sub="연준이 정하는 기준금리"),
+    dict(key="gdp", sid="A191RL1Q225SBEA", label="실질 GDP 성장률", unit="%",
+         cat="quarterly", invert=False, dec=1, years=8,
+         sub="연율 환산. 2회 연속 마이너스면 기술적 침체"),
+    # S&P 500 분기 흐름은 sp500 시계열을 재사용(아래에서 처리)
+]
+
+FREQ_LABEL = {"daily": "어제보다", "monthly": "지난달보다", "quarterly": "지난분기보다"}
 
 
 def http_get(url: str, timeout: int = 40) -> str:
@@ -66,13 +76,14 @@ def http_get(url: str, timeout: int = 40) -> str:
         return r.read().decode("utf-8", "replace")
 
 
-def fetch_series(sid: str, cosd: str = "2014-01-01") -> list[tuple[str, float]]:
-    """FRED CSV → [(YYYY-MM-DD, value)] (결측 '.' 제외, 오름차순)."""
+def fetch_series(sid: str, years: int) -> list[tuple[str, float]]:
+    """FRED CSV → [(YYYY-MM-DD, value)] 오름차순. 결측('.') 제외."""
+    cosd = (date.today() - timedelta(days=365 * years + 40)).isoformat()
     text = http_get(FRED_CSV.format(sid=sid, cosd=cosd))
     out: list[tuple[str, float]] = []
     for i, line in enumerate(text.splitlines()):
         if i == 0 or not line.strip():
-            continue  # 헤더(observation_date,SID) 건너뜀
+            continue
         parts = line.split(",")
         if len(parts) < 2:
             continue
@@ -86,252 +97,178 @@ def fetch_series(sid: str, cosd: str = "2014-01-01") -> list[tuple[str, float]]:
     return out
 
 
-def pct_change(cur: float, prev: float) -> float | None:
-    if prev in (0, None) or cur is None:
+def transform(kind: str | None, raw: list[tuple[str, float]]) -> list[tuple[str, float]]:
+    """원자료 → 표시용 시계열."""
+    if kind == "yoy":  # 전년 동월 대비 % (CPI)
+        out = []
+        for i in range(12, len(raw)):
+            base = raw[i - 12][1]
+            if base:
+                out.append((raw[i][0], (raw[i][1] - base) / abs(base) * 100.0))
+        return out
+    if kind == "diff":  # 전월 대비 증감 (NFP)
+        return [(raw[i][0], raw[i][1] - raw[i - 1][1]) for i in range(1, len(raw))]
+    return raw
+
+
+def clip_years(series: list[tuple[str, float]], years: int) -> list[tuple[str, float]]:
+    cutoff = (date.today() - timedelta(days=365 * years + 5)).isoformat()
+    return [(d, v) for d, v in series if d >= cutoff]
+
+
+def pct_change(cur, prev):
+    if not prev or cur is None:
         return None
     return (cur - prev) / abs(prev) * 100.0
 
 
-def spark(series: list[tuple[str, float]], n: int) -> list[float]:
-    """스파크라인용 최근 n개 값(숫자 배열)."""
-    return [round(v, 4) for _, v in series[-n:]]
+def fmt_date(iso: str, cat: str) -> str:
+    if cat == "monthly":
+        return iso[:7]
+    if cat == "quarterly":
+        y, m, _ = iso.split("-")
+        return f"{y} Q{(int(m) - 1) // 3 + 1}"
+    return iso
 
 
-def build_daily(key: str, series: list[tuple[str, float]], spark_n: int) -> dict:
-    """일간 지표: 최신값·전일比 변화·최근 히스토리."""
-    if not series:
-        return {"available": False}
-    d, v = series[-1]
-    prev = series[-2][1] if len(series) > 1 else None
-    return {
-        "available": True,
-        "value": round(v, 3),
-        "date": d,
-        "change": round(v - prev, 3) if prev is not None else None,
-        "change_pct": round(pct_change(v, prev), 2) if prev is not None else None,
-        "spark": spark(series, spark_n),
-        # 200영업일 평균(장기추세 판단용) — 있으면
-        "ma200": round(sum(x for _, x in series[-200:]) / min(200, len(series)), 3),
-    }
-
-
-def build_cpi(series: list[tuple[str, float]]) -> dict:
-    """CPI: 전년동월比(YoY) 물가상승률과 직전월 YoY."""
-    if len(series) < 13:
-        return {"available": False}
-    def yoy_at(i: int) -> float | None:
-        if i - 12 < 0:
-            return None
-        return pct_change(series[i][1], series[i - 12][1])
-    last = len(series) - 1
-    cur = yoy_at(last)
-    prev = yoy_at(last - 1)
-    hist = [round(yoy_at(i), 2) for i in range(max(12, last - 23), last + 1) if yoy_at(i) is not None]
-    return {
-        "available": cur is not None,
-        "value": round(cur, 2) if cur is not None else None,
-        "prev": round(prev, 2) if prev is not None else None,
-        "date": series[last][0][:7],
-        "spark": hist,
-        "target": 2.0,  # 연준 물가 목표
-    }
-
-
-def build_nfp(series: list[tuple[str, float]]) -> dict:
-    """NFP: 비농업 고용자수의 전월比 증감(천명)."""
+def build_indicator(meta: dict, series: list[tuple[str, float]]) -> dict:
+    """현재값·직전 대비 변화·과거 시계열(그래프용)을 담은 카드 데이터."""
     if len(series) < 2:
-        return {"available": False}
-    diffs = [(series[i][0], series[i][1] - series[i - 1][1]) for i in range(1, len(series))]
-    d, chg = diffs[-1]
-    prev = diffs[-2][1] if len(diffs) > 1 else None
+        return {"available": False, "label": meta["label"]}
+    dts = [d for d, _ in series]
+    vals = [round(v, 4) for _, v in series]
+    cur, prev = vals[-1], vals[-2]
+    ma200 = round(sum(vals[-200:]) / min(200, len(vals)), 4)
     return {
         "available": True,
-        "value": round(chg, 0),           # 이번 달 신규고용(천명)
-        "prev": round(prev, 0) if prev is not None else None,
-        "date": d[:7],
-        "spark": [round(c, 0) for _, c in diffs[-12:]],
+        "key": meta["key"],
+        "label": meta["label"],
+        "unit": meta["unit"],
+        "cat": meta["cat"],
+        "invert": meta["invert"],
+        "dec": meta["dec"],
+        "sub": meta["sub"],
+        "value": round(cur, meta["dec"]),
+        "prev": round(prev, meta["dec"]),
+        "change": round(cur - prev, max(meta["dec"], 2)),
+        "change_pct": round(pct_change(cur, prev), 2) if pct_change(cur, prev) is not None else None,
+        "change_label": FREQ_LABEL[meta["cat"]],
+        "date": fmt_date(dts[-1], meta["cat"]),
+        "ma200": ma200,
+        # 과거 그래프용 시계열(ISO 날짜, 프런트에서 1일/1주/1달/1년/5년 슬라이스)
+        "series": {"d": dts, "v": vals},
     }
 
 
-def build_monthly(series: list[tuple[str, float]], spark_n: int = 12, digits: int = 2) -> dict:
-    """실업률·정책금리 등 월간 레벨 지표."""
-    if not series:
-        return {"available": False}
-    d, v = series[-1]
-    prev = series[-2][1] if len(series) > 1 else None
-    return {
-        "available": True,
-        "value": round(v, digits),
-        "prev": round(prev, digits) if prev is not None else None,
-        "date": d[:7],
-        "spark": spark(series, spark_n),
-    }
+# ─────────────────────────── regime(시장 종합판단) 엔진 ───────────────────────────
+def score_indicator(key: str, ind: dict) -> tuple[int, str, str]:
+    """지표별 (점수 -2~+2, 짧은 판정, 지금 상태를 쉽게 푼 설명)."""
+    v = ind.get("value")
+    prev = ind.get("prev")
+    if v is None:
+        return 0, "-", ""
 
-
-def build_fedfunds(series: list[tuple[str, float]]) -> dict:
-    """연방기금 목표금리 상단(일간)의 최신값과 최근 변경."""
-    if not series:
-        return {"available": False}
-    d, v = series[-1]
-    # 마지막으로 값이 바뀐 시점(=최근 FOMC 인상/인하) 찾기
-    prev_level = None
-    prev_date = None
-    for i in range(len(series) - 2, -1, -1):
-        if abs(series[i][1] - v) > 1e-9:
-            prev_level = series[i][1]
-            prev_date = series[i + 1][0]  # 새 금리가 적용된 첫날
-            break
-    return {
-        "available": True,
-        "value": round(v, 2),
-        "date": d,
-        "last_change_date": prev_date,
-        "last_change": round(v - prev_level, 2) if prev_level is not None else None,
-        "spark": spark(series, 24),
-    }
-
-
-def build_gdp(series: list[tuple[str, float]]) -> dict:
-    """실질 GDP 전분기比 연율(%) 최신값."""
-    if not series:
-        return {"available": False}
-    d, v = series[-1]
-    prev = series[-2][1] if len(series) > 1 else None
-    # 분기 라벨(예: 2026 Q2)
-    y, m, _ = d.split("-")
-    q = (int(m) - 1) // 3 + 1
-    return {
-        "available": True,
-        "value": round(v, 1),
-        "prev": round(prev, 1) if prev is not None else None,
-        "date": f"{y} Q{q}",
-        "spark": [round(x, 1) for _, x in series[-8:]],
-    }
-
-
-def build_sp500_quarterly(series: list[tuple[str, float]]) -> dict:
-    """S&P 500 '실적 시즌' 요약: 분기 수익률 + 현재 실적발표 시즌 여부.
-    (무료·무키 소스에는 개별 기업 EPS가 없어, 지수 흐름과 실적시즌 캘린더로 대체)."""
-    if not series:
-        return {"available": False}
-    d, v = series[-1]
-    # 대략 63영업일(약 1분기) 전 대비
-    base = series[-64][1] if len(series) > 64 else series[0][1]
-    qret = pct_change(v, base)
-    today = date.fromisoformat(d)
-    # 실적 시즌: 각 분기 결과를 다음 달부터 발표 (1·4·7·10월 시작)
-    season_map = {1: "Q4 (전년)", 2: "Q4 (전년)", 4: "Q1", 5: "Q1",
-                  7: "Q2", 8: "Q2", 10: "Q3", 11: "Q3"}
-    season = season_map.get(today.month)
-    return {
-        "available": True,
-        "level": round(v, 1),
-        "date": d,
-        "quarter_return": round(qret, 1) if qret is not None else None,
-        "earnings_season": season,           # 지금 발표 중인 분기 실적(없으면 null)
-        "spark": spark(series, 63),
-    }
-
-
-# ─────────────────────────── regime(시장 날씨) 엔진 ───────────────────────────
-def build_regime(daily: dict, monthly: dict, quarterly: dict) -> dict:
-    """각 지표를 점수화해 '시장 날씨'와 초보용 해석·가이드를 만든다.
-
-    점수: -2(매우 부정) ~ +2(매우 긍정). 합산 후 5단계 날씨로 매핑.
-    ⚠️ 규칙기반 참고 지표일 뿐 예측·권유가 아니다.
-    """
-    signals: list[dict] = []
-
-    def add(name, score, reading, why):
-        signals.append({"name": name, "score": score, "reading": reading, "why": why})
-
-    # VIX (공포지수): 낮을수록 안정
-    vix = daily.get("vix", {})
-    if vix.get("available"):
-        v = vix["value"]
+    if key == "vix":
         if v < 15: s, r = 2, "매우 안정"
         elif v < 20: s, r = 1, "안정"
         elif v < 27: s, r = -1, "경계"
-        elif v < 35: s, r = -2, "불안"
-        else: s, r = -2, "공포"
-        add("VIX 변동성", s, f"{v} ({r})",
-            "VIX가 낮으면 시장이 편안하다는 뜻(위험자산 우호). 20을 넘으면 불안, 30 이상은 공포 국면.")
-
-    # 10년물 금리 방향: 급등은 주식·성장주에 부담
-    us10y = daily.get("us10y", {})
-    if us10y.get("available"):
-        v, ma = us10y["value"], us10y.get("ma200")
-        if ma:
-            gap = v - ma
-            if gap > 0.4: s, r = -1, "상승 압력"
-            elif gap < -0.4: s, r = 1, "하락(완화)"
-            else: s, r = 0, "횡보"
-        else:
-            s, r = 0, "중립"
-        add("10년물 금리", s, f"{v}% ({r})",
-            "금리가 오르면 대출·밸류에이션 부담↑(특히 성장주·부동산). 내리면 위험자산에 우호적.")
-
-    # S&P 500 추세: 200일선 위/아래
-    sp = daily.get("sp500", {})
-    if sp.get("available"):
-        v, ma = sp["value"], sp.get("ma200")
-        if ma:
-            if v > ma * 1.02: s, r = 2, "상승추세"
-            elif v > ma: s, r = 1, "추세 위"
-            elif v > ma * 0.98: s, r = -1, "추세 이탈 경계"
-            else: s, r = -2, "하락추세"
-            add("S&P 500 추세", s, f"{r}",
-                "지수가 200일 평균선 위에 있으면 장기 상승추세(위험 감수 우호), 아래면 방어적으로.")
-
-    # CPI: 목표(2%)에 가까울수록·내려갈수록 좋음
-    cpi = monthly.get("cpi", {})
-    if cpi.get("available"):
-        v, p = cpi["value"], cpi.get("prev")
-        cooling = (p is not None and v < p)
+        else: s, r = -2, "불안/공포"
+        plain = (f"지금 시장 심리는 {'차분한' if v < 20 else '불안한'} 편이에요. "
+                 f"공포지수(VIX)가 {v}로 " +
+                 ("20 아래라 투자자들이 크게 겁먹지 않은 상태" if v < 20
+                  else "20을 넘어 경계심이 커진 상태") + "입니다.")
+        return s, r, plain
+    if key == "us10y":
+        ma = ind.get("ma200")
+        gap = (v - ma) if ma else 0
+        if gap > 0.4: s, r = -1, "상승 압력"
+        elif gap < -0.4: s, r = 1, "하락(완화)"
+        else: s, r = 0, "횡보"
+        plain = (f"돈의 값인 10년물 금리는 {v}%예요. "
+                 + ("최근 평균보다 높아 주식·대출에 부담을 주는 흐름" if gap > 0.4
+                    else "최근 평균보다 낮아 위험자산에 우호적인 흐름" if gap < -0.4
+                    else "큰 방향 없이 횡보하는 흐름") + "입니다.")
+        return s, r, plain
+    if key == "sp500":
+        ma = ind.get("ma200")
+        if ma and v > ma * 1.02: s, r = 2, "상승추세"
+        elif ma and v > ma: s, r = 1, "추세 위"
+        elif ma and v > ma * 0.98: s, r = -1, "추세 경계"
+        else: s, r = -2, "하락추세"
+        plain = ("미국 대표지수 S&P 500은 " +
+                 ("장기 평균선 위에서 오르는 상승추세예요. 위험을 감수하기 좋은 국면입니다."
+                  if ma and v > ma else
+                  "장기 평균선 아래로 내려와 방어가 필요한 국면입니다."))
+        return s, r, plain
+    if key == "cpi":
+        cooling = prev is not None and v < prev
         if v <= 2.5: s, r = 2, "안정"
         elif v <= 3.5: s, r = (1 if cooling else 0), ("둔화 중" if cooling else "다소 높음")
         elif v <= 5: s, r = (0 if cooling else -1), ("높지만 둔화" if cooling else "높음")
         else: s, r = -2, "과열"
-        add("CPI 물가", s, f"{v}% YoY ({r})",
-            "물가가 높으면 연준이 금리를 높게 유지→위험자산 부담. 2%로 낮아지면 금리인하 여지↑.")
-
-    # 실업률: 낮고 안정적이면 좋음, 급등은 침체 신호
-    un = monthly.get("unrate", {})
-    if un.get("available"):
-        v, p = un["value"], un.get("prev")
-        rising = (p is not None and v > p + 0.05)
+        plain = (f"물가는 1년 전보다 {v}% 올랐어요(목표 2%). "
+                 + (f"지난달({prev}%)보다 낮아져 진정되는 중" if cooling
+                    else "아직 목표보다 높은 편") + "이라 "
+                 + ("연준이 금리를 내릴 여지가 생기고 있어요." if v <= 3.0 or cooling
+                    else "연준이 금리를 쉽게 못 내리는 상황이에요."))
+        return s, r, plain
+    if key == "unrate":
+        rising = prev is not None and v > prev + 0.05
         if v < 4.3 and not rising: s, r = 1, "견조"
         elif rising: s, r = -1, "상승(둔화)"
         else: s, r = 0, "보통"
-        add("실업률", s, f"{v}% ({r})",
-            "고용이 탄탄하면 소비·기업이익에 우호적. 실업률이 빠르게 오르면 경기침체 경고.")
-
-    # NFP: 신규고용 강도
-    nfp = monthly.get("nfp", {})
-    if nfp.get("available"):
-        v = nfp["value"]
-        if v is None: pass
-        elif v > 150: s, r = 1, "강한 고용"
+        plain = (f"실업률은 {v}%예요. "
+                 + ("낮게 유지돼 고용이 탄탄한 편" if v < 4.3 and not rising
+                    else "조금씩 오르고 있어 경기 둔화 신호를 살펴야 할 때"
+                    if rising else "보통 수준") + "입니다.")
+        return s, r, plain
+    if key == "nfp":
+        if v > 150: s, r = 1, "강한 고용"
         elif v > 0: s, r = 0, "완만한 고용"
         else: s, r = -2, "고용 감소"
-        if v is not None:
-            add("신규고용(NFP)", s, f"{int(v):+,}천명 ({r})",
-                "매달 새로 늘어난 일자리 수. 꾸준히 늘면 경제 확장, 마이너스면 경기 위축 신호.")
-
-    # GDP 성장률
-    gdp = quarterly.get("gdp", {})
-    if gdp.get("available"):
-        v = gdp["value"]
+        plain = (f"지난달 새 일자리는 {int(v):+,}천 개예요. "
+                 + ("일자리가 꾸준히 늘며 경제가 확장 중" if v > 150
+                    else "고용 증가세가 완만해진 상태" if v > 0
+                    else "일자리가 줄어 경기 위축이 우려되는 상태") + "입니다.")
+        return s, r, plain
+    if key == "gdp":
         if v >= 2.5: s, r = 1, "견조한 성장"
         elif v >= 0: s, r = 0, "완만한 성장"
         else: s, r = -2, "역성장"
-        add("GDP 성장률", s, f"{v}% (연율, {r})",
-            "경제 규모의 성장 속도. 플러스면 확장, 2회 연속 마이너스면 기술적 침체.")
+        plain = (f"경제 성장 속도(GDP)는 연 {v}%예요. "
+                 + ("건강하게 확장 중" if v >= 2.5
+                    else "성장하고 있지만 속도는 완만" if v >= 0
+                    else "마이너스 성장이라 침체 신호") + "입니다.")
+        return s, r, plain
+    if key == "fedfunds":
+        plain = f"연준 기준금리는 {v}%예요. 물가·고용을 보며 이 금리를 올리거나 내려 시장 전체에 영향을 줍니다."
+        return 0, f"{v}%", plain
+    if key == "dxy":
+        plain = f"달러 가치(달러 인덱스)는 {v}예요. 달러가 강하면 신흥국·원자재·수출 기업에는 역풍이 됩니다."
+        return 0, str(v), plain
+    return 0, "-", ""
 
-    total = sum(s["score"] for s in signals)
-    n = len(signals)
-    # 정규화(-100~+100)
-    norm = round(total / (2 * n) * 100) if n else 0
+
+def build_regime(inds: dict) -> dict:
+    signals = []
+    # 종합점수에 넣을 핵심 지표 순서
+    for key in ["vix", "us10y", "sp500", "cpi", "unrate", "nfp", "gdp"]:
+        ind = inds.get(key)
+        if not ind or not ind.get("available"):
+            continue
+        s, r, plain = score_indicator(key, ind)
+        signals.append({
+            "key": key, "name": ind["label"], "score": s,
+            "reading": f"{ind['value']}{ind['unit']} · {r}",
+            "value": ind["value"], "unit": ind["unit"],
+            "change": ind["change"], "change_pct": ind["change_pct"],
+            "change_label": ind["change_label"], "invert": ind["invert"],
+            "plain": plain,
+        })
+
+    total = sum(x["score"] for x in signals)
+    n = len(signals) or 1
+    norm = round(total / (2 * n) * 100)
 
     if norm >= 45:
         weather, emoji = "맑음", "☀️"
@@ -354,119 +291,121 @@ def build_regime(daily: dict, monthly: dict, quarterly: dict) -> dict:
         summary = "위험 회피 국면입니다. 자본 보전이 최우선입니다."
         stance = "매우 방어적(현금·단기채 위주, 반등 확인 전 신규 위험자산 자제)"
 
-    # 초보용 예시 배분(교육용 · 권유 아님) — 날씨에 따른 '위험자산 비중' 예시 밴드
-    if norm >= 45:   alloc = {"위험자산(주식 등)": "60~70%", "안전자산(채권·현금)": "30~40%"}
-    elif norm >= 15: alloc = {"위험자산(주식 등)": "50~60%", "안전자산(채권·현금)": "40~50%"}
-    elif norm > -15: alloc = {"위험자산(주식 등)": "40~50%", "안전자산(채권·현금)": "50~60%"}
-    elif norm > -45: alloc = {"위험자산(주식 등)": "25~40%", "안전자산(채권·현금)": "60~75%"}
-    else:            alloc = {"위험자산(주식 등)": "10~25%", "안전자산(채권·현금)": "75~90%"}
+    # 지금 상태를 쉽게 풀어주는 한 문단(초보용)
+    pos = [s["name"] for s in signals if s["score"] > 0]
+    neg = [s["name"] for s in signals if s["score"] < 0]
+    parts = [f"지금 미국 경제는 종합적으로 '{weather}'입니다."]
+    if pos:
+        parts.append("긍정적인 부분은 " + "·".join(pos[:3]) + " 쪽이고,")
+    if neg:
+        parts.append("조심할 부분은 " + "·".join(neg[:3]) + " 쪽이에요.")
+    else:
+        parts.append("특별히 위험한 신호는 두드러지지 않아요.")
+    narrative = " ".join(parts)
 
     return {
-        "score": norm,
-        "weather": weather,
-        "emoji": emoji,
-        "summary": summary,
-        "stance": stance,
-        "example_allocation": alloc,
-        "signals": signals,
+        "score": norm, "weather": weather, "emoji": emoji,
+        "summary": summary, "stance": stance,
+        "narrative": narrative, "signals": signals,
     }
 
 
 # ─────────────────────────── 실행/조립 ───────────────────────────
-def gather_live() -> dict:
-    """FRED에서 실데이터를 모아 대시보드 payload를 만든다."""
-    raw: dict[str, list] = {}
-    errors: dict[str, str] = {}
-    for key, sid in SERIES.items():
-        # 일간 지표는 최근 2년, 월/분기는 더 길게
-        cosd = "2018-01-01" if key in ("cpi", "nfp", "unrate", "gdp", "fedfunds") else "2023-01-01"
-        try:
-            raw[key] = fetch_series(sid, cosd)
-            print(f"  ✓ {key:9s} {sid:16s} {len(raw[key])}개")
-        except Exception as e:
-            errors[key] = f"{type(e).__name__}: {e}"
-            raw[key] = []
-            print(f"  ✗ {key:9s} {sid:16s} 실패 — {errors[key]}", file=sys.stderr)
-
-    daily = {
-        "us10y": build_daily("us10y", raw["us10y"], 120),
-        "vix": build_daily("vix", raw["vix"], 120),
-        "dxy": build_daily("dxy", raw["dxy"], 120),
-        "sp500": build_daily("sp500", raw["sp500"], 120),
-    }
-    monthly = {
-        "cpi": build_cpi(raw["cpi"]),
-        "nfp": build_nfp(raw["nfp"]),
-        "unrate": build_monthly(raw["unrate"], 18, 1),
-        "fedfunds": build_fedfunds(raw["fedfunds"]),
-    }
-    quarterly = {
-        "gdp": build_gdp(raw["gdp"]),
-        "sp500_earnings": build_sp500_quarterly(raw["sp500"]),
-    }
-    regime = build_regime(daily, monthly, quarterly)
-
+def assemble(inds: dict, source: str, errors: dict) -> dict:
+    daily = {k: v for k, v in inds.items() if v.get("cat") == "daily"}
+    monthly = {k: v for k, v in inds.items() if v.get("cat") == "monthly"}
+    quarterly = {k: v for k, v in inds.items() if v.get("cat") == "quarterly"}
+    # S&P 500 분기 흐름 카드(sp500 재사용, 분기 수익률 계산)
+    sp = inds.get("sp500")
+    if sp and sp.get("available"):
+        vals = sp["series"]["v"]
+        base = vals[-64] if len(vals) > 64 else vals[0]
+        qret = pct_change(vals[-1], base)
+        today = date.today()
+        season = {1: "Q4(전년)", 2: "Q4(전년)", 4: "Q1", 5: "Q1",
+                  7: "Q2", 8: "Q2", 10: "Q3", 11: "Q3"}.get(today.month)
+        quarterly["sp500_q"] = {
+            **{k: sp[k] for k in ("series", "invert", "dec")},
+            "available": True, "key": "sp500_q", "cat": "quarterly",
+            "label": "S&P 500 분기 흐름", "unit": "%",
+            "value": round(qret, 1) if qret is not None else None,
+            "change": None, "change_pct": None, "change_label": "지난분기보다",
+            "date": sp["date"], "sub": f"최근 분기 지수 등락 · {'지금 '+season+' 실적시즌' if season else '실적 비수기'}",
+            "level": sp["value"],
+        }
+    regime = build_regime(inds)
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source": "fred",
+        "source": source,
         "errors": errors,
-        "daily": daily,
-        "monthly": monthly,
-        "quarterly": quarterly,
+        "daily": daily, "monthly": monthly, "quarterly": quarterly,
         "regime": regime,
     }
+
+
+def gather_live() -> dict:
+    inds, errors = {}, {}
+    for meta in INDICATORS:
+        try:
+            raw = fetch_series(meta["sid"], meta["years"])
+            ser = clip_years(transform(meta.get("transform"), raw), meta["years"])
+            inds[meta["key"]] = build_indicator(meta, ser)
+            print(f"  ✓ {meta['key']:9s} {meta['sid']:16s} {len(ser)}pts")
+        except Exception as e:
+            errors[meta["key"]] = f"{type(e).__name__}: {e}"
+            inds[meta["key"]] = {"available": False, "label": meta["label"], "cat": meta["cat"]}
+            print(f"  ✗ {meta['key']:9s} 실패 — {errors[meta['key']]}", file=sys.stderr)
+    return assemble(inds, "fred", errors)
 
 
 def gather_seed() -> dict:
-    """오프라인용 예시 데이터. source='seed' 로 표시되어 UI에 경고 배너가 뜬다.
-    최초 Actions 실행이 실제값으로 덮어쓴다. (수치는 예시일 뿐 실제값 아님)"""
-    def sp(base, n, step):  # 단순한 예시 스파크라인
-        return [round(base + i * step, 2) for i in range(n)]
+    """오프라인 예시 데이터. 과거 시계열도 합성 생성(그래프 확인용)."""
+    import random
+    random.seed(7)
+    today = date.today()
+    inds = {}
 
-    daily = {
-        "us10y": {"available": True, "value": 4.21, "date": "2026-07-29", "change": -0.02,
-                  "change_pct": -0.47, "ma200": 4.35, "spark": sp(4.5, 20, -0.015)},
-        "vix": {"available": True, "value": 16.2, "date": "2026-07-29", "change": -0.4,
-                "change_pct": -2.4, "ma200": 17.5, "spark": sp(18, 20, -0.09)},
-        "dxy": {"available": True, "value": 121.3, "date": "2026-07-29", "change": 0.1,
-                "change_pct": 0.08, "ma200": 122.0, "spark": sp(123, 20, -0.08)},
-        "sp500": {"available": True, "value": 6380.0, "date": "2026-07-29", "change": 22.0,
-                  "change_pct": 0.35, "ma200": 6050.0, "spark": sp(6100, 20, 14)},
+    def daily_series(years, start, drift, vol, floor=None):
+        n = int(252 * years)
+        out, v = [], start
+        for i in range(n):
+            d = today - timedelta(days=int((n - i) * 365 / 252))
+            v = v + drift + random.uniform(-vol, vol)
+            if floor is not None:
+                v = max(floor, v)
+            out.append((d.isoformat(), round(v, 4)))
+        return out
+
+    def monthly_series(months, start, drift, vol, floor=None):
+        out, v = [], start
+        for i in range(months):
+            d = (today.replace(day=1) - timedelta(days=30 * (months - i)))
+            v = v + drift + random.uniform(-vol, vol)
+            if floor is not None:
+                v = max(floor, v)
+            out.append((d.isoformat(), round(v, 4)))
+        return out
+
+    specs = {
+        "us10y": daily_series(5, 2.5, 0.0016, 0.05, 0.5),
+        "vix": daily_series(5, 22, -0.002, 1.2, 9),
+        "dxy": daily_series(5, 115, 0.004, 0.3),
+        "sp500": daily_series(5, 4200, 2.4, 30),
+        "cpi": monthly_series(60, 5.5, -0.03, 0.15, 0.5),
+        "nfp": monthly_series(60, 180, -1, 60),
+        "unrate": monthly_series(60, 3.6, 0.008, 0.08, 3.4),
+        "fedfunds": daily_series(5, 1.0, 0.0025, 0.0, 0.25),
+        "gdp": [(d, round(v, 1)) for d, v in monthly_series(20, 2.5, 0.0, 1.4)],
     }
-    monthly = {
-        "cpi": {"available": True, "value": 2.9, "prev": 3.1, "date": "2026-06",
-                "target": 2.0, "spark": [3.5, 3.4, 3.3, 3.2, 3.1, 2.9]},
-        "nfp": {"available": True, "value": 165, "prev": 190, "date": "2026-06",
-                "spark": [210, 185, 170, 190, 190, 165]},
-        "unrate": {"available": True, "value": 4.1, "prev": 4.1, "date": "2026-06",
-                   "spark": [3.9, 4.0, 4.0, 4.1, 4.1, 4.1]},
-        "fedfunds": {"available": True, "value": 4.5, "date": "2026-07-29",
-                     "last_change_date": "2026-06-18", "last_change": -0.25,
-                     "spark": [5.5, 5.5, 5.25, 5.0, 4.75, 4.5]},
-    }
-    quarterly = {
-        "gdp": {"available": True, "value": 2.3, "prev": 2.8, "date": "2026 Q1",
-                "spark": [2.1, 3.4, 2.8, 2.3]},
-        "sp500_earnings": {"available": True, "level": 6380.0, "date": "2026-07-29",
-                           "quarter_return": 5.4, "earnings_season": "Q2",
-                           "spark": sp(6050, 20, 16)},
-    }
-    regime = build_regime(daily, monthly, quarterly)
-    return {
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source": "seed",
-        "errors": {},
-        "daily": daily,
-        "monthly": monthly,
-        "quarterly": quarterly,
-        "regime": regime,
-    }
+    for meta in INDICATORS:
+        inds[meta["key"]] = build_indicator(meta, specs[meta["key"]])
+    return assemble(inds, "seed", {})
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="미국 거시지표 → results/macro.json")
     ap.add_argument("--seed", action="store_true", help="오프라인 예시 데이터 생성")
-    ap.add_argument("--out", default=str(OUT_JSON), help="저장 경로")
+    ap.add_argument("--out", default=str(OUT_JSON))
     args = ap.parse_args()
 
     if args.seed:
@@ -475,17 +414,15 @@ def main() -> int:
     else:
         print("FRED에서 실데이터 수집 중…")
         payload = gather_live()
-        # 실행 결과가 전부 실패했으면(네트워크 차단 등) 종료코드로 알림
-        if all(not payload["daily"][k].get("available") for k in payload["daily"]):
+        if all(not v.get("available") for v in payload["daily"].values()):
             print("모든 일간 지표 수집 실패 — 네트워크/정책 확인 필요", file=sys.stderr)
-            # seed가 이미 있으면 덮어쓰지 않도록 실패 처리
             return 2
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     r = payload["regime"]
-    print(f"저장 완료 → {out}")
+    print(f"저장 완료 → {out}  ({len(json.dumps(payload))//1024} KB)")
     print(f"시장 날씨: {r['emoji']} {r['weather']} (점수 {r['score']:+d}) · 신호 {len(r['signals'])}개")
     return 0
 
