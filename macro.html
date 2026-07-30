@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>미국 경제 신호등 · 왜 시장이 움직이나</title>
+<meta name="description" content="매일·매달·분기 미국 핵심 경제지표(금리·물가·고용·성장·공포지수)를 한눈에. 시장이 왜 움직이는지 해석하고 초보 투자 가이드까지."/>
+<!-- 카카오톡 등에 링크를 붙여넣으면 아래 미리보기가 표시됩니다 -->
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="미국 경제 신호등 · 왜 시장이 움직이나"/>
+<meta property="og:description" content="금리·물가·고용·GDP·VIX·달러를 한 화면에서. 시장 날씨와 초보 투자 가이드를 자동 해석."/>
+<meta property="og:locale" content="ko_KR"/>
+<meta name="twitter:card" content="summary"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080c;--surface:#0d0f17;--card:#111420;--border:#1a1d2e;--border2:#22253a;
+  --accent:#4f8ef7;--accent2:#7ba8ff;
+  --green:#2dce89;--red:#f75f4f;--purple:#9b5cf6;--gold:#f5c542;--orange:#ff9f43;--teal:#00c9a7;
+  --text:#e8ecf5;--sub:#6b7290;--dim:#2a2d42;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{padding:24px 20px 18px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,#0b0e19 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hdr::after{content:'';position:absolute;top:-80px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 65%);pointer-events:none}
+.hdr-row{display:flex;align-items:center;gap:11px;max-width:1080px;margin:0 auto}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.hdr h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.hdr h1 small{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px;letter-spacing:0}
+
+/* META BAR */
+.meta{max-width:1080px;margin:14px auto 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 20px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 11px;font-size:11.5px;font-weight:600}
+.badge.live{background:rgba(45,206,137,.1);border:1px solid rgba(45,206,137,.22);color:var(--green)}
+.badge.info{background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.18);color:var(--accent2)}
+.badge.seed{background:rgba(255,159,67,.1);border:1px solid rgba(255,159,67,.28);color:var(--orange)}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.controls{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{background:var(--card);border:1px solid var(--border2);color:var(--sub);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s,color .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent);color:var(--accent2)}
+.btn:active{transform:scale(.97)}
+.btn.kakao{background:#FEE500;color:#191600;border-color:#FEE500;font-weight:800}
+.btn.kakao:hover{filter:brightness(.95);color:#191600}
+
+/* MAIN */
+.main{max-width:1080px;margin:0 auto;padding:20px}
+.section-t{font-size:13px;font-weight:800;letter-spacing:.3px;margin:26px 4px 12px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.section-t .cad{font-size:10.5px;font-weight:700;color:var(--sub);background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:2px 8px}
+.section-t:first-of-type{margin-top:8px}
+
+/* HERO (시장 날씨) */
+.hero{background:linear-gradient(135deg,#0e1424,#0d0f17);border:1px solid var(--border2);border-radius:16px;padding:22px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.hero-emoji{font-size:58px;line-height:1}
+.hero-body h2{font-size:22px;font-weight:900;letter-spacing:-.4px;margin-bottom:4px}
+.hero-body .sum{font-size:13px;color:var(--text);line-height:1.55;max-width:640px}
+.hero-body .stance{font-size:12.5px;color:var(--accent2);margin-top:8px;font-weight:600}
+.gauge{margin-top:12px;height:9px;border-radius:6px;background:linear-gradient(90deg,var(--red),var(--orange),var(--gold),var(--teal),var(--green));position:relative;max-width:520px}
+.gauge .pin{position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.6);transform:translateX(-50%)}
+.gauge-labels{display:flex;justify-content:space-between;max-width:520px;margin-top:5px;font-size:10px;color:var(--sub);font-weight:600}
+
+/* CARD GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px 16px;position:relative;overflow:hidden}
+.card .k{font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.2px;display:flex;align-items:center;justify-content:space-between}
+.card .k .tag{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--surface);border:1px solid var(--border2);color:var(--sub)}
+.card .v{font-size:27px;font-weight:900;letter-spacing:-.6px;margin-top:9px;font-variant-numeric:tabular-nums}
+.card .v .unit{font-size:14px;font-weight:700;color:var(--sub);margin-left:2px}
+.card .chg{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.card .chg.up{color:var(--green)}.card .chg.down{color:var(--red)}.card .chg.flat{color:var(--sub)}
+.card .sub{font-size:11px;color:var(--sub);margin-top:6px;line-height:1.45}
+.card svg.spark{width:100%;height:34px;margin-top:10px;display:block}
+.card .rd{margin-top:9px;font-size:11px;font-weight:700;display:inline-block;padding:3px 9px;border-radius:6px}
+.rd.good{background:rgba(45,206,137,.12);border:1px solid rgba(45,206,137,.28);color:var(--green)}
+.rd.warn{background:rgba(245,197,66,.1);border:1px solid rgba(245,197,66,.25);color:var(--gold)}
+.rd.bad{background:rgba(247,95,79,.1);border:1px solid rgba(247,95,79,.26);color:var(--red)}
+.rd.neu{background:var(--surface);border:1px solid var(--border2);color:var(--sub)}
+
+/* WHY / SIGNALS */
+.why{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.why .row{display:grid;grid-template-columns:150px 130px 1fr;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);align-items:center}
+.why .row:last-child{border-bottom:none}
+.why .row:hover{background:var(--surface)}
+.why .nm{font-weight:800;font-size:13px}
+.why .reading{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.why .desc{font-size:12px;color:var(--sub);line-height:1.5}
+.why .sc{display:inline-block;width:26px;height:26px;border-radius:7px;text-align:center;line-height:26px;font-weight:800;font-size:12px;flex-shrink:0;margin-right:8px}
+
+/* GUIDE (초보 가이드) */
+.guide{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.guide{grid-template-columns:1fr}.hero{grid-template-columns:1fr;text-align:center}.why .row{grid-template-columns:1fr;gap:5px}.why .desc{margin-top:2px}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.panel h3{font-size:14px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.panel ol,.panel ul{margin:0 0 0 2px;padding:0;list-style:none}
+.panel li{font-size:12.5px;line-height:1.6;color:var(--text);padding:7px 0 7px 26px;position:relative;border-bottom:1px dashed var(--border)}
+.panel li:last-child{border-bottom:none}
+.panel li b{color:var(--accent2)}
+.panel li .num{position:absolute;left:0;top:7px;width:19px;height:19px;border-radius:6px;background:var(--surface);border:1px solid var(--border2);color:var(--accent2);font-size:11px;font-weight:800;text-align:center;line-height:19px}
+.alloc{display:flex;gap:10px;margin-top:6px}
+.alloc .a{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;text-align:center}
+.alloc .a .lab{font-size:11px;color:var(--sub);font-weight:700}
+.alloc .a .pct{font-size:19px;font-weight:900;margin-top:4px;letter-spacing:-.4px}
+.alloc .a.risk .pct{color:var(--teal)}.alloc .a.safe .pct{color:var(--accent2)}
+
+/* PLAYBOOK explainer */
+.play{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:6px 18px}
+.play details{border-bottom:1px solid var(--border)}
+.play details:last-child{border-bottom:none}
+.play summary{cursor:pointer;font-size:13px;font-weight:700;padding:14px 2px;list-style:none;display:flex;align-items:center;gap:9px}
+.play summary::-webkit-details-marker{display:none}
+.play summary .ic{font-size:16px}
+.play summary::after{content:'＋';margin-left:auto;color:var(--sub);font-weight:800}
+.play details[open] summary::after{content:'－'}
+.play .pc{font-size:12.5px;color:var(--sub);line-height:1.7;padding:0 2px 16px 27px}
+.play .pc b{color:var(--text)}
+.play .pc .cause{color:var(--accent2);font-weight:700}
+
+/* STATES */
+.state-box{text-align:center;padding:60px 24px;color:var(--sub)}
+.state-box .emoji{font-size:44px;margin-bottom:14px;opacity:.85}
+.state-box h2{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.state-box p{font-size:13px;line-height:1.6;max-width:440px;margin:0 auto}
+.spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SEED banner */
+.seedbar{max-width:1080px;margin:14px auto 0;padding:0 20px}
+.seedbar .in{background:rgba(255,159,67,.07);border:1px solid rgba(255,159,67,.22);border-radius:10px;padding:11px 15px;font-size:12px;line-height:1.55;color:#ffc99a}
+.seedbar .in b{color:var(--orange)}
+
+/* DISCLAIMER */
+.foot{max-width:1080px;margin:20px auto 44px;padding:0 20px}
+.disc{background:rgba(247,95,79,.05);border:1px solid rgba(247,95,79,.16);border-radius:10px;padding:13px 16px;font-size:12px;line-height:1.65;color:var(--sub)}
+.disc b{color:#f7a99f}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#0d0f17;border:1px solid var(--border2);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-row">
+    <div class="logo">🧭</div>
+    <h1>미국 경제 신호등<small>매일·매달·분기 핵심지표를 한 화면에 · 시장이 왜 움직이는지 해석 · 초보 투자 가이드</small></h1>
+  </div>
+</header>
+
+<div class="meta">
+  <span class="badge live"><span class="dot"></span><span id="statusText">불러오는 중…</span></span>
+  <span class="badge info" id="dateBadge" style="display:none"></span>
+  <div class="controls">
+    <a class="btn" href="dashboard.html">📊 모멘텀</a>
+    <a class="btn" href="kospi.html">🇰🇷 코스피</a>
+    <button class="btn kakao" id="shareBtn">💬 카카오톡 공유</button>
+    <button class="btn" id="refreshBtn">↻ 새로고침</button>
+  </div>
+</div>
+<div class="seedbar" id="seedbar" style="display:none">
+  <div class="in"><b>⚠️ 예시(초기) 데이터입니다.</b> 아직 자동 수집이 한 번도 실행되지 않았습니다.
+  GitHub Actions의 <b>미국 거시지표 수집</b> 워크플로우가 실행되면 실제 값(FRED 출처)으로 자동 교체됩니다.
+  지금 화면의 숫자는 실제 시세가 아닙니다.</div>
+</div>
+
+<main class="main">
+  <div id="content">
+    <div class="state-box"><div class="spinner"></div><h2>지표를 불러오는 중…</h2></div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="disc">
+    <b>⚠️ 이 페이지는 공개 경제데이터(FRED)를 모아 '해석·교육'하는 참고 자료일 뿐, 투자 권유가 아닙니다.</b>
+    '시장 날씨', 점수, 예시 자산배분은 규칙기반 참고 지표이며 미래 수익을 보장하지 않습니다.
+    이 페이지에는 어떤 자동 매수/매도 기능도 없습니다. 실제 투자는 반드시 본인의 판단과 책임으로,
+    분산·장기·여유자금 원칙 아래 진행하세요. 지표 값은 발표 지연·개정으로 실제와 다를 수 있습니다.
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL_JSON = 'results/macro.json';
+const $ = (id) => document.getElementById(id);
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ── 스파크라인 SVG ── */
+function sparkSVG(vals, up){
+  if(!vals || vals.length<2) return '';
+  const w=220,h=34,pad=3;
+  const min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const pts=vals.map((v,i)=>{
+    const x=pad+i*(w-2*pad)/(vals.length-1);
+    const y=h-pad-(v-min)/rng*(h-2*pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const col=up>0?'#2dce89':up<0?'#f75f4f':'#7ba8ff';
+  const area=`M${pts[0]} L${pts.join(' L')} L${w-pad},${h} L${pad},${h} Z`;
+  const line=`M${pts.join(' L')}`;
+  const gid='g'+Math.random().toString(36).slice(2,7);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/>
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function chgHTML(chg, pct, invert, unit){
+  if(chg===null||chg===undefined) return '';
+  const dir = chg>0?1:chg<0?-1:0;
+  // invert=true 이면 값 상승이 '나쁨'(예: 금리·VIX·달러) → 색만 반대로
+  const cls = dir===0?'flat':(invert? (dir>0?'down':'up') : (dir>0?'up':'down'));
+  const arrow = dir>0?'▲':dir<0?'▼':'―';
+  const p = (pct!==null&&pct!==undefined)?` (${pct>0?'+':''}${pct}%)`:'';
+  return `<div class="chg ${cls}">${arrow} ${chg>0?'+':''}${chg}${unit||''}${p}</div>`;
+}
+
+function card(o){
+  const spark = sparkSVG(o.spark, o.sparkDir!==undefined?o.sparkDir:1);
+  const rd = o.reading ? `<div class="rd ${o.rdClass||'neu'}">${esc(o.reading)}</div>` : '';
+  return `<div class="card">
+    <div class="k"><span>${esc(o.k)}</span><span class="tag">${esc(o.tag||'')}</span></div>
+    <div class="v">${o.v}${o.unit?`<span class="unit">${esc(o.unit)}</span>`:''}</div>
+    ${o.chg||''}
+    ${spark}
+    ${o.sub?`<div class="sub">${o.sub}</div>`:''}
+    ${rd}
+  </div>`;
+}
+
+/* reading → 색 클래스 매핑(신호 점수 재사용) */
+function rdClassFromScore(s){return s>=1?'good':s<=-2?'bad':s<0?'warn':'neu';}
+
+function renderSeedBar(src){ $('seedbar').style.display = (src==='seed')?'':'none'; }
+
+function render(d){
+  const D=d.daily||{}, M=d.monthly||{}, Q=d.quarterly||{}, R=d.regime||{};
+  renderSeedBar(d.source);
+
+  // 신호 점수를 지표별로 찾아 reading/색 부여
+  const sigBy={}; (R.signals||[]).forEach(s=>sigBy[s.name]=s);
+  const rd=(name)=>{const s=sigBy[name];return s?{reading:s.reading,rdClass:rdClassFromScore(s.score)}:{};};
+
+  // ── HERO ──
+  const pin = Math.max(0,Math.min(100,(R.score+100)/2));
+  const hero = `
+  <div class="hero">
+    <div class="hero-emoji">${R.emoji||'📊'}</div>
+    <div class="hero-body">
+      <h2>오늘의 시장 날씨 — ${esc(R.weather||'-')}</h2>
+      <div class="sum">${esc(R.summary||'')}</div>
+      <div class="stance">🎯 권장 태세: ${esc(R.stance||'')}</div>
+      <div class="gauge"><div class="pin" style="left:${pin}%"></div></div>
+      <div class="gauge-labels"><span>⛈️ 위험회피</span><span>중립</span><span>☀️ 위험선호</span></div>
+    </div>
+  </div>`;
+
+  // ── DAILY ──
+  const dU=D.us10y||{}, dV=D.vix||{}, dX=D.dxy||{}, dS=D.sp500||{};
+  const daily = `<div class="grid">
+    ${card({k:'미국 10년물 국채금리',tag:'DGS10',v:dU.value??'–',unit:'%',
+      chg:chgHTML(dU.change,dU.change_pct,true,''),spark:dU.spark,sparkDir:dU.change>0?-1:1,
+      sub:'돈의 값. 오르면 대출·주식 밸류에이션 부담↑',...rd('10년물 금리')})}
+    ${card({k:'VIX 공포지수',tag:'VIXCLS',v:dV.value??'–',
+      chg:chgHTML(dV.change,dV.change_pct,true,''),spark:dV.spark,sparkDir:dV.change>0?-1:1,
+      sub:'시장의 불안 온도. 20↑ 경계, 30↑ 공포',...rd('VIX 변동성')})}
+    ${card({k:'달러 인덱스',tag:'광의 USD',v:dX.value??'–',
+      chg:chgHTML(dX.change,dX.change_pct,true,''),spark:dX.spark,sparkDir:dX.change>0?-1:1,
+      sub:'강달러=신흥국·원자재·수출주엔 역풍',...{}})}
+    ${card({k:'S&P 500',tag:'SP500',v:dS.value?Number(dS.value).toLocaleString():'–',
+      chg:chgHTML(dS.change,dS.change_pct,false,''),spark:dS.spark,sparkDir:dS.change>0?1:-1,
+      sub:'미국 대표 500대 기업 주가지수',...rd('S&P 500 추세')})}
+  </div>`;
+
+  // ── MONTHLY ──
+  const mC=M.cpi||{}, mN=M.nfp||{}, mUn=M.unrate||{}, mF=M.fedfunds||{};
+  const fedChg = mF.last_change!=null?`최근 변경 ${mF.last_change>0?'+':''}${mF.last_change}%p (${mF.last_change_date||''})`:'';
+  const monthly = `<div class="grid">
+    ${card({k:'CPI 소비자물가 (전년比)',tag:mC.date||'월간',v:mC.value??'–',unit:'%',
+      chg:mC.prev!=null?chgHTML(+(mC.value-mC.prev).toFixed(2),null,true,'%p'):'',spark:mC.spark,
+      sparkDir:(mC.prev!=null&&mC.value<mC.prev)?1:-1,
+      sub:`연준 목표 ${mC.target??2}% 대비. 낮아질수록 금리인하 여지↑`,...rd('CPI 물가')})}
+    ${card({k:'신규고용 NFP',tag:mN.date||'월간',v:(mN.value!=null?(mN.value>0?'+':'')+Number(mN.value).toLocaleString():'–'),unit:'천명',
+      chg:mN.prev!=null?`전월 ${mN.prev>0?'+':''}${Number(mN.prev).toLocaleString()}천명`:'',
+      spark:mN.spark,sparkDir:mN.value>0?1:-1,
+      sub:'매달 늘어난 일자리. 경기 확장/위축의 척도',...rd('신규고용(NFP)')})}
+    ${card({k:'실업률',tag:mUn.date||'월간',v:mUn.value??'–',unit:'%',
+      chg:mUn.prev!=null?chgHTML(+(mUn.value-mUn.prev).toFixed(1),null,true,'%p'):'',spark:mUn.spark,
+      sparkDir:(mUn.prev!=null&&mUn.value>mUn.prev)?-1:1,
+      sub:'급등하면 경기침체 경고 신호',...rd('실업률')})}
+    ${card({k:'FOMC 정책금리 (상단)',tag:'연준',v:mF.value??'–',unit:'%',
+      chg:'',spark:mF.spark,sparkDir:0,
+      sub:`연준이 정하는 기준금리. ${esc(fedChg)}`,...{}})}
+  </div>`;
+
+  // ── QUARTERLY ──
+  const qG=Q.gdp||{}, qE=Q.sp500_earnings||{};
+  const season = qE.earnings_season?`지금 <b>${esc(qE.earnings_season)}</b> 실적 발표 시즌`:'실적 발표 비수기';
+  const quarterly = `<div class="grid">
+    ${card({k:'실질 GDP 성장률',tag:qG.date||'분기',v:qG.value??'–',unit:'%',
+      chg:qG.prev!=null?`전분기 ${qG.prev}%`:'',spark:qG.spark,sparkDir:qG.value>=0?1:-1,
+      sub:'연율 환산. 2회 연속 마이너스면 기술적 침체',...rd('GDP 성장률')})}
+    ${card({k:'S&P 500 분기 흐름',tag:'실적시즌',v:(qE.quarter_return!=null?(qE.quarter_return>0?'+':'')+qE.quarter_return:'–'),unit:'%',
+      chg:qE.level?`지수 ${Number(qE.level).toLocaleString()}`:'',spark:qE.spark,sparkDir:qE.quarter_return>=0?1:-1,
+      sub:`최근 분기 지수 등락. ${season}`,...{}})}
+  </div>`;
+
+  // ── WHY (신호 해석) ──
+  const scColor=(s)=>s>=1?'background:rgba(45,206,137,.15);color:#2dce89':s<=-2?'background:rgba(247,95,79,.15);color:#f75f4f':s<0?'background:rgba(245,197,66,.13);color:#f5c542':'background:var(--surface);color:var(--sub)';
+  const why = `<div class="why">
+    ${(R.signals||[]).map(s=>`<div class="row">
+      <div class="nm"><span class="sc" style="${scColor(s.score)}">${s.score>0?'+':''}${s.score}</span>${esc(s.nm||s.name)}</div>
+      <div class="reading">${esc(s.reading)}</div>
+      <div class="desc">${esc(s.why)}</div>
+    </div>`).join('')}
+  </div>`;
+
+  // ── GUIDE (초보 가이드) ──
+  const alloc=R.example_allocation||{};
+  const allocKeys=Object.keys(alloc);
+  const guide = `<div class="guide">
+    <div class="panel">
+      <h3>🎓 초보자를 위한 3단계</h3>
+      <ol>
+        <li><span class="num">1</span><b>날씨부터 본다.</b> 위 '시장 날씨'가 맑음이면 위험자산 비중을 조금 높여도 되는 국면, 비·폭풍이면 지키는 국면입니다. 하루하루 예측이 아니라 '지금이 어떤 계절인지'를 봅니다.</li>
+        <li><span class="num">2</span><b>한 번에 넣지 않는다.</b> 목돈을 한 번에 넣기보다 매달 같은 금액을 나눠 사는 <b>분할·적립식</b>이 초보에겐 가장 안전합니다. 타이밍을 못 맞춰도 평균 단가로 위험이 줄어듭니다.</li>
+        <li><span class="num">3</span><b>분산 + 여유자금 + 장기.</b> 미국 지수 ETF처럼 넓게 분산된 자산에, 3~5년 이상 안 써도 되는 돈으로, 흔들려도 팔지 않을 만큼만 투자합니다.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h3>🧭 지금 국면의 예시 배분 <span style="font-size:11px;color:var(--sub);font-weight:600">(교육용·권유 아님)</span></h3>
+      <div class="alloc">
+        <div class="a risk"><div class="lab">${esc(allocKeys[0]||'위험자산')}</div><div class="pct">${esc(alloc[allocKeys[0]]||'–')}</div></div>
+        <div class="a safe"><div class="lab">${esc(allocKeys[1]||'안전자산')}</div><div class="pct">${esc(alloc[allocKeys[1]]||'–')}</div></div>
+      </div>
+      <ul style="margin-top:12px">
+        <li style="padding-left:0"><b>위험자산</b> = 주식·주식형 ETF 등 오를 때 크게 오르고 내릴 때 크게 내리는 자산.</li>
+        <li style="padding-left:0"><b>안전자산</b> = 예금·단기채·달러 등 변동이 작아 방어 역할을 하는 자산.</li>
+        <li style="padding-left:0;border-bottom:none">이 비율은 '날씨'에 따라 자동으로 바뀌는 <b>예시 밴드</b>일 뿐입니다. 본인의 나이·목표·성향에 맞게 조정하세요.</li>
+      </ul>
+    </div>
+  </div>`;
+
+  // ── PLAYBOOK (왜 시장이 움직이나) ──
+  const play = `<div class="play">
+    <details open><summary><span class="ic">💵</span>금리 — 모든 자산의 '중력'</summary>
+      <div class="pc"><span class="cause">원인→결과:</span> 물가가 높으면 → 연준이 <b>금리를 올려</b> 돈을 비싸게 만든다 → 대출·투자가 줄고, 미래 이익의 현재가치가 깎여 <b>주식(특히 성장주)·부동산 하락 압력</b>. 반대로 금리를 내리면 위험자산에 순풍. <b>10년물 금리</b>가 이 흐름의 온도계입니다.</div></details>
+    <details><summary><span class="ic">🔥</span>물가(CPI) — 연준을 움직이는 방아쇠</summary>
+      <div class="pc"><span class="cause">원인→결과:</span> CPI가 목표(2%)보다 높으면 → 연준이 금리를 <b>높게 유지</b> → 시장 부담. CPI가 <b>둔화</b>되면 → 금리인하 기대 → 주식·채권에 우호적. 그래서 매달 CPI 발표에 시장이 크게 출렁입니다.</div></details>
+    <details><summary><span class="ic">👷</span>고용(NFP·실업률) — 경기의 맥박</summary>
+      <div class="pc"><span class="cause">원인→결과:</span> 고용이 강하면 → 소비·기업이익↑(성장에 좋음). 단, <b>너무 뜨거우면</b> 물가를 자극해 금리인하가 늦어질 수 있어 '좋은 뉴스가 나쁜 뉴스'가 되기도 합니다. 실업률이 <b>빠르게 오르면</b> 침체 경고.</div></details>
+    <details><summary><span class="ic">📈</span>성장(GDP)·실적 — 결국 기업이 버는 돈</summary>
+      <div class="pc"><span class="cause">원인→결과:</span> 장기적으로 주가는 <b>기업이익</b>을 따라갑니다. GDP가 확장하고 분기 <b>실적</b>이 예상을 웃돌면 상승 동력, 역성장·실적 부진은 하락 동력. 금리가 '밸류에이션'이면 실적은 '펀더멘털'입니다.</div></details>
+    <details><summary><span class="ic">😱</span>VIX·달러 — 심리와 자금의 흐름</summary>
+      <div class="pc"><span class="cause">원인→결과:</span> 불안하면 → <b>VIX 급등</b> + 안전자산 <b>달러 강세</b> → 위험자산에서 자금 이탈. VIX가 낮고 달러가 안정되면 위험선호. 이 둘은 '지금 시장이 겁먹었는지'를 실시간으로 보여줍니다.</div></details>
+    <details><summary><span class="ic">🧩</span>종합 — 신호를 '체계적으로' 읽는 법</summary>
+      <div class="pc"><b>①금리·물가</b>(할인율) <b>②고용·GDP·실적</b>(펀더멘털) <b>③VIX·달러</b>(심리)를 순서대로 확인하면, 개별 뉴스에 휘둘리지 않고 <b>큰 그림</b>을 잡을 수 있습니다. 이 페이지의 '시장 날씨'는 바로 이 세 축을 점수화해 요약한 것입니다.</div></details>
+  </div>`;
+
+  $('content').innerHTML =
+    hero +
+    `<div class="section-t">🌡️ 시장 신호 해석 <span class="cad">지표별 왜?</span></div>` + why +
+    `<div class="section-t">📅 매일 보는 지표 <span class="cad">일간</span></div>` + daily +
+    `<div class="section-t">🗓️ 매달 보는 지표 <span class="cad">월간</span></div>` + monthly +
+    `<div class="section-t">📆 분기마다 보는 지표 <span class="cad">분기</span></div>` + quarterly +
+    `<div class="section-t">🧑‍🎓 초보 투자 가이드 <span class="cad">교육용</span></div>` + guide +
+    `<div class="section-t">🧠 시장은 왜 움직이나 <span class="cad">원인→결과</span></div>` + play;
+
+  // 상태 배지
+  $('statusText').textContent = d.source==='seed' ? '예시 데이터' : `실데이터 · ${R.emoji||''} ${R.weather||''}`;
+  $('dateBadge').style.display='';
+  const gd=(d.generated_at||'').replace('T',' ').replace('Z',' UTC');
+  $('dateBadge').textContent = '🕐 갱신 ' + gd;
+}
+
+function renderError(msg){
+  $('statusText').textContent='불러오기 실패';
+  $('content').innerHTML=`<div class="state-box"><div class="emoji">⚠️</div>
+    <h2>지표를 불러오지 못했습니다</h2>
+    <p>${esc(msg)}<br><br>아직 데이터 수집이 실행되지 않았거나, GitHub Pages가 갱신 중일 수 있습니다.
+    저장소의 <b>미국 거시지표 수집</b> 워크플로우를 한 번 실행해 주세요.</p></div>`;
+}
+
+async function load(){
+  $('statusText').textContent='불러오는 중…';
+  try{
+    const res=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    render(await res.json());
+  }catch(e){ renderError(e.message||String(e)); }
+}
+
+/* ── 공유: 카카오톡(모바일 공유시트)·Web Share·링크 복사 ── */
+async function share(){
+  const url=location.href.split('#')[0];
+  const title='미국 경제 신호등 · 왜 시장이 움직이나';
+  const text='금리·물가·고용·GDP·VIX·달러를 한 화면에서. 시장 날씨와 초보 투자 가이드까지 자동 해석 📈';
+  // 카카오 JS SDK 키가 있으면 카카오톡 공유 다이얼로그 사용 (선택)
+  if(window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized()){
+    try{ window.Kakao.Share.sendDefault({objectType:'feed',
+      content:{title,description:text,imageUrl:'',link:{mobileWebUrl:url,webUrl:url}}}); return; }catch(e){}
+  }
+  // 모바일: 네이티브 공유 시트(카카오톡 포함)
+  if(navigator.share){
+    try{ await navigator.share({title,text,url}); return; }catch(e){ if(e.name==='AbortError') return; }
+  }
+  // 데스크톱 등: 링크 복사
+  try{ await navigator.clipboard.writeText(url); toast('🔗 링크를 복사했어요! 카카오톡에 붙여넣어 공유하세요'); }
+  catch(e){ prompt('아래 링크를 복사해 공유하세요:', url); }
+}
+
+$('shareBtn').addEventListener('click', share);
+$('refreshBtn').addEventListener('click', load);
+load();
+</script>
+</body>
+</html>

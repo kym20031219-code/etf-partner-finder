@@ -1,0 +1,53 @@
+name: 미국 거시지표 수집
+
+# 미국 핵심 경제지표(금리·물가·고용·GDP·VIX·달러)를 FRED 공개 데이터에서 받아
+# results/macro.json 으로 커밋한다. macro.html 대시보드가 이 파일을 읽어 표시한다.
+#   - 일간 지표(10년물·VIX·달러·S&P)는 미 장마감 후 매일 갱신
+#   - 월간(CPI·NFP·실업률·정책금리)·분기(GDP·실적) 지표는 새 발표가 나오면 자동 반영
+# ⚠️ 예약(schedule) 실행은 '기본 브랜치(main)'에 이 파일이 있어야만 동작합니다.
+#    브랜치에서 테스트할 때는 아래 workflow_dispatch(수동 실행 버튼)를 사용하세요.
+on:
+  schedule:
+    - cron: "30 22 * * 1-5"   # UTC 22:30 (미 동부 장마감 후), 평일
+  workflow_dispatch:           # 수동 실행 버튼
+
+concurrency:
+  group: macro
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # results/macro.json 커밋용
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 미국 거시지표 수집 (FRED 공개 CSV, 키 불필요)
+        run: python fetch_macro.py
+
+      - name: 결과(results/macro.json) 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -z "$(git status --porcelain results/macro.json)" ]; then
+            echo "변경 없음 — 커밋 생략"; exit 0
+          fi
+          git add results/macro.json
+          git commit -m "chore: 미국 거시지표 갱신 $(date -u +%Y-%m-%d) [skip ci]"
+          # 다른 워크플로우가 동시에 push 했을 수 있으므로 rebase 후 재시도
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then pushed=1; break; fi
+            echo "push 거부 — 원격 반영 후 재시도 ($i)"
+            git fetch origin main || true
+            git rebase origin/main || git rebase --abort || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          if [ "$pushed" != "1" ]; then echo "::error::5회 재시도 후에도 push 실패"; exit 1; fi
