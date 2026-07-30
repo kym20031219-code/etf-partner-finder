@@ -27,6 +27,7 @@ import json
 import math
 import sys
 import urllib.request
+import urllib.parse
 from datetime import datetime, timezone, date, timedelta
 from pathlib import Path
 
@@ -43,9 +44,10 @@ INDICATORS = [
     dict(key="vix", sid="VIXCLS", label="VIX 공포지수", unit="",
          cat="daily", invert=True, dec=2, years=5,
          sub="시장의 불안 온도. 20↑ 경계, 30↑ 공포"),
-    dict(key="dxy", sid="DTWEXBGS", label="달러 인덱스", unit="",
+    dict(key="dxy", source="yahoo", symbols=["DX-Y.NYB", "DX=F"],
+         label="달러 인덱스 (DXY)", unit="",
          cat="daily", invert=True, dec=2, years=5,
-         sub="강달러=신흥국·원자재·수출주엔 역풍"),
+         sub="ICE 달러지수(DXY). 강달러=신흥국·원자재·수출주엔 역풍"),
     dict(key="sp500", sid="SP500", label="S&P 500", unit="",
          cat="daily", invert=False, dec=0, years=5,
          sub="미국 대표 500대 기업 주가지수"),
@@ -74,6 +76,33 @@ def http_get(url: str, timeout: int = 40) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (macro-fetch)"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode("utf-8", "replace")
+
+
+def fetch_yahoo(symbols: list[str], years: int) -> list[tuple[str, float]]:
+    """Yahoo Finance 차트 API → [(YYYY-MM-DD, close)]. 심볼을 순서대로 시도.
+    DXY(ICE 달러지수)는 FRED에 무료로 없어 여기서 받는다."""
+    rng = "5y" if years <= 5 else "10y"
+    last_err = None
+    for sym in symbols:
+        try:
+            url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+                   f"{urllib.parse.quote(sym)}?range={rng}&interval=1d")
+            j = json.loads(http_get(url))
+            res = j["chart"]["result"][0]
+            ts = res["timestamp"]
+            closes = res["indicators"]["quote"][0]["close"]
+            out = []
+            for t, c in zip(ts, closes):
+                if c is None:
+                    continue
+                d = datetime.fromtimestamp(t, tz=timezone.utc).strftime("%Y-%m-%d")
+                out.append((d, float(c)))
+            if len(out) >= 2:
+                return out
+        except Exception as e:  # noqa: BLE001 — 다음 심볼로 폴백
+            last_err = e
+            continue
+    raise RuntimeError(f"yahoo fetch 실패 {symbols}: {last_err}")
 
 
 def fetch_series(sid: str, years: int) -> list[tuple[str, float]]:
@@ -347,7 +376,10 @@ def gather_live() -> dict:
     inds, errors = {}, {}
     for meta in INDICATORS:
         try:
-            raw = fetch_series(meta["sid"], meta["years"])
+            if meta.get("source") == "yahoo":
+                raw = fetch_yahoo(meta["symbols"], meta["years"])
+            else:
+                raw = fetch_series(meta["sid"], meta["years"])
             ser = clip_years(transform(meta.get("transform"), raw), meta["years"])
             inds[meta["key"]] = build_indicator(meta, ser)
             print(f"  ✓ {meta['key']:9s} {meta['sid']:16s} {len(ser)}pts")
@@ -389,7 +421,7 @@ def gather_seed() -> dict:
     specs = {
         "us10y": daily_series(5, 2.5, 0.0016, 0.05, 0.5),
         "vix": daily_series(5, 22, -0.002, 1.2, 9),
-        "dxy": daily_series(5, 115, 0.004, 0.3),
+        "dxy": daily_series(5, 96, 0.003, 0.25),
         "sp500": daily_series(5, 4200, 2.4, 30),
         "cpi": monthly_series(60, 5.5, -0.03, 0.15, 0.5),
         "nfp": monthly_series(60, 180, -1, 60),
