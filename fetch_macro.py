@@ -382,7 +382,8 @@ def gather_live() -> dict:
                 raw = fetch_series(meta["sid"], meta["years"])
             ser = clip_years(transform(meta.get("transform"), raw), meta["years"])
             inds[meta["key"]] = build_indicator(meta, ser)
-            print(f"  ✓ {meta['key']:9s} {meta['sid']:16s} {len(ser)}pts")
+            src_id = meta.get("sid") or "/".join(meta.get("symbols", []))
+            print(f"  ✓ {meta['key']:9s} {src_id:16s} {len(ser)}pts")
         except Exception as e:
             errors[meta["key"]] = f"{type(e).__name__}: {e}"
             inds[meta["key"]] = {"available": False, "label": meta["label"], "cat": meta["cat"]}
