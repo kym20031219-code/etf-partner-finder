@@ -1,0 +1,99 @@
+{
+  "objective": "rank_ic_forward_return",
+  "target_horizon_days": 60,
+  "best_weights": {
+    "macro": 0.08965139226520406,
+    "korea": 0.12413454098013406,
+    "earnings": 0.2742368540549962,
+    "flows": 0.09779019543767166,
+    "valuation": 0.06358487221908275,
+    "technical": 0.3506021450429114
+  },
+  "metrics": {
+    "weights": {
+      "macro": 0.08965139226520406,
+      "korea": 0.12413454098013406,
+      "earnings": 0.2742368540549962,
+      "flows": 0.09779019543767166,
+      "valuation": 0.06358487221908275,
+      "technical": 0.3506021450429114
+    },
+    "ic_train": 0.1185,
+    "ic_val": 0.1436,
+    "ic_full": 0.1602,
+    "hit_val": 0.624,
+    "baseline_ic_val": -0.0072,
+    "n_train": 1549,
+    "n_val": 835
+  },
+  "by_horizon": {
+    "20": {
+      "weights": {
+        "macro": 0.13504304641639897,
+        "korea": 0.1320332550581238,
+        "earnings": 0.33718546367413266,
+        "flows": 0.24874092606721043,
+        "valuation": 0.0438004041251641,
+        "technical": 0.10319690465897005
+      },
+      "ic_train": -0.0404,
+      "ic_val": 0.0897,
+      "ic_full": 0.0333,
+      "hit_val": 0.5866,
+      "baseline_ic_val": 0.0518,
+      "n_train": 1575,
+      "n_val": 849
+    },
+    "40": {
+      "weights": {
+        "macro": 0.09355956048330556,
+        "korea": 0.18878082693267942,
+        "earnings": 0.33546392479481496,
+        "flows": 0.1474591395647759,
+        "valuation": 0.05673381955354645,
+        "technical": 0.17800272867087766
+      },
+      "ic_train": 0.0139,
+      "ic_val": 0.095,
+      "ic_full": 0.0765,
+      "hit_val": 0.6093,
+      "baseline_ic_val": 0.0004,
+      "n_train": 1562,
+      "n_val": 842
+    },
+    "60": {
+      "weights": {
+        "macro": 0.08965139226520406,
+        "korea": 0.12413454098013406,
+        "earnings": 0.2742368540549962,
+        "flows": 0.09779019543767166,
+        "valuation": 0.06358487221908275,
+        "technical": 0.3506021450429114
+      },
+      "ic_train": 0.1185,
+      "ic_val": 0.1436,
+      "ic_full": 0.1602,
+      "hit_val": 0.624,
+      "baseline_ic_val": -0.0072,
+      "n_train": 1549,
+      "n_val": 835
+    }
+  },
+  "default_weights": {
+    "macro": 0.2,
+    "korea": 0.15,
+    "earnings": 0.15,
+    "flows": 0.2,
+    "valuation": 0.1,
+    "technical": 0.2
+  },
+  "source": "real",
+  "samples": 4000,
+  "panel_rows": 2444,
+  "date_range": [
+    "2016-08-11",
+    "2026-07-31"
+  ],
+  "generated_at": "2026-08-01T19:46:21",
+  "note": "단기 지수 예측 IC 는 본질적으로 작다(0.05~0.15면 유의미). 합성 데이터 결과는 참고 불가. 미래수익 보장 아님."
+}
