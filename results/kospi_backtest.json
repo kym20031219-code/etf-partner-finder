@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15T12:44:35",
+  "generated_at": "2026-08-01T20:11:46",
   "source": "real",
   "params": {
     "cost": 0.001,
@@ -14,10 +14,10 @@
   "rebalance_days": 21,
   "strategy": {
     "total_return": 0.9344,
-    "cagr": 0.1042,
+    "cagr": 0.1035,
     "mdd": -0.407,
-    "sharpe": 0.665,
-    "time_in_market": 0.5784,
+    "sharpe": 0.663,
+    "time_in_market": 0.5746,
     "win_rate": 0.3333,
     "n_trades": 33,
     "avg_win": 0.1367,
@@ -28,14 +28,14 @@
     "worst": -0.1042
   },
   "buy_hold": {
-    "total_return": 2.5548,
-    "cagr": 0.21,
-    "mdd": -0.3571,
-    "sharpe": 0.877
+    "total_return": 2.2185,
+    "cagr": 0.1907,
+    "mdd": -0.3863,
+    "sharpe": 0.78
   },
   "excess": {
-    "total_return": -1.6204,
-    "cagr": -0.1058
+    "total_return": -1.2841,
+    "cagr": -0.0872
   },
   "subperiods": [
     {
@@ -57,22 +57,17 @@
       "buy_hold_mdd": -0.3571
     },
     {
-      "period": "2023-01-01 ~ 2026-07-15",
-      "n_days": 862,
+      "period": "2023-01-01 ~ 2026-07-31",
+      "n_days": 873,
       "strategy_return": 0.8208,
-      "buy_hold_return": 2.2572,
-      "excess_return": -1.4364,
+      "buy_hold_return": 1.9491,
+      "excess_return": -1.1283,
       "strategy_mdd": -0.3235,
-      "buy_hold_mdd": -0.2532
+      "buy_hold_mdd": -0.3863
     }
   ],
-  "threshold_reestimations": 80,
+  "threshold_reestimations": 81,
   "recent_thresholds": [
-    {
-      "date": "2026-04-17",
-      "buy": 54.0,
-      "sell": 48.0
-    },
     {
       "date": "2026-05-20",
       "buy": 54.0,
@@ -82,6 +77,11 @@
       "date": "2026-06-22",
       "buy": 54.0,
       "sell": 48.0
+    },
+    {
+      "date": "2026-07-22",
+      "buy": 60.0,
+      "sell": 46.0
     }
   ],
   "equity": [
@@ -1286,14 +1286,19 @@
       "bh": 3.6482
     },
     {
-      "d": "2026-07-15",
+      "d": "2026-07-22",
       "strat": 1.9344,
-      "bh": 3.5548
+      "bh": 3.3172
+    },
+    {
+      "d": "2026-07-31",
+      "strat": 1.9344,
+      "bh": 3.2185
     }
   ],
-  "n_days": 1677,
+  "n_days": 1688,
   "date_range": [
     "2019-09-16",
-    "2026-07-15"
+    "2026-07-31"
   ]
 }

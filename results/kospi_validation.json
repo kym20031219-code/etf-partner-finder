@@ -1,82 +1,82 @@
 {
-  "generated_at": "2026-07-15T12:46:01",
+  "generated_at": "2026-08-01T20:12:45",
   "source": "real",
   "horizon_days": 20,
   "label_definition": "20거래일 후 KOSPI 종가 수익률",
   "date_range": [
     "2016-08-11",
-    "2026-07-15"
+    "2026-07-31"
   ],
   "significant_factor_count": 4,
   "factor_ic": [
     {
       "key": "_composite",
       "label": "종합점수",
-      "ic": 0.0037,
-      "rank_ic": -0.0116,
-      "t_stat": -0.57,
+      "ic": 0.0071,
+      "rank_ic": -0.0086,
+      "t_stat": -0.43,
       "significant": false,
-      "n": 2413,
+      "n": 2424,
       "removal_candidate": false
     },
     {
       "key": "valuation",
       "label": "밸류에이션",
-      "ic": -0.2477,
-      "rank_ic": -0.176,
-      "t_stat": -8.78,
+      "ic": -0.2051,
+      "rank_ic": -0.1615,
+      "t_stat": -8.05,
       "significant": true,
-      "n": 2413,
+      "n": 2424,
       "removal_candidate": false
     },
     {
       "key": "earnings",
       "label": "기업실적",
-      "ic": 0.1186,
-      "rank_ic": 0.0988,
-      "t_stat": 4.87,
+      "ic": 0.0791,
+      "rank_ic": 0.0842,
+      "t_stat": 4.16,
       "significant": true,
-      "n": 2413,
+      "n": 2424,
       "removal_candidate": false
     },
     {
       "key": "technical",
       "label": "기술적",
-      "ic": 0.1136,
-      "rank_ic": 0.0771,
-      "t_stat": 3.8,
+      "ic": 0.1,
+      "rank_ic": 0.0727,
+      "t_stat": 3.59,
       "significant": true,
-      "n": 2413,
+      "n": 2424,
       "removal_candidate": false
     },
     {
       "key": "macro",
       "label": "거시",
-      "ic": -0.0435,
-      "rank_ic": -0.0546,
-      "t_stat": -2.68,
+      "ic": -0.0386,
+      "rank_ic": -0.0504,
+      "t_stat": -2.48,
       "significant": true,
-      "n": 2413,
+      "n": 2424,
       "removal_candidate": false
-    },
-    {
-      "key": "flows",
-      "label": "수급",
-      "ic": -0.0091,
-      "rank_ic": -0.0267,
-      "t_stat": -1.31,
-      "significant": false,
-      "n": 2413,
-      "removal_candidate": true
     },
     {
       "key": "korea",
       "label": "한국경제",
-      "ic": 0.0074,
-      "rank_ic": 0.0174,
-      "t_stat": 0.85,
+      "ic": 0.019,
+      "rank_ic": 0.0247,
+      "t_stat": 1.21,
       "significant": false,
-      "n": 2413,
+      "n": 2424,
+      "removal_candidate": true
+    },
+    {
+      "key": "flows",
+      "label": "수급",
+      "ic": 0.0091,
+      "rank_ic": -0.0179,
+      "t_stat": -0.88,
+      "significant": false,
+      "n": 2424,
       "removal_candidate": true
     }
   ],
@@ -98,10 +98,10 @@
       },
       {
         "bucket": "45–50",
-        "n": 285,
-        "avg_fwd_return": 0.0085,
-        "median_fwd_return": 0.0084,
-        "up_ratio": 0.5825
+        "n": 293,
+        "avg_fwd_return": 0.0019,
+        "median_fwd_return": 0.0062,
+        "up_ratio": 0.5666
       },
       {
         "bucket": "50–55",
@@ -112,10 +112,10 @@
       },
       {
         "bucket": "55–60",
-        "n": 352,
-        "avg_fwd_return": 0.008,
-        "median_fwd_return": 0.0024,
-        "up_ratio": 0.5284
+        "n": 355,
+        "avg_fwd_return": 0.0057,
+        "median_fwd_return": 0.0023,
+        "up_ratio": 0.5239
       },
       {
         "bucket": "≥60",
@@ -1333,11 +1333,15 @@
       {
         "score": 43.6,
         "fwd": -0.0608
+      },
+      {
+        "score": 49.1,
+        "fwd": -0.1714
       }
     ],
-    "n": 2413,
-    "composite_ic": 0.0037,
-    "composite_rank_ic": -0.0116
+    "n": 2424,
+    "composite_ic": 0.0071,
+    "composite_rank_ic": -0.0086
   },
   "note": "20일 라벨은 겹쳐서(overlapping) 자기상관이 있어 단순 t-통계량은 과대평가 가능(엄밀히 Newey-West 필요). 과거 관계가 미래를 보장하지 않음."
 }
