@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T20:11:46",
+  "generated_at": "2026-09-01T21:39:16",
   "source": "real",
   "params": {
     "cost": 0.001,
@@ -13,29 +13,29 @@
   "min_window_days": 756,
   "rebalance_days": 21,
   "strategy": {
-    "total_return": 0.9344,
-    "cagr": 0.1035,
+    "total_return": 1.002,
+    "cagr": 0.1078,
     "mdd": -0.407,
-    "sharpe": 0.663,
-    "time_in_market": 0.5746,
-    "win_rate": 0.3333,
-    "n_trades": 33,
-    "avg_win": 0.1367,
+    "sharpe": 0.67,
+    "time_in_market": 0.5781,
+    "win_rate": 0.3529,
+    "n_trades": 34,
+    "avg_win": 0.1282,
     "avg_loss": -0.0268,
-    "payoff": 5.1,
-    "top5_win_share": 0.9445,
+    "payoff": 4.78,
+    "top5_win_share": 0.9231,
     "best": 0.5312,
     "worst": -0.1042
   },
   "buy_hold": {
-    "total_return": 2.2185,
-    "cagr": 0.1907,
+    "total_return": 2.3358,
+    "cagr": 0.1944,
     "mdd": -0.3863,
-    "sharpe": 0.78
+    "sharpe": 0.785
   },
   "excess": {
-    "total_return": -1.2841,
-    "cagr": -0.0872
+    "total_return": -1.3338,
+    "cagr": -0.0866
   },
   "subperiods": [
     {
@@ -57,22 +57,17 @@
       "buy_hold_mdd": -0.3571
     },
     {
-      "period": "2023-01-01 ~ 2026-07-31",
-      "n_days": 873,
-      "strategy_return": 0.8208,
-      "buy_hold_return": 1.9491,
-      "excess_return": -1.1283,
+      "period": "2023-01-01 ~ 2026-09-01",
+      "n_days": 894,
+      "strategy_return": 0.8844,
+      "buy_hold_return": 2.0566,
+      "excess_return": -1.1722,
       "strategy_mdd": -0.3235,
       "buy_hold_mdd": -0.3863
     }
   ],
-  "threshold_reestimations": 81,
+  "threshold_reestimations": 82,
   "recent_thresholds": [
-    {
-      "date": "2026-05-20",
-      "buy": 54.0,
-      "sell": 48.0
-    },
     {
       "date": "2026-06-22",
       "buy": 54.0,
@@ -82,6 +77,11 @@
       "date": "2026-07-22",
       "buy": 60.0,
       "sell": 46.0
+    },
+    {
+      "date": "2026-08-21",
+      "buy": 54.0,
+      "sell": 48.0
     }
   ],
   "equity": [
@@ -1294,11 +1294,26 @@
       "d": "2026-07-31",
       "strat": 1.9344,
       "bh": 3.2185
+    },
+    {
+      "d": "2026-08-11",
+      "strat": 1.8584,
+      "bh": 3.0966
+    },
+    {
+      "d": "2026-08-21",
+      "strat": 2.0246,
+      "bh": 3.3735
+    },
+    {
+      "d": "2026-09-01",
+      "strat": 2.002,
+      "bh": 3.3358
     }
   ],
-  "n_days": 1688,
+  "n_days": 1709,
   "date_range": [
     "2019-09-16",
-    "2026-07-31"
+    "2026-09-01"
   ]
 }
