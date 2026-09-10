@@ -2,7 +2,7 @@
   "as_of": "2026-09-07",
   "kospi_close": 6995.39,
   "kospi_change_pct": 4.61,
-  "score": 49.4,
+  "score": 47.6,
   "bias": "중립",
   "confidence": "낮음",
   "outlook": "단기 코스피는 뚜렷한 방향성이 약한 중립 국면입니다. 버팀목: 거시, 기술적. 역풍: 밸류에이션, 한국경제.",
@@ -15,30 +15,30 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.09,
-      "score": 71.0,
+      "score": 67.5,
       "bias": "강세",
       "signals": [
         {
           "name": "미 S&P500 추세",
-          "detail": "50일선 대비 +1.0%",
-          "score": 59.9,
+          "detail": "50일선 대비 +0.5%",
+          "score": 54.5,
           "available": true
         },
         {
           "name": "VIX(변동성)",
-          "detail": "15.7",
-          "score": 85.7,
+          "detail": "16.5",
+          "score": 81.8,
           "available": true
         },
         {
           "name": "미 10년 국채금리",
-          "detail": "4.81% (+2% / 20일)",
-          "score": 38.6,
+          "detail": "4.84% (+3% / 20일)",
+          "score": 33.7,
           "available": true
         },
         {
           "name": "달러/원 환율",
-          "detail": "1,336 (-5.4% / 20일)",
+          "detail": "1,343 (-5.2% / 20일)",
           "score": 100.0,
           "available": true
         }
@@ -52,19 +52,19 @@
       "icon": "🇰🇷",
       "desc": "원화·중국 경기·코스닥·반도체 상대강도",
       "weight": 0.124,
-      "score": 37.8,
+      "score": 37.5,
       "bias": "중립-약세",
       "signals": [
         {
           "name": "원화 강도(1년 범위)",
-          "detail": "환율 상위 0%ile",
-          "score": 99.6,
+          "detail": "환율 상위 1%ile",
+          "score": 99.2,
           "available": true
         },
         {
           "name": "중국 증시 모멘텀",
-          "detail": "+0.2% / 20일",
-          "score": 51.4,
+          "detail": "+0.1% / 20일",
+          "score": 51.0,
           "available": true
         },
         {
@@ -75,7 +75,7 @@
         },
         {
           "name": "반도체 상대강도",
-          "detail": "코스피 대비 -9.2%p / 60일",
+          "detail": "코스피 대비 -12.2%p / 60일",
           "score": 0.0,
           "available": true
         }
@@ -89,19 +89,19 @@
       "icon": "🏭",
       "desc": "반도체 실적사이클 프록시 + 코스피 PER 방향",
       "weight": 0.274,
-      "score": 40.6,
+      "score": 39.2,
       "bias": "중립-약세",
       "signals": [
         {
           "name": "반도체 실적사이클",
-          "detail": "대표주 -19.1% / 60일 (기대 선반영)",
+          "detail": "대표주 -22.1% / 60일 (기대 선반영)",
           "score": 0.0,
           "available": true
         },
         {
           "name": "코스피 이익 방향",
-          "detail": "PER +10.4% / 20일",
-          "score": 21.8,
+          "detail": "PER +11.1% / 20일",
+          "score": 17.6,
           "available": true
         },
         {
@@ -120,25 +120,25 @@
       "icon": "💰",
       "desc": "외국인·기관 순매수 방향과 강도",
       "weight": 0.098,
-      "score": 57.0,
-      "bias": "중립-강세",
+      "score": 47.8,
+      "bias": "중립",
       "signals": [
         {
           "name": "외국인 순매수(20일)",
-          "detail": "20일 누적 -19,696억",
-          "score": 46.6,
+          "detail": "20일 누적 -74,266억",
+          "score": 37.2,
           "available": true
         },
         {
           "name": "기관 순매수(20일)",
-          "detail": "20일 누적 +8,083억",
-          "score": 52.0,
+          "detail": "20일 누적 +8,547억",
+          "score": 52.1,
           "available": true
         },
         {
           "name": "외국인 단기(5일)",
-          "detail": "+32,710억",
-          "score": 72.4,
+          "detail": "+6,079억",
+          "score": 54.2,
           "available": true
         }
       ],
@@ -151,25 +151,25 @@
       "icon": "⚖️",
       "desc": "PER·PBR 역사적 백분위와 ERP",
       "weight": 0.064,
-      "score": 16.0,
+      "score": 13.7,
       "bias": "약세",
       "signals": [
         {
           "name": "PER 백분위(3년)",
-          "detail": "19.0배 · 상위 68%ile",
-          "score": 32.4,
+          "detail": "19.3배 · 상위 72%ile",
+          "score": 27.6,
           "available": true
         },
         {
           "name": "PBR 백분위(3년)",
-          "detail": "1.99배 · 상위 92%ile",
-          "score": 8.1,
+          "detail": "2.02배 · 상위 93%ile",
+          "score": 7.5,
           "available": true
         },
         {
           "name": "ERP(위험프리미엄)",
-          "detail": "+0.5%p (이익수익률−금리)",
-          "score": 7.6,
+          "detail": "+0.4%p (이익수익률−금리)",
+          "score": 5.9,
           "available": true
         }
       ],
@@ -237,32 +237,32 @@
   "weekly_change": {
     "ref_date": "2026-08-31",
     "score_prev": 52.1,
-    "score_now": 49.4,
-    "score_delta": -2.7,
+    "score_now": 47.6,
+    "score_delta": -4.5,
     "factors": [
       {
         "key": "korea",
         "label": "한국경제",
         "icon": "🇰🇷",
-        "score_now": 37.8,
+        "score_now": 37.5,
         "score_prev": 72.2,
-        "contrib_delta": -4.27
-      },
-      {
-        "key": "flows",
-        "label": "수급",
-        "icon": "💰",
-        "score_now": 57.0,
-        "score_prev": 28.4,
-        "contrib_delta": 2.8
+        "contrib_delta": -4.3
       },
       {
         "key": "earnings",
         "label": "기업실적",
         "icon": "🏭",
-        "score_now": 40.6,
+        "score_now": 39.2,
         "score_prev": 46.5,
-        "contrib_delta": -1.62
+        "contrib_delta": -2.0
+      },
+      {
+        "key": "flows",
+        "label": "수급",
+        "icon": "💰",
+        "score_now": 47.8,
+        "score_prev": 28.4,
+        "contrib_delta": 1.9
       },
       {
         "key": "technical",
@@ -276,19 +276,19 @@
         "key": "macro",
         "label": "거시",
         "icon": "🌎",
-        "score_now": 71.0,
+        "score_now": 67.5,
         "score_prev": 78.7,
-        "contrib_delta": -0.69
+        "contrib_delta": -1.01
       },
       {
         "key": "valuation",
         "label": "밸류에이션",
         "icon": "⚖️",
-        "score_now": 16.0,
+        "score_now": 13.7,
         "score_prev": 20.0,
-        "contrib_delta": -0.26
+        "contrib_delta": -0.4
       }
     ]
   },
-  "generated_at": "2026-09-09T11:51:40"
+  "generated_at": "2026-09-10T11:50:02"
 }
