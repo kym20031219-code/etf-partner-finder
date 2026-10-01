@@ -18,13 +18,13 @@
       "valuation": 0.06358487221908275,
       "technical": 0.3506021450429114
     },
-    "ic_train": 0.1184,
-    "ic_val": 0.1198,
-    "ic_full": 0.1482,
-    "hit_val": 0.614,
-    "baseline_ic_val": 0.0102,
-    "n_train": 1563,
-    "n_val": 842
+    "ic_train": 0.1139,
+    "ic_val": 0.1093,
+    "ic_full": 0.1416,
+    "hit_val": 0.6111,
+    "baseline_ic_val": 0.0223,
+    "n_train": 1571,
+    "n_val": 846
   },
   "by_horizon": {
     "20": {
@@ -36,13 +36,13 @@
         "valuation": 0.048894744717535715,
         "technical": 0.3087268580031791
       },
-      "ic_train": -0.0185,
-      "ic_val": 0.0921,
-      "ic_full": 0.0442,
-      "hit_val": 0.5736,
-      "baseline_ic_val": 0.0644,
-      "n_train": 1589,
-      "n_val": 856
+      "ic_train": -0.0206,
+      "ic_val": 0.093,
+      "ic_full": 0.0427,
+      "hit_val": 0.5791,
+      "baseline_ic_val": 0.0713,
+      "n_train": 1597,
+      "n_val": 860
     },
     "40": {
       "weights": {
@@ -53,13 +53,13 @@
         "valuation": 0.048894744717535715,
         "technical": 0.3087268580031791
       },
-      "ic_train": 0.0079,
-      "ic_val": 0.1062,
-      "ic_full": 0.0772,
-      "hit_val": 0.5972,
-      "baseline_ic_val": 0.0386,
-      "n_train": 1576,
-      "n_val": 849
+      "ic_train": 0.0077,
+      "ic_val": 0.1109,
+      "ic_full": 0.0774,
+      "hit_val": 0.5932,
+      "baseline_ic_val": 0.0488,
+      "n_train": 1584,
+      "n_val": 853
     },
     "60": {
       "weights": {
@@ -70,13 +70,13 @@
         "valuation": 0.06358487221908275,
         "technical": 0.3506021450429114
       },
-      "ic_train": 0.1184,
-      "ic_val": 0.1198,
-      "ic_full": 0.1482,
-      "hit_val": 0.614,
-      "baseline_ic_val": 0.0102,
-      "n_train": 1563,
-      "n_val": 842
+      "ic_train": 0.1139,
+      "ic_val": 0.1093,
+      "ic_full": 0.1416,
+      "hit_val": 0.6111,
+      "baseline_ic_val": 0.0223,
+      "n_train": 1571,
+      "n_val": 846
     }
   },
   "default_weights": {
@@ -89,11 +89,11 @@
   },
   "source": "real",
   "samples": 4000,
-  "panel_rows": 2465,
+  "panel_rows": 2477,
   "date_range": [
     "2016-08-11",
-    "2026-09-01"
+    "2026-09-17"
   ],
-  "generated_at": "2026-09-01T21:15:57",
+  "generated_at": "2026-10-01T22:52:22",
   "note": "단기 지수 예측 IC 는 본질적으로 작다(0.05~0.15면 유의미). 합성 데이터 결과는 참고 불가. 미래수익 보장 아님."
 }
