@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01T21:39:16",
+  "generated_at": "2026-10-01T23:02:24",
   "source": "real",
   "params": {
     "cost": 0.001,
@@ -13,29 +13,29 @@
   "min_window_days": 756,
   "rebalance_days": 21,
   "strategy": {
-    "total_return": 1.002,
-    "cagr": 0.1078,
+    "total_return": 0.9201,
+    "cagr": 0.1002,
     "mdd": -0.407,
-    "sharpe": 0.67,
-    "time_in_market": 0.5781,
-    "win_rate": 0.3529,
+    "sharpe": 0.631,
+    "time_in_market": 0.5747,
+    "win_rate": 0.3235,
     "n_trades": 34,
-    "avg_win": 0.1282,
-    "avg_loss": -0.0268,
-    "payoff": 4.78,
-    "top5_win_share": 0.9231,
+    "avg_win": 0.1367,
+    "avg_loss": -0.0259,
+    "payoff": 5.27,
+    "top5_win_share": 0.9445,
     "best": 0.5312,
     "worst": -0.1042
   },
   "buy_hold": {
-    "total_return": 2.3358,
-    "cagr": 0.1944,
+    "total_return": 2.2814,
+    "cagr": 0.1901,
     "mdd": -0.3863,
-    "sharpe": 0.785
+    "sharpe": 0.77
   },
   "excess": {
-    "total_return": -1.3338,
-    "cagr": -0.0866
+    "total_return": -1.3613,
+    "cagr": -0.0899
   },
   "subperiods": [
     {
@@ -57,11 +57,11 @@
       "buy_hold_mdd": -0.3571
     },
     {
-      "period": "2023-01-01 ~ 2026-09-01",
-      "n_days": 894,
-      "strategy_return": 0.8844,
-      "buy_hold_return": 2.0566,
-      "excess_return": -1.1722,
+      "period": "2023-01-01 ~ 2026-09-17",
+      "n_days": 906,
+      "strategy_return": 0.8073,
+      "buy_hold_return": 2.0068,
+      "excess_return": -1.1995,
       "strategy_mdd": -0.3235,
       "buy_hold_mdd": -0.3863
     }
@@ -1309,11 +1309,21 @@
       "d": "2026-09-01",
       "strat": 2.002,
       "bh": 3.3358
+    },
+    {
+      "d": "2026-09-10",
+      "strat": 1.9201,
+      "bh": 3.4325
+    },
+    {
+      "d": "2026-09-17",
+      "strat": 1.9201,
+      "bh": 3.2814
     }
   ],
-  "n_days": 1709,
+  "n_days": 1721,
   "date_range": [
     "2019-09-16",
-    "2026-09-01"
+    "2026-09-17"
   ]
 }
