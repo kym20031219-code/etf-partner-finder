@@ -1,0 +1,618 @@
+{
+  "meta": {
+    "source": "real",
+    "market": "KOSPI",
+    "top": 150,
+    "start": "2019-01-01",
+    "end": "2026-07-13",
+    "slippage": 0.001,
+    "objective": "winrate",
+    "regime": true,
+    "universe_size": 149,
+    "split_date": "2024-02-02",
+    "generated_at": "2026-07-13T08:11:38"
+  },
+  "grid": {
+    "up_min": [
+      0.02,
+      0.03,
+      0.05
+    ],
+    "close_pos_min": [
+      0.5,
+      0.7
+    ],
+    "vol_mult": [
+      1.5,
+      2.0,
+      3.0
+    ],
+    "breakout_lookback": [
+      20,
+      60
+    ],
+    "rsi_high": [
+      80.0,
+      90.0
+    ]
+  },
+  "ranked": [
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 275,
+        "win_rate": 0.56,
+        "avg_ret": 0.005614098417092111,
+        "avg_win": 0.01851138453541179,
+        "avg_loss": -0.01080062936986021,
+        "payoff": 1.7139172081090845,
+        "expectancy": 0.005614098417092112,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 275
+        },
+        "trades_per_year": 54.1
+      },
+      "test": {
+        "trades": 248,
+        "win_rate": 0.4637096774193548,
+        "avg_ret": 0.007913349694316354,
+        "avg_win": 0.03949836596323036,
+        "avg_loss": -0.019397002718654393,
+        "payoff": 2.036312853905216,
+        "expectancy": 0.007913349694316356,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 248
+        },
+        "trades_per_year": 101.9
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 363,
+        "win_rate": 0.5564738292011019,
+        "avg_ret": 0.005331841268451934,
+        "avg_win": 0.019912569767294438,
+        "avg_loss": -0.012961992003387735,
+        "payoff": 1.536227592339982,
+        "expectancy": 0.0053318412684519294,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 363
+        },
+        "trades_per_year": 71.4
+      },
+      "test": {
+        "trades": 339,
+        "win_rate": 0.49557522123893805,
+        "avg_ret": 0.010096166195038865,
+        "avg_win": 0.0398242484709894,
+        "avg_loss": -0.019110370777824816,
+        "payoff": 2.0839076820634186,
+        "expectancy": 0.010096166195038865,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 339
+        },
+        "trades_per_year": 139.3
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.02,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 323,
+        "win_rate": 0.5479876160990712,
+        "avg_ret": 0.0052472299630174175,
+        "avg_win": 0.01819786303150902,
+        "avg_loss": -0.010453195058373088,
+        "payoff": 1.7408900273923802,
+        "expectancy": 0.005247229963017417,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 323
+        },
+        "trades_per_year": 63.5
+      },
+      "test": {
+        "trades": 265,
+        "win_rate": 0.4528301886792453,
+        "avg_ret": 0.0074646425042292274,
+        "avg_win": 0.038473141570873136,
+        "avg_loss": -0.018197563619889872,
+        "payoff": 2.1141918981298207,
+        "expectancy": 0.007464642504229227,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 265
+        },
+        "trades_per_year": 108.9
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.03,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 314,
+        "win_rate": 0.5477707006369427,
+        "avg_ret": 0.00544798126717418,
+        "avg_win": 0.01849680696540911,
+        "avg_loss": -0.010357638592659679,
+        "payoff": 1.7858131271849504,
+        "expectancy": 0.0054479812671741805,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 314
+        },
+        "trades_per_year": 61.8
+      },
+      "test": {
+        "trades": 260,
+        "win_rate": 0.4576923076923077,
+        "avg_ret": 0.0076040338214493075,
+        "avg_win": 0.038664095927242924,
+        "avg_loss": -0.01860977745932687,
+        "payoff": 2.077622691176525,
+        "expectancy": 0.007604033821449304,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 260
+        },
+        "trades_per_year": 106.8
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.7,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 211,
+        "win_rate": 0.5450236966824644,
+        "avg_ret": 0.004113211761563613,
+        "avg_win": 0.01692631773168483,
+        "avg_loss": -0.01123582143181076,
+        "payoff": 1.506460193801513,
+        "expectancy": 0.004113211761563613,
+        "avg_hold": 1.0,
+        "best": 0.18220801791889246,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 211
+        },
+        "trades_per_year": 41.5
+      },
+      "test": {
+        "trades": 198,
+        "win_rate": 0.4444444444444444,
+        "avg_ret": 0.007624725042076789,
+        "avg_win": 0.041034825574704975,
+        "avg_loss": -0.01910335538402576,
+        "payoff": 2.148042830686086,
+        "expectancy": 0.007624725042076785,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 198
+        },
+        "trades_per_year": 81.3
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.7,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 275,
+        "win_rate": 0.5418181818181819,
+        "avg_ret": 0.004571547190900021,
+        "avg_win": 0.019641206583808107,
+        "avg_loss": -0.013248923043570655,
+        "payoff": 1.4824757090984428,
+        "expectancy": 0.004571547190900021,
+        "avg_hold": 1.0,
+        "best": 0.18220801791889246,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 275
+        },
+        "trades_per_year": 54.1
+      },
+      "test": {
+        "trades": 270,
+        "win_rate": 0.48148148148148145,
+        "avg_ret": 0.009712471586320505,
+        "avg_win": 0.04048934912166926,
+        "avg_loss": -0.0188660575536462,
+        "payoff": 2.1461478640429554,
+        "expectancy": 0.0097124715863205,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 270
+        },
+        "trades_per_year": 110.9
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.02,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 418,
+        "win_rate": 0.5406698564593302,
+        "avg_ret": 0.004730417669488432,
+        "avg_win": 0.019467434810423973,
+        "avg_loss": -0.012616279590154447,
+        "payoff": 1.5430408522030585,
+        "expectancy": 0.004730417669488432,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 418
+        },
+        "trades_per_year": 82.2
+      },
+      "test": {
+        "trades": 357,
+        "win_rate": 0.48739495798319327,
+        "avg_ret": 0.009633353701736217,
+        "avg_win": 0.038884057688683166,
+        "avg_loss": -0.01817879107273793,
+        "payoff": 2.138979293677904,
+        "expectancy": 0.009633353701736217,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 357
+        },
+        "trades_per_year": 146.7
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.03,
+        "close_pos_min": 0.5,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 409,
+        "win_rate": 0.5403422982885085,
+        "avg_ret": 0.004873167299961445,
+        "avg_win": 0.0197288204010366,
+        "avg_loss": -0.012590127036940733,
+        "payoff": 1.567007254426441,
+        "expectancy": 0.004873167299961444,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 409
+        },
+        "trades_per_year": 80.4
+      },
+      "test": {
+        "trades": 352,
+        "win_rate": 0.4914772727272727,
+        "avg_ret": 0.00976711875419291,
+        "avg_win": 0.03901778303276302,
+        "avg_loss": -0.01850307633068211,
+        "payoff": 2.108718698201719,
+        "expectancy": 0.00976711875419291,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 352
+        },
+        "trades_per_year": 144.6
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.5,
+        "vol_mult": 2.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 623,
+        "win_rate": 0.5329052969502408,
+        "avg_ret": 0.004528345479456644,
+        "avg_win": 0.018707625154570303,
+        "avg_loss": -0.01164870212239124,
+        "payoff": 1.6059836501965603,
+        "expectancy": 0.004528345479456647,
+        "avg_hold": 1.0,
+        "best": 0.22165877339290913,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 623
+        },
+        "trades_per_year": 122.5
+      },
+      "test": {
+        "trades": 644,
+        "win_rate": 0.4829192546583851,
+        "avg_ret": 0.0075107425873707475,
+        "avg_win": 0.03459711963513016,
+        "avg_loss": -0.017786144084861014,
+        "payoff": 1.9451725719785493,
+        "expectancy": 0.007510742587370748,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.1985420531849102,
+        "exit_reasons": {
+          "overnight": 644
+        },
+        "trades_per_year": 264.6
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.03,
+        "close_pos_min": 0.7,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 236,
+        "win_rate": 0.5296610169491526,
+        "avg_ret": 0.0042181828782280415,
+        "avg_win": 0.017552788234478426,
+        "avg_loss": -0.010798264595026901,
+        "payoff": 1.625519367488207,
+        "expectancy": 0.004218182878228041,
+        "avg_hold": 1.0,
+        "best": 0.18220801791889246,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 236
+        },
+        "trades_per_year": 46.4
+      },
+      "test": {
+        "trades": 202,
+        "win_rate": 0.4405940594059406,
+        "avg_ret": 0.007592398795154166,
+        "avg_win": 0.04095603161636814,
+        "avg_loss": -0.018685152718899315,
+        "payoff": 2.191902428228092,
+        "expectancy": 0.007592398795154167,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 202
+        },
+        "trades_per_year": 83.0
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.02,
+        "close_pos_min": 0.7,
+        "vol_mult": 3.0,
+        "breakout_lookback": 60,
+        "rsi_high": 80.0
+      },
+      "train": {
+        "trades": 239,
+        "win_rate": 0.5271966527196653,
+        "avg_ret": 0.004125895627025734,
+        "avg_win": 0.017464448592759963,
+        "avg_loss": -0.010747181131226595,
+        "payoff": 1.6250259839778762,
+        "expectancy": 0.004125895627025734,
+        "avg_hold": 1.0,
+        "best": 0.18220801791889246,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 239
+        },
+        "trades_per_year": 47.0
+      },
+      "test": {
+        "trades": 205,
+        "win_rate": 0.43414634146341463,
+        "avg_ret": 0.007424157189959298,
+        "avg_win": 0.04095603161636814,
+        "avg_loss": -0.018302884395819903,
+        "payoff": 2.2376818172835025,
+        "expectancy": 0.0074241571899592955,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.08773429233488389,
+        "exit_reasons": {
+          "overnight": 205
+        },
+        "trades_per_year": 84.2
+      }
+    },
+    {
+      "params": {
+        "up_min": 0.05,
+        "close_pos_min": 0.7,
+        "vol_mult": 2.0,
+        "breakout_lookback": 60,
+        "rsi_high": 90.0
+      },
+      "train": {
+        "trades": 499,
+        "win_rate": 0.5250501002004008,
+        "avg_ret": 0.004190772946059146,
+        "avg_win": 0.018571212818645037,
+        "avg_loss": -0.011706590963719354,
+        "payoff": 1.5863894857350251,
+        "expectancy": 0.004190772946059142,
+        "avg_hold": 1.0,
+        "best": 0.18220801791889246,
+        "worst": -0.13955342276770838,
+        "exit_reasons": {
+          "overnight": 499
+        },
+        "trades_per_year": 98.1
+      },
+      "test": {
+        "trades": 524,
+        "win_rate": 0.4637404580152672,
+        "avg_ret": 0.006975346044128235,
+        "avg_win": 0.034858214442379416,
+        "avg_loss": -0.017136885346530257,
+        "payoff": 2.034104432485874,
+        "expectancy": 0.006975346044128238,
+        "avg_hold": 1.0,
+        "best": 0.29449151704041693,
+        "worst": -0.1985420531849102,
+        "exit_reasons": {
+          "overnight": 524
+        },
+        "trades_per_year": 215.3
+      }
+    }
+  ],
+  "chosen": {
+    "params": {
+      "up_min": 0.05,
+      "close_pos_min": 0.5,
+      "vol_mult": 3.0,
+      "breakout_lookback": 60,
+      "rsi_high": 90.0
+    },
+    "test_stats": {
+      "trades": 339,
+      "win_rate": 0.49557522123893805,
+      "avg_ret": 0.010096166195038865,
+      "avg_win": 0.0398242484709894,
+      "avg_loss": -0.019110370777824816,
+      "payoff": 2.0839076820634186,
+      "expectancy": 0.010096166195038865,
+      "avg_hold": 1.0,
+      "best": 0.29449151704041693,
+      "worst": -0.08773429233488389,
+      "exit_reasons": {
+        "overnight": 339
+      },
+      "trades_per_year": 139.3
+    },
+    "full_stats": {
+      "trades": 737,
+      "win_rate": 0.5278154681139756,
+      "avg_ret": 0.007380608267103461,
+      "avg_win": 0.028186611295457915,
+      "avg_loss": -0.015876676727235285,
+      "payoff": 1.775347056547787,
+      "expectancy": 0.007380608267103461,
+      "avg_hold": 1.0,
+      "best": 0.29449151704041693,
+      "worst": -0.13955342276770838,
+      "exit_reasons": {
+        "overnight": 737
+      },
+      "trades_per_year": 97.9
+    },
+    "study": {
+      "n_days": 258644,
+      "n_gap_up": 42176,
+      "base_gap_up_rate": 16.31,
+      "avg_gap_all": 0.122,
+      "feature_table": [
+        {
+          "feature": "당일 상승률",
+          "gap_up_mean": 0.25,
+          "no_gap_mean": 0.07,
+          "is_pct": true
+        },
+        {
+          "feature": "고가권 마감(0~1)",
+          "gap_up_mean": 0.459,
+          "no_gap_mean": 0.479,
+          "is_pct": false
+        },
+        {
+          "feature": "거래량 배수(20일평균 대비)",
+          "gap_up_mean": 1.123,
+          "no_gap_mean": 1.001,
+          "is_pct": false
+        },
+        {
+          "feature": "RSI(14)",
+          "gap_up_mean": 51.662,
+          "no_gap_mean": 50.413,
+          "is_pct": false
+        },
+        {
+          "feature": "20일 고가 돌파 비율",
+          "gap_up_mean": 0.047,
+          "no_gap_mean": 0.03,
+          "is_pct": false
+        }
+      ],
+      "signal": {
+        "n_signals": 1043,
+        "gap_up_rate": 35.67,
+        "avg_gap": 0.847,
+        "lift": 2.19
+      }
+    }
+  }
+}

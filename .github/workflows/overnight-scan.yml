@@ -1,0 +1,46 @@
+name: 종가매매 스캔 (장 마감 직전)
+
+# 종가매매법은 장 마감 직전(KST 15:20)에 매수 후보를 확정한다.
+# KST 15:15~15:20 = UTC 06:15~06:20. GitHub 예약은 수 분 지연될 수 있어 두 번 시도.
+# ⚠️ 예약(schedule) 실행은 '기본 브랜치(main)'에 이 파일이 있어야만 동작합니다.
+#    브랜치에서 테스트할 때는 workflow_dispatch(수동 실행)를 사용하세요.
+on:
+  schedule:
+    - cron: "10,18 6 * * 1-5"   # UTC 06:10 / 06:18 = KST 15:10 / 15:18 (평일)
+  workflow_dispatch:
+
+concurrency:
+  group: overnight-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # state/ · results/ 갱신분을 커밋
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 종가매매 스캔 (실데이터·국면필터) — 분석·성과·오늘의 후보 갱신
+        run: python run_overnight.py --source real --market KOSPI --top 200 --start 2020-01-01 --regime
+
+      - name: 결과 커밋 (대시보드 반영)
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -n "$(git status --porcelain state/ results/)" ]; then
+            git add state/overnight_latest.json results/overnight_study.json
+            git commit -m "chore: update overnight scan [skip ci]"
+            git push
+          else
+            echo "변경 없음 — 커밋 생략"
+          fi

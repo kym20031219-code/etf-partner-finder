@@ -1,0 +1,77 @@
+name: 종가매매 실데이터 검증 (워크포워드 최적화)
+
+# 실제 KOSPI 데이터로 종가매매법을 검증한다:
+#   1) tune_overnight.py — 학습/검증 분리 격자탐색으로 과최적화를 거른 강건 조합 선택
+#      → results/overnight_validation.json (승률·건당 기대수익·연간 거래횟수)
+#   2) run_overnight.py  — 갭상승 특징 분석 + 오늘의 후보 스캔
+#      → results/overnight_study.json, state/overnight_latest.json (대시보드용)
+# 수동 실행 전용. (main 병합 후 Actions 탭에서 Run workflow 로 실행)
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "분석할 시총 상위 종목 수"
+        default: "150"
+      start:
+        description: "백테스트 시작일"
+        default: "2019-01-01"
+      slippage:
+        description: "매수 슬리피지(보수적, 소수). 0.001 = 0.1%"
+        default: "0.001"
+      objective:
+        description: "최적화 목표: expectancy(기대수익) 또는 winrate(승률)"
+        default: "winrate"
+      regime:
+        description: "지수 상승국면에서만 매수(승률↑) true/false"
+        default: "true"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: overnight-validate
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 종가매매 파라미터 최적화 (학습/검증 분리) — 실데이터
+        run: >
+          python tune_overnight.py --source real --market KOSPI
+          --top ${{ inputs.top }} --start ${{ inputs.start }}
+          --slippage ${{ inputs.slippage }} --objective ${{ inputs.objective }}
+          ${{ inputs.regime == 'true' && '--regime' || '' }}
+          --out results/overnight_validation.json
+
+      - name: 종가매매 스캔 (분석·성과·오늘의 후보) — 대시보드 갱신
+        run: >
+          python run_overnight.py --source real --market KOSPI
+          --top 200 --start ${{ inputs.start }}
+          ${{ inputs.regime == 'true' && '--regime' || '' }}
+
+      - name: 결과 커밋
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add results/overnight_validation.json results/overnight_study.json state/overnight_latest.json
+          if [ -z "$(git status --porcelain results/ state/)" ]; then
+            echo "결과 변경 없음"; exit 0
+          fi
+          git commit -m "chore: 종가매매 실데이터 검증 결과 [skip ci]"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "push 실패 — rebase 후 재시도 ($i)"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            sleep $((2**i))
+          done
+          echo "::error::결과 push 실패"; exit 1

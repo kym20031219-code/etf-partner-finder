@@ -1,0 +1,60 @@
+name: 실시간 종가매매 스캔 (KIS 분봉)
+
+# 장 마감 직전(KST 15:10~15:20 = UTC 06:10~06:20)에 KIS 분봉으로 실시간 후보를 확정.
+# ⚠️ 실행하려면 저장소 Secrets 에 KIS_APP_KEY / KIS_APP_SECRET 를 등록해야 합니다.
+#    (Settings → Secrets and variables → Actions). 예약 실행은 main 브랜치 기준.
+on:
+  schedule:
+    - cron: "12,18 6 * * 1-5"   # UTC 06:12 / 06:18 = KST 15:12 / 15:18 (평일)
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "시총 상위 종목 수"
+        default: "100"
+      snapshot:
+        description: "판단 시각 HH:MM"
+        default: "15:18"
+
+concurrency:
+  group: kis-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 실시간 스캔 (KIS)
+        env:
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          KIS_ENV: ${{ vars.KIS_ENV || 'real' }}
+        run: >
+          python run_kis_scan.py --market KOSPI --top ${{ inputs.top || '100' }}
+          --snapshot ${{ inputs.snapshot || '15:18' }}
+
+      - name: 결과 커밋 (대시보드 반영)
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          if [ -z "$(git status --porcelain state/overnight_latest.json)" ]; then
+            echo "변경 없음"; exit 0
+          fi
+          git add state/overnight_latest.json
+          git commit -m "chore: 실시간 KIS 종가매매 스캔 [skip ci]"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            sleep $((2**i))
+          done
+          echo "::error::push 실패"; exit 1
