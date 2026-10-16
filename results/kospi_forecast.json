@@ -1,10 +1,10 @@
 {
-  "as_of": "2026-10-15",
-  "kospi_close": 5554.22,
-  "kospi_change_pct": -7.57,
-  "score": 30.5,
+  "as_of": "2026-10-16",
+  "kospi_close": 5668.05,
+  "kospi_change_pct": 2.05,
+  "score": 30.0,
   "bias": "약세",
-  "confidence": "낮음",
+  "confidence": "보통",
   "outlook": "단기 코스피는 하방 압력이 우세합니다. 버팀목: 거시. 역풍: 기술적, 기업실적.",
   "data_factors_available": 4,
   "data_factors_total": 6,
@@ -15,31 +15,31 @@
       "icon": "🌎",
       "desc": "미 증시·VIX·금리·환율로 본 글로벌 위험선호",
       "weight": 0.09,
-      "score": 62.5,
-      "bias": "중립-강세",
+      "score": 68.0,
+      "bias": "강세",
       "signals": [
         {
           "name": "미 S&P500 추세",
-          "detail": "50일선 대비 +0.2%",
-          "score": 51.5,
+          "detail": "50일선 대비 +0.5%",
+          "score": 54.8,
           "available": true
         },
         {
           "name": "VIX(변동성)",
-          "detail": "16.9",
-          "score": 79.6,
+          "detail": "16.5",
+          "score": 81.8,
           "available": true
         },
         {
           "name": "미 10년 국채금리",
-          "detail": "5.19% (+4% / 20일)",
-          "score": 31.6,
+          "detail": "5.09% (+3% / 20일)",
+          "score": 35.6,
           "available": true
         },
         {
           "name": "달러/원 환율",
-          "detail": "1,346 (-2.2% / 20일)",
-          "score": 87.2,
+          "detail": "1,332 (-3.4% / 20일)",
+          "score": 100.0,
           "available": true
         }
       ],
@@ -52,30 +52,30 @@
       "icon": "🇰🇷",
       "desc": "원화·중국 경기·코스닥·반도체 상대강도",
       "weight": 0.124,
-      "score": 51.8,
+      "score": 49.9,
       "bias": "중립",
       "signals": [
         {
           "name": "원화 강도(1년 범위)",
-          "detail": "환율 상위 6%ile",
-          "score": 94.0,
+          "detail": "환율 상위 0%ile",
+          "score": 99.6,
           "available": true
         },
         {
           "name": "중국 증시 모멘텀",
-          "detail": "-4.4% / 20일",
-          "score": 13.3,
+          "detail": "-6.2% / 20일",
+          "score": 0.0,
           "available": true
         },
         {
           "name": "코스닥 상대강도",
-          "detail": "코스피 대비 +12.3%p",
+          "detail": "코스피 대비 +13.7%p",
           "score": 100.0,
           "available": true
         },
         {
           "name": "반도체 상대강도",
-          "detail": "코스피 대비 -14.1%p / 60일",
+          "detail": "코스피 대비 -11.4%p / 60일",
           "score": 0.0,
           "available": true
         }
@@ -89,12 +89,12 @@
       "icon": "🏭",
       "desc": "반도체 실적사이클 프록시 + 코스피 PER 방향",
       "weight": 0.274,
-      "score": 18.3,
+      "score": 21.6,
       "bias": "약세",
       "signals": [
         {
           "name": "반도체 실적사이클",
-          "detail": "대표주 -37.9% / 60일 (기대 선반영)",
+          "detail": "대표주 -28.3% / 60일 (기대 선반영)",
           "score": 0.0,
           "available": true
         },
@@ -106,8 +106,8 @@
         },
         {
           "name": "지수 중기추세(120일)",
-          "detail": "-10.8%",
-          "score": 5.0,
+          "detail": "-8.5%",
+          "score": 14.7,
           "available": true
         }
       ],
@@ -182,24 +182,24 @@
       "icon": "📈",
       "desc": "추세·RSI·MACD·모멘텀·거래량·52주 위치",
       "weight": 0.351,
-      "score": 15.4,
+      "score": 10.7,
       "bias": "약세",
       "signals": [
         {
           "name": "이평선 배열",
-          "detail": "혼조",
-          "score": 33.3,
+          "detail": "역배열",
+          "score": 0.0,
           "available": true
         },
         {
           "name": "60일선 이격",
-          "detail": "-16.5%",
+          "detail": "-14.6%",
           "score": 0.0,
           "available": true
         },
         {
           "name": "RSI(14)",
-          "detail": "23",
+          "detail": "27",
           "score": 0.0,
           "available": true
         },
@@ -211,20 +211,20 @@
         },
         {
           "name": "20일 모멘텀",
-          "detail": "-19.6%",
+          "detail": "-15.2%",
           "score": 0.0,
           "available": true
         },
         {
           "name": "거래량 추세",
-          "detail": "5일/60일 1.12배",
-          "score": 37.7,
+          "detail": "5일/60일 1.13배",
+          "score": 36.7,
           "available": true
         },
         {
           "name": "52주 범위 위치",
-          "detail": "37%ile",
-          "score": 37.1,
+          "detail": "38%ile",
+          "score": 38.1,
           "available": true
         }
       ],
@@ -235,34 +235,34 @@
   "disclaimer": "본 전망 점수는 공개 시장데이터에 기반한 규칙 기반 참고 지표이며 매매 권유가 아닙니다. 전망은 불확실하며 언제든 빗나갈 수 있고, 본 시스템에는 어떤 자동 매수/매도 기능도 없습니다. 투자 판단과 책임은 전적으로 본인에게 있습니다.",
   "weights_optimized": true,
   "weekly_change": {
-    "ref_date": "2026-09-14",
-    "score_prev": 42.7,
-    "score_now": 30.5,
-    "score_delta": -12.2,
+    "ref_date": "2026-09-15",
+    "score_prev": 41.5,
+    "score_now": 30.0,
+    "score_delta": -11.5,
     "factors": [
       {
         "key": "earnings",
         "label": "기업실적",
         "icon": "🏭",
-        "score_now": 18.3,
-        "score_prev": 54.6,
-        "contrib_delta": -9.95
+        "score_now": 21.6,
+        "score_prev": 55.3,
+        "contrib_delta": -9.23
       },
       {
         "key": "technical",
         "label": "기술적",
         "icon": "📈",
-        "score_now": 15.4,
-        "score_prev": 38.6,
-        "contrib_delta": -8.14
+        "score_now": 10.7,
+        "score_prev": 32.4,
+        "contrib_delta": -7.62
       },
       {
         "key": "flows",
         "label": "수급",
         "icon": "💰",
         "score_now": 50.0,
-        "score_prev": 22.1,
-        "contrib_delta": 2.73
+        "score_prev": 21.5,
+        "contrib_delta": 2.79
       },
       {
         "key": "valuation",
@@ -273,22 +273,22 @@
         "contrib_delta": 1.73
       },
       {
-        "key": "korea",
-        "label": "한국경제",
-        "icon": "🇰🇷",
-        "score_now": 51.8,
-        "score_prev": 39.6,
-        "contrib_delta": 1.51
-      },
-      {
         "key": "macro",
         "label": "거시",
         "icon": "🌎",
-        "score_now": 62.5,
-        "score_prev": 63.9,
-        "contrib_delta": -0.13
+        "score_now": 68.0,
+        "score_prev": 62.9,
+        "contrib_delta": 0.46
+      },
+      {
+        "key": "korea",
+        "label": "한국경제",
+        "icon": "🇰🇷",
+        "score_now": 49.9,
+        "score_prev": 46.9,
+        "contrib_delta": 0.37
       }
     ]
   },
-  "generated_at": "2026-10-15T12:07:42"
+  "generated_at": "2026-10-16T11:54:44"
 }
