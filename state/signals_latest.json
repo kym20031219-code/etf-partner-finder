@@ -1,68 +1,44 @@
 {
-  "generated_at": "2026-11-09T03:31:43",
+  "generated_at": "2026-11-09T11:59:25",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "001067",
+      "code": "138040",
       "date": "2026-11-09",
-      "close": 48750.0,
-      "ma20": 49510.0,
-      "rsi": 42.8,
-      "dist_pct": -1.5,
+      "close": 129800.0,
+      "ma20": 129735.0,
+      "rsi": 50.7,
+      "dist_pct": 0.1,
       "tier": "watch",
-      "stop": 45337.5,
-      "target": 56062.5,
-      "name": "JW중외제약2우B"
-    },
-    {
-      "code": "000590",
-      "date": "2026-11-09",
-      "close": 72500.0,
-      "ma20": 71390.0,
-      "rsi": 61.2,
-      "dist_pct": 1.6,
-      "tier": "watch",
-      "stop": 67425.0,
-      "target": 83375.0,
-      "name": "CS홀딩스"
+      "stop": 120714.0,
+      "target": 149270.0,
+      "name": "메리츠금융지주"
     },
     {
       "code": "033780",
       "date": "2026-11-09",
-      "close": 186200.0,
-      "ma20": 190670.0,
-      "rsi": 47.9,
-      "dist_pct": -2.3,
+      "close": 185300.0,
+      "ma20": 190625.0,
+      "rsi": 46.7,
+      "dist_pct": -2.8,
       "tier": "watch",
-      "stop": 173166.0,
-      "target": 214130.0,
+      "stop": 172329.0,
+      "target": 213095.0,
       "name": "KT&G"
     },
     {
-      "code": "015590",
+      "code": "021240",
       "date": "2026-11-09",
-      "close": 1964.0,
-      "ma20": 2014.4,
-      "rsi": 46.5,
-      "dist_pct": -2.5,
+      "close": 101500.0,
+      "ma20": 105265.0,
+      "rsi": 45.8,
+      "dist_pct": -3.6,
       "tier": "watch",
-      "stop": 1826.52,
-      "target": 2258.6,
-      "name": "DKME"
-    },
-    {
-      "code": "012030",
-      "date": "2026-11-09",
-      "close": 2225.0,
-      "ma20": 2291.0,
-      "rsi": 52.0,
-      "dist_pct": -2.9,
-      "tier": "watch",
-      "stop": 2069.25,
-      "target": 2558.75,
-      "name": "DB"
+      "stop": 94395.0,
+      "target": 116725.0,
+      "name": "코웨이"
     }
   ]
 }
