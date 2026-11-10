@@ -1,56 +1,32 @@
 {
-  "generated_at": "2026-11-10T05:05:07",
+  "generated_at": "2026-11-10T13:40:22",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "012030",
+      "code": "138040",
       "date": "2026-11-10",
-      "close": 2295.0,
-      "ma20": 2293.0,
-      "rsi": 54.9,
-      "dist_pct": 0.1,
+      "close": 128500.0,
+      "ma20": 129560.0,
+      "rsi": 48.3,
+      "dist_pct": -0.8,
       "tier": "watch",
-      "stop": 2134.35,
-      "target": 2639.25,
-      "name": "DB"
+      "stop": 119505.0,
+      "target": 147775.0,
+      "name": "메리츠금융지주"
     },
     {
-      "code": "001067",
-      "date": "2026-11-09",
-      "close": 48750.0,
-      "ma20": 49510.0,
-      "rsi": 42.8,
-      "dist_pct": -1.5,
-      "tier": "watch",
-      "stop": 45337.5,
-      "target": 56062.5,
-      "name": "JW중외제약2우B"
-    },
-    {
-      "code": "015590",
+      "code": "068270",
       "date": "2026-11-10",
-      "close": 1953.0,
-      "ma20": 2004.6,
-      "rsi": 45.6,
-      "dist_pct": -2.6,
+      "close": 204500.0,
+      "ma20": 195245.0,
+      "rsi": 60.3,
+      "dist_pct": 4.7,
       "tier": "watch",
-      "stop": 1816.29,
-      "target": 2245.95,
-      "name": "DKME"
-    },
-    {
-      "code": "000590",
-      "date": "2026-11-10",
-      "close": 73800.0,
-      "ma20": 71605.0,
-      "rsi": 68.0,
-      "dist_pct": 3.1,
-      "tier": "watch",
-      "stop": 68634.0,
-      "target": 84870.0,
-      "name": "CS홀딩스"
+      "stop": 190185.0,
+      "target": 235175.0,
+      "name": "셀트리온"
     }
   ]
 }
