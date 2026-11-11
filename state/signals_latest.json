@@ -1,92 +1,44 @@
 {
-  "generated_at": "2026-11-11T03:39:21",
+  "generated_at": "2026-11-11T11:33:56",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "015590",
+      "code": "021240",
       "date": "2026-11-11",
-      "close": 1980.0,
-      "ma20": 1996.6,
-      "rsi": 48.2,
-      "dist_pct": -0.8,
+      "close": 101500.0,
+      "ma20": 105105.0,
+      "rsi": 46.5,
+      "dist_pct": -3.4,
       "tier": "watch",
-      "stop": 1841.4,
-      "target": 2277.0,
-      "name": "DKME"
+      "stop": 94395.0,
+      "target": 116725.0,
+      "name": "코웨이"
     },
     {
-      "code": "001067",
+      "code": "032640",
       "date": "2026-11-11",
-      "close": 48850.0,
-      "ma20": 49400.0,
-      "rsi": 44.6,
-      "dist_pct": -1.1,
+      "close": 15500.0,
+      "ma20": 14990.5,
+      "rsi": 55.9,
+      "dist_pct": 3.4,
       "tier": "watch",
-      "stop": 45430.5,
-      "target": 56177.5,
-      "name": "JW중외제약2우B"
+      "stop": 14415.0,
+      "target": 17825.0,
+      "name": "LG유플러스"
     },
     {
-      "code": "001250",
+      "code": "068270",
       "date": "2026-11-11",
-      "close": 2790.0,
-      "ma20": 2753.25,
-      "rsi": 52.5,
-      "dist_pct": 1.3,
+      "close": 206500.0,
+      "ma20": 196535.0,
+      "rsi": 61.8,
+      "dist_pct": 5.1,
       "tier": "watch",
-      "stop": 2594.7,
-      "target": 3208.5,
-      "name": "GS글로벌"
-    },
-    {
-      "code": "000590",
-      "date": "2026-11-11",
-      "close": 73500.0,
-      "ma20": 71790.0,
-      "rsi": 65.1,
-      "dist_pct": 2.4,
-      "tier": "watch",
-      "stop": 68355.0,
-      "target": 84525.0,
-      "name": "CS홀딩스"
-    },
-    {
-      "code": "294870",
-      "date": "2026-11-11",
-      "close": 23800.0,
-      "ma20": 23110.0,
-      "rsi": 52.7,
-      "dist_pct": 3.0,
-      "tier": "watch",
-      "stop": 22134.0,
-      "target": 27370.0,
-      "name": "IPARK현대산업개발"
-    },
-    {
-      "code": "044450",
-      "date": "2026-11-11",
-      "close": 11390.0,
-      "ma20": 11759.0,
-      "rsi": 44.1,
-      "dist_pct": -3.1,
-      "tier": "watch",
-      "stop": 10592.7,
-      "target": 13098.5,
-      "name": "KSS해운"
-    },
-    {
-      "code": "012030",
-      "date": "2026-11-11",
-      "close": 2380.0,
-      "ma20": 2293.75,
-      "rsi": 58.0,
-      "dist_pct": 3.8,
-      "tier": "watch",
-      "stop": 2213.4,
-      "target": 2737.0,
-      "name": "DB"
+      "stop": 192045.0,
+      "target": 237475.0,
+      "name": "셀트리온"
     }
   ]
 }
