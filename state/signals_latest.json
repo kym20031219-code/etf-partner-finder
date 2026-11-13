@@ -1,56 +1,56 @@
 {
-  "generated_at": "2026-11-13T03:58:55",
+  "generated_at": "2026-11-13T11:48:37",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "012030",
+      "code": "000100",
       "date": "2026-11-13",
-      "close": 2330.0,
-      "ma20": 2294.75,
-      "rsi": 54.8,
-      "dist_pct": 1.5,
+      "close": 80300.0,
+      "ma20": 80210.0,
+      "rsi": 53.6,
+      "dist_pct": 0.1,
       "tier": "watch",
-      "stop": 2166.9,
-      "target": 2679.5,
-      "name": "DB"
+      "stop": 74679.0,
+      "target": 92345.0,
+      "name": "유한양행"
     },
     {
-      "code": "294870",
+      "code": "021240",
       "date": "2026-11-13",
-      "close": 24100.0,
-      "ma20": 23420.0,
-      "rsi": 54.5,
-      "dist_pct": 2.9,
+      "close": 102600.0,
+      "ma20": 104535.0,
+      "rsi": 48.5,
+      "dist_pct": -1.9,
       "tier": "watch",
-      "stop": 22413.0,
-      "target": 27715.0,
-      "name": "IPARK현대산업개발"
+      "stop": 95418.0,
+      "target": 117990.0,
+      "name": "코웨이"
     },
     {
-      "code": "015590",
+      "code": "032640",
       "date": "2026-11-13",
-      "close": 2055.0,
-      "ma20": 1994.1,
-      "rsi": 54.8,
-      "dist_pct": 3.1,
+      "close": 15550.0,
+      "ma20": 15001.5,
+      "rsi": 55.9,
+      "dist_pct": 3.7,
       "tier": "watch",
-      "stop": 1911.15,
-      "target": 2363.25,
-      "name": "DKME"
+      "stop": 14461.5,
+      "target": 17882.5,
+      "name": "LG유플러스"
     },
     {
-      "code": "044450",
+      "code": "064400",
       "date": "2026-11-13",
-      "close": 11300.0,
-      "ma20": 11687.5,
-      "rsi": 42.0,
-      "dist_pct": -3.3,
+      "close": 79300.0,
+      "ma20": 74815.0,
+      "rsi": 57.5,
+      "dist_pct": 6.0,
       "tier": "watch",
-      "stop": 10509.0,
-      "target": 12995.0,
-      "name": "KSS해운"
+      "stop": 73749.0,
+      "target": 91195.0,
+      "name": "LG씨엔에스"
     }
   ]
 }
