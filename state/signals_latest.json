@@ -1,56 +1,56 @@
 {
-  "generated_at": "2026-11-12T13:27:33",
+  "generated_at": "2026-11-13T03:58:55",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "000100",
-      "date": "2026-11-12",
-      "close": 79700.0,
-      "ma20": 80225.0,
-      "rsi": 52.4,
-      "dist_pct": -0.7,
-      "tier": "watch",
-      "stop": 74121.0,
-      "target": 91655.0,
-      "name": "유한양행"
-    },
-    {
-      "code": "064400",
-      "date": "2026-11-12",
-      "close": 74800.0,
-      "ma20": 74110.0,
-      "rsi": 51.6,
-      "dist_pct": 0.9,
-      "tier": "watch",
-      "stop": 69564.0,
-      "target": 86020.0,
-      "name": "LG씨엔에스"
-    },
-    {
-      "code": "032640",
-      "date": "2026-11-12",
-      "close": 15230.0,
-      "ma20": 14999.5,
-      "rsi": 52.2,
+      "code": "012030",
+      "date": "2026-11-13",
+      "close": 2330.0,
+      "ma20": 2294.75,
+      "rsi": 54.8,
       "dist_pct": 1.5,
       "tier": "watch",
-      "stop": 14163.9,
-      "target": 17514.5,
-      "name": "LG유플러스"
+      "stop": 2166.9,
+      "target": 2679.5,
+      "name": "DB"
     },
     {
-      "code": "021240",
-      "date": "2026-11-12",
-      "close": 102200.0,
-      "ma20": 104875.0,
-      "rsi": 47.7,
-      "dist_pct": -2.6,
+      "code": "294870",
+      "date": "2026-11-13",
+      "close": 24100.0,
+      "ma20": 23420.0,
+      "rsi": 54.5,
+      "dist_pct": 2.9,
       "tier": "watch",
-      "stop": 95046.0,
-      "target": 117530.0,
-      "name": "코웨이"
+      "stop": 22413.0,
+      "target": 27715.0,
+      "name": "IPARK현대산업개발"
+    },
+    {
+      "code": "015590",
+      "date": "2026-11-13",
+      "close": 2055.0,
+      "ma20": 1994.1,
+      "rsi": 54.8,
+      "dist_pct": 3.1,
+      "tier": "watch",
+      "stop": 1911.15,
+      "target": 2363.25,
+      "name": "DKME"
+    },
+    {
+      "code": "044450",
+      "date": "2026-11-13",
+      "close": 11300.0,
+      "ma20": 11687.5,
+      "rsi": 42.0,
+      "dist_pct": -3.3,
+      "tier": "watch",
+      "stop": 10509.0,
+      "target": 12995.0,
+      "name": "KSS해운"
     }
   ]
 }
