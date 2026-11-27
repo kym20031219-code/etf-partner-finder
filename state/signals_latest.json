@@ -1,56 +1,56 @@
 {
-  "generated_at": "2026-11-27T05:45:09",
+  "generated_at": "2026-11-27T15:48:18",
   "source": "real",
   "market_regime": false,
   "candidates": [],
   "watch": [
     {
-      "code": "015590",
+      "code": "012750",
       "date": "2026-11-27",
-      "close": 2045.0,
-      "ma20": 2009.7,
-      "rsi": 52.0,
-      "dist_pct": 1.8,
+      "close": 101900.0,
+      "ma20": 101080.0,
+      "rsi": 56.3,
+      "dist_pct": 0.8,
       "tier": "watch",
-      "stop": 1901.85,
-      "target": 2351.75,
-      "name": "DKME"
-    },
-    {
-      "code": "012030",
-      "date": "2026-11-27",
-      "close": 2350.0,
-      "ma20": 2300.75,
-      "rsi": 54.0,
-      "dist_pct": 2.1,
-      "tier": "watch",
-      "stop": 2185.5,
-      "target": 2702.5,
-      "name": "DB"
+      "stop": 94767.0,
+      "target": 117185.0,
+      "name": "에스원"
     },
     {
       "code": "011200",
       "date": "2026-11-27",
-      "close": 22450.0,
-      "ma20": 21930.0,
-      "rsi": 54.1,
-      "dist_pct": 2.4,
+      "close": 22350.0,
+      "ma20": 21925.0,
+      "rsi": 53.3,
+      "dist_pct": 1.9,
       "tier": "watch",
-      "stop": 20878.5,
-      "target": 25817.5,
+      "stop": 20785.5,
+      "target": 25702.5,
       "name": "HMM"
     },
     {
-      "code": "058860",
+      "code": "003490",
       "date": "2026-11-27",
-      "close": 2645.0,
-      "ma20": 2557.25,
-      "rsi": 60.5,
-      "dist_pct": 3.4,
+      "close": 30150.0,
+      "ma20": 30750.0,
+      "rsi": 49.8,
+      "dist_pct": -2.0,
       "tier": "watch",
-      "stop": 2459.85,
-      "target": 3041.75,
-      "name": "KTis"
+      "stop": 28039.5,
+      "target": 34672.5,
+      "name": "대한항공"
+    },
+    {
+      "code": "068270",
+      "date": "2026-11-27",
+      "close": 221000.0,
+      "ma20": 208820.0,
+      "rsi": 64.5,
+      "dist_pct": 5.8,
+      "tier": "watch",
+      "stop": 205530.0,
+      "target": 254150.0,
+      "name": "셀트리온"
     }
   ]
 }
